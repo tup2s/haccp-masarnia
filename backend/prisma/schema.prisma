@@ -1,0 +1,504 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// =====================
+// USTAWIENIA FIRMY
+// =====================
+model CompanySettings {
+  id                Int      @id @default(autoincrement())
+  companyName       String   @default("")
+  address           String   @default("")
+  nip               String   @default("")
+  vetNumber         String   @default("")
+  phone             String   @default("")
+  email             String   @default("")
+  ownerName         String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// =====================
+// UŻYTKOWNICY
+// =====================
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  temperatureReadings TemperatureReading[]
+  cleaningRecords     CleaningRecord[]
+  pestControlChecks   PestControlCheck[]
+  correctiveActions   CorrectiveAction[]
+  auditRecords        AuditRecord[]
+  receptions          RawMaterialReception[]
+  productionBatches   ProductionBatch[]
+  documents           Document[]
+  trainingParticipants TrainingParticipant[]
+  curingBatches       CuringBatch[]
+}
+
+// =====================
+// PLAN HACCP - CCP
+// =====================
+model CCP {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  description        String
+  hazardType         String   // BIOLOGICAL, CHEMICAL, PHYSICAL
+  criticalLimit      String
+  monitoringMethod   String
+  monitoringFrequency String
+  correctiveAction   String
+  verificationMethod String
+  recordKeeping      String
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  temperaturePoints TemperaturePoint[]
+}
+
+model Hazard {
+  id              Int      @id @default(autoincrement())
+  name            String
+  type            String   // BIOLOGICAL, CHEMICAL, PHYSICAL
+  source          String
+  preventiveMeasure String
+  significance    String   // HIGH, MEDIUM, LOW
+  processStep     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// =====================
+// MONITORING TEMPERATURY
+// =====================
+model TemperaturePoint {
+  id          Int      @id @default(autoincrement())
+  name        String
+  location    String
+  type        String   // FREEZER, COOLER, PRODUCTION, TRANSPORT
+  minTemp     Float
+  maxTemp     Float
+  ccpId       Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ccp      CCP?                 @relation(fields: [ccpId], references: [id])
+  readings TemperatureReading[]
+}
+
+model TemperatureReading {
+  id                 Int      @id @default(autoincrement())
+  temperaturePointId Int
+  temperature        Float
+  isCompliant        Boolean
+  notes              String?
+  readAt             DateTime @default(now())
+  userId             Int
+  createdAt          DateTime @default(now())
+
+  temperaturePoint TemperaturePoint @relation(fields: [temperaturePointId], references: [id])
+  user             User             @relation(fields: [userId], references: [id])
+}
+
+// =====================
+// DOSTAWCY
+// =====================
+model Supplier {
+  id            Int      @id @default(autoincrement())
+  name          String
+  address       String
+  phone         String?
+  email         String?
+  vetNumber     String?  // Numer weterynaryjny
+  contactPerson String?
+  isApproved    Boolean  @default(true)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  rawMaterials     RawMaterial[]
+  receptions       RawMaterialReception[]
+  materials        Material[]
+  materialReceipts MaterialReceipt[]
+}
+
+// =====================
+// SUROWCE
+// =====================
+model RawMaterial {
+  id                Int      @id @default(autoincrement())
+  name              String
+  category          String   // MEAT, SPICES, ADDITIVES, PACKAGING
+  unit              String   // kg, szt, l
+  supplierId        Int?
+  storageConditions String?
+  shelfLife         Int?     // dni
+  allergens         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  supplier   Supplier?              @relation(fields: [supplierId], references: [id])
+  receptions RawMaterialReception[]
+  batchMaterials BatchMaterial[]
+}
+
+model RawMaterialReception {
+  id               Int      @id @default(autoincrement())
+  rawMaterialId    Int
+  supplierId       Int
+  batchNumber      String
+  quantity         Float
+  unit             String
+  expiryDate       DateTime?
+  temperature      Float?
+  isCompliant      Boolean  @default(true)
+  notes            String?
+  documentNumber   String?  // HDI, faktura
+  receivedAt       DateTime @default(now())
+  userId           Int
+  createdAt        DateTime @default(now())
+
+  rawMaterial RawMaterial @relation(fields: [rawMaterialId], references: [id])
+  supplier    Supplier    @relation(fields: [supplierId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  batchMaterials BatchMaterial[]
+  curingBatches  CuringBatch[]
+}
+
+// =====================
+// PEKLOWANIE
+// =====================
+model CuringBatch {
+  id              Int       @id @default(autoincrement())
+  batchNumber     String    @unique
+  receptionId     Int       // Surowiec z przyjęcia
+  quantity        Float     // Ilość mięsa do peklowania
+  unit            String    @default("kg")
+  curingMethod    String    // DRY (suche), INJECTION (nastrzykowe)
+  
+  // Peklowanie suche - azotynowa sól peklująca
+  curingSaltAmount Float?   // Ilość soli peklowej (kg) - suche: 0.25 kg na 20 kg mięsa
+  
+  // Peklowanie nastrzykowe - solanka
+  brineWater      Float?    // Ilość wody (L) - np. 30L
+  brineSalt       Float?    // Ilość soli peklowej (kg) - np. 2.4 kg
+  brineMaggi      Float?    // Przyprawa Maggi (kg) - np. 0.3 kg
+  brineSugar      Float?    // Cukier (kg) - np. 0.2 kg
+  
+  startDate       DateTime  @default(now())
+  plannedEndDate  DateTime  // Planowana data zakończenia
+  actualEndDate   DateTime? // Rzeczywista data zakończenia
+  temperature     Float?    // Temperatura peklowania
+  status          String    @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, CANCELLED
+  notes           String?
+  userId          Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  reception RawMaterialReception @relation(fields: [receptionId], references: [id])
+  user      User                 @relation(fields: [userId], references: [id])
+  batchMaterials BatchMaterial[] // Użyte w produkcji
+}
+
+// =====================
+// PRODUKTY
+// =====================
+model Product {
+  id                Int      @id @default(autoincrement())
+  name              String
+  category          String   // SAUSAGE, HAM, PATE, MEAT_CUT
+  description       String?
+  unit              String
+  shelfLife         Int      // dni
+  storageTemp       String
+  allergens         String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  productionBatches ProductionBatch[]
+}
+
+model ProductionBatch {
+  id              Int       @id @default(autoincrement())
+  batchNumber     String    @unique
+  productId       Int
+  quantity        Float
+  unit            String
+  productionDate  DateTime  @default(now())
+  expiryDate      DateTime
+  status          String    @default("IN_PRODUCTION") // IN_PRODUCTION, COMPLETED, RELEASED, BLOCKED
+  notes           String?
+  userId          Int
+  // Pola obróbki termicznej
+  startTime       DateTime? // Godzina rozpoczęcia produkcji
+  endTime         DateTime? // Godzina zakończenia produkcji
+  finalTemperature Float?   // Osiągnięta temperatura wewnętrzna produktu
+  temperatureCompliant Boolean? // Czy temperatura zgodna z wymaganiami (>=72°C)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  product   Product         @relation(fields: [productId], references: [id])
+  user      User            @relation(fields: [userId], references: [id])
+  materials BatchMaterial[]
+}
+
+model BatchMaterial {
+  id             Int      @id @default(autoincrement())
+  batchId        Int
+  rawMaterialId  Int?
+  receptionId    Int?
+  curingBatchId  Int?     // Element peklowany
+  quantity       Float
+  unit           String
+  createdAt      DateTime @default(now())
+
+  batch        ProductionBatch       @relation(fields: [batchId], references: [id])
+  rawMaterial  RawMaterial?          @relation(fields: [rawMaterialId], references: [id])
+  reception    RawMaterialReception? @relation(fields: [receptionId], references: [id])
+  curingBatch  CuringBatch?          @relation(fields: [curingBatchId], references: [id])
+}
+
+// =====================
+// MYCIE I DEZYNFEKCJA
+// =====================
+model CleaningArea {
+  id          Int      @id @default(autoincrement())
+  name        String
+  location    String
+  frequency   String   // DAILY, WEEKLY, MONTHLY
+  method      String
+  chemicals   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  records CleaningRecord[]
+}
+
+model CleaningRecord {
+  id             Int      @id @default(autoincrement())
+  cleaningAreaId Int
+  cleanedAt      DateTime @default(now())
+  method         String
+  chemicals      String?
+  isVerified     Boolean  @default(false)
+  notes          String?
+  userId         Int
+  createdAt      DateTime @default(now())
+
+  cleaningArea CleaningArea @relation(fields: [cleaningAreaId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+}
+
+// =====================
+// KONTROLA SZKODNIKÓW (DDD)
+// =====================
+model PestControlPoint {
+  id        Int      @id @default(autoincrement())
+  name      String
+  location  String
+  type      String   // BAIT_STATION, INSECT_TRAP, UV_LAMP
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checks PestControlCheck[]
+}
+
+model PestControlCheck {
+  id                 Int      @id @default(autoincrement())
+  pestControlPointId Int
+  checkedAt          DateTime @default(now())
+  status             String   // OK, ACTIVITY_DETECTED, REQUIRES_SERVICE
+  findings           String?
+  actionTaken        String?
+  userId             Int
+  createdAt          DateTime @default(now())
+
+  pestControlPoint PestControlPoint @relation(fields: [pestControlPointId], references: [id])
+  user             User             @relation(fields: [userId], references: [id])
+}
+
+// =====================
+// SZKOLENIA
+// =====================
+model TrainingRecord {
+  id           Int      @id @default(autoincrement())
+  title        String
+  type         String   // HACCP, GHP, GMP, SAFETY
+  description  String?
+  trainer      String
+  trainingDate DateTime
+  validUntil   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  participants TrainingParticipant[]
+}
+
+model TrainingParticipant {
+  id         Int      @id @default(autoincrement())
+  trainingId Int
+  userId     Int
+  passed     Boolean  @default(true)
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  training TrainingRecord @relation(fields: [trainingId], references: [id])
+  user     User           @relation(fields: [userId], references: [id])
+}
+
+// =====================
+// DZIAŁANIA KORYGUJĄCE
+// =====================
+model CorrectiveAction {
+  id             Int       @id @default(autoincrement())
+  title          String
+  description    String
+  cause          String?
+  actionTaken    String?
+  status         String    @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED
+  priority       String    @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  dueDate        DateTime?
+  completedAt    DateTime?
+  relatedCcpId   Int?
+  userId         Int
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// =====================
+// AUDYTY
+// =====================
+model AuditChecklist {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String   // GHP, GMP, HACCP, INFRASTRUCTURE
+  items       String   // JSON array of checklist items
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  audits AuditRecord[]
+}
+
+model AuditRecord {
+  id            Int      @id @default(autoincrement())
+  checklistId   Int
+  auditDate     DateTime @default(now())
+  auditor       String
+  results       String   // JSON with item results
+  score         Float?
+  findings      String?
+  recommendations String?
+  userId        Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  checklist AuditChecklist @relation(fields: [checklistId], references: [id])
+  user      User           @relation(fields: [userId], references: [id])
+}
+
+// =====================
+// DOKUMENTY
+// =====================
+model Document {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String   // PROCEDURE, INSTRUCTION, FORM, RECORD, CERTIFICATE
+  fileName    String
+  filePath    String
+  version     String   @default("1.0")
+  validFrom   DateTime @default(now())
+  validUntil  DateTime?
+  uploadedBy  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [uploadedBy], references: [id])
+}
+
+// =====================
+// MATERIAŁY (DODATKI, PRZYPRAWY, OSŁONKI)
+// =====================
+model Material {
+  id                Int      @id @default(autoincrement())
+  name              String
+  category          String   // SPICE (przyprawy), ADDITIVE (dodatki), CASING (osłonki), PACKAGING (opakowania)
+  unit              String   // kg, szt, l, m
+  supplierId        Int?
+  minStock          Float?   // Minimalny stan magazynowy
+  currentStock      Float    @default(0)
+  storageConditions String?
+  allergens         String?
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  supplier  Supplier?           @relation(fields: [supplierId], references: [id])
+  receipts  MaterialReceipt[]
+}
+
+model MaterialReceipt {
+  id             Int      @id @default(autoincrement())
+  materialId     Int
+  supplierId     Int?
+  batchNumber    String
+  quantity       Float
+  unit           String
+  expiryDate     DateTime?
+  pricePerUnit   Float?
+  documentNumber String?  // Faktura
+  receivedAt     DateTime @default(now())
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  material Material  @relation(fields: [materialId], references: [id])
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+}
+
+// =====================
+// ROZBIOR PÓŁTUSZ
+// =====================
+model Butchering {
+  id            Int      @id @default(autoincrement())
+  receptionId   Int      // Powiązanie z przyjęciem półtuszy
+  batchNumber   String   // Ten sam nr partii co przyjęcie
+  butcheringDate DateTime @default(now())
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  elements ButcheringElement[]
+}
+
+model ButcheringElement {
+  id            Int      @id @default(autoincrement())
+  butcheringId  Int
+  elementName   String   // np. Szynka, Łopatka, Boczek, Schab
+  quantity      Float    // kg
+  destination   String?  // PRODUCTION, SALE, CURING (co się z tym zrobi)
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  butchering Butchering @relation(fields: [butcheringId], references: [id], onDelete: Cascade)
+}
