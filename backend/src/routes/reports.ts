@@ -191,8 +191,8 @@ router.get('/haccp-plan', authenticateToken, async (req: AuthRequest, res: Respo
     doc.moveDown();
 
     ccps.forEach((ccp: any, index: number) => {
-      doc.fontSize(12).text(`${ccp.name}`, { bold: true });
-      doc.fontSize(10);
+      doc.font('Helvetica-Bold').fontSize(12).text(`${ccp.name}`);
+      doc.font('Helvetica').fontSize(10);
       doc.text(`Opis: ${ccp.description}`);
       doc.text(`Typ zagrożenia: ${ccp.hazardType}`);
       doc.text(`Limit krytyczny: ${ccp.criticalLimit}`);
@@ -210,8 +210,8 @@ router.get('/haccp-plan', authenticateToken, async (req: AuthRequest, res: Respo
     doc.moveDown();
 
     hazards.forEach((hazard: any) => {
-      doc.fontSize(11).text(`${hazard.name} (${hazard.type})`, { bold: true });
-      doc.fontSize(10);
+      doc.font('Helvetica-Bold').fontSize(11).text(`${hazard.name} (${hazard.type})`);
+      doc.font('Helvetica').fontSize(10);
       doc.text(`Źródło: ${hazard.source}`);
       doc.text(`Etap procesu: ${hazard.processStep}`);
       doc.text(`Istotność: ${hazard.significance}`);
