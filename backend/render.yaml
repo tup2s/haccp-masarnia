@@ -1,0 +1,19 @@
+# Konfiguracja dla Render.com
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: haccp-backend
+    runtime: node
+    region: frankfurt  # lub oregon dla USA
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run db:migrate && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false  # Ustaw ręcznie w panelu Render
+      - key: JWT_SECRET
+        generateValue: true  # Render wygeneruje automatycznie
+    healthCheckPath: /api/health

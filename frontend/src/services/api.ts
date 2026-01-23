@@ -1,7 +1,9 @@
-// Automatycznie wykryj adres API - używaj tego samego hosta co przeglądarka
-const API_URL = window.location.hostname === 'localhost' 
-  ? '/api'  // Lokalnie używaj proxy Vite
-  : `http://${window.location.hostname}:3001/api`;  // Z sieci używaj bezpośrednio backendu
+// API URL - w produkcji używaj zmiennej środowiskowej VITE_API_URL
+// Lokalnie używa proxy Vite lub bezpośredniego połączenia z backendem
+const API_URL = import.meta.env.VITE_API_URL 
+  || (window.location.hostname === 'localhost' 
+    ? '/api'  // Lokalnie używaj proxy Vite
+    : `http://${window.location.hostname}:3001/api`);  // Z sieci używaj bezpośrednio backendu
 
 let authToken: string | null = null;
 
