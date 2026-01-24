@@ -3,6 +3,111 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Helper function: find or create by name
+async function findOrCreateCCP(data: {
+  name: string;
+  description: string;
+  hazardType: string;
+  criticalLimit: string;
+  monitoringMethod: string;
+  monitoringFrequency: string;
+  correctiveAction: string;
+  verificationMethod: string;
+  recordKeeping: string;
+}) {
+  const existing = await prisma.cCP.findFirst({ where: { name: data.name } });
+  if (existing) return existing;
+  return prisma.cCP.create({ data });
+}
+
+async function findOrCreateHazard(data: {
+  name: string;
+  type: string;
+  source: string;
+  preventiveMeasure: string;
+  significance: string;
+  processStep: string;
+}) {
+  const existing = await prisma.hazard.findFirst({ where: { name: data.name } });
+  if (existing) return existing;
+  return prisma.hazard.create({ data });
+}
+
+async function findOrCreateTemperaturePoint(data: {
+  name: string;
+  location: string;
+  type: string;
+  minTemp: number;
+  maxTemp: number;
+  ccpId?: number;
+}) {
+  const existing = await prisma.temperaturePoint.findFirst({ where: { name: data.name } });
+  if (existing) return existing;
+  return prisma.temperaturePoint.create({ data });
+}
+
+async function findOrCreateSupplier(data: {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  nip: string;
+  vetNumber: string;
+  productTypes: string;
+  certifications: string;
+  rating: string;
+  isActive: boolean;
+}) {
+  const existing = await prisma.supplier.findFirst({ where: { name: data.name } });
+  if (existing) return existing;
+  return prisma.supplier.create({ data });
+}
+
+async function findOrCreateProduct(data: {
+  name: string;
+  sku: string;
+  category: string;
+  description: string;
+  shelfLife: number;
+  storageTemp: string;
+  allergens: string;
+  packagingType: string;
+  unit: string;
+  minStock: number;
+  isActive: boolean;
+}) {
+  const existing = await prisma.product.findFirst({ where: { sku: data.sku } });
+  if (existing) return existing;
+  return prisma.product.create({ data });
+}
+
+async function findOrCreateCleaningArea(data: {
+  name: string;
+  location: string;
+  cleaningType: string;
+  frequency: string;
+  method: string;
+  chemicals: string;
+  responsibleRole: string;
+  isActive: boolean;
+}) {
+  const existing = await prisma.cleaningArea.findFirst({ where: { name: data.name } });
+  if (existing) return existing;
+  return prisma.cleaningArea.create({ data });
+}
+
+async function findOrCreatePestControlPoint(data: {
+  name: string;
+  location: string;
+  type: string;
+  checkFrequency: string;
+  isActive: boolean;
+}) {
+  const existing = await prisma.pestControlPoint.findFirst({ where: { name: data.name } });
+  if (existing) return existing;
+  return prisma.pestControlPoint.create({ data });
+}
+
 async function main() {
   console.log('🌱 Rozpoczynam seedowanie bazy danych...');
 
@@ -45,53 +150,41 @@ async function main() {
 
   console.log('✅ Użytkownicy utworzeni');
 
-  // Tworzenie CCP - używamy upsert z name jako unikalnym identyfikatorem
-  const ccp1 = await prisma.cCP.upsert({
-    where: { name: 'CCP1 - Przyjęcie surowców' },
-    update: {},
-    create: {
-      name: 'CCP1 - Przyjęcie surowców',
-      description: 'Kontrola temperatury i jakości surowców przy przyjęciu',
-      hazardType: 'BIOLOGICAL',
-      criticalLimit: 'Temperatura mięsa ≤ 7°C, brak oznak zepsucia',
-      monitoringMethod: 'Pomiar temperatury termometrem, kontrola wizualna',
-      monitoringFrequency: 'Każda dostawa',
-      correctiveAction: 'Odrzucenie dostawy, powiadomienie dostawcy',
-      verificationMethod: 'Przegląd zapisów, kalibracja termometrów',
-      recordKeeping: 'Karta przyjęcia surowca',
-    },
+  // Tworzenie CCP
+  const ccp1 = await findOrCreateCCP({
+    name: 'CCP1 - Przyjęcie surowców',
+    description: 'Kontrola temperatury i jakości surowców przy przyjęciu',
+    hazardType: 'BIOLOGICAL',
+    criticalLimit: 'Temperatura mięsa ≤ 7°C, brak oznak zepsucia',
+    monitoringMethod: 'Pomiar temperatury termometrem, kontrola wizualna',
+    monitoringFrequency: 'Każda dostawa',
+    correctiveAction: 'Odrzucenie dostawy, powiadomienie dostawcy',
+    verificationMethod: 'Przegląd zapisów, kalibracja termometrów',
+    recordKeeping: 'Karta przyjęcia surowca',
   });
 
-  const ccp2 = await prisma.cCP.upsert({
-    where: { name: 'CCP2 - Przechowywanie chłodnicze' },
-    update: {},
-    create: {
-      name: 'CCP2 - Przechowywanie chłodnicze',
-      description: 'Utrzymanie właściwej temperatury w chłodniach',
-      hazardType: 'BIOLOGICAL',
-      criticalLimit: 'Temperatura chłodni 0-4°C',
-      monitoringMethod: 'Ciągły monitoring temperatury, odczyt 2x dziennie',
-      monitoringFrequency: '2 razy dziennie (rano i po południu)',
-      correctiveAction: 'Regulacja urządzenia, przeniesienie produktów, naprawa',
-      verificationMethod: 'Przegląd zapisów temperatury, kalibracja czujników',
-      recordKeeping: 'Dziennik temperatury',
-    },
+  const ccp2 = await findOrCreateCCP({
+    name: 'CCP2 - Przechowywanie chłodnicze',
+    description: 'Utrzymanie właściwej temperatury w chłodniach',
+    hazardType: 'BIOLOGICAL',
+    criticalLimit: 'Temperatura chłodni 0-4°C',
+    monitoringMethod: 'Ciągły monitoring temperatury, odczyt 2x dziennie',
+    monitoringFrequency: '2 razy dziennie (rano i po południu)',
+    correctiveAction: 'Regulacja urządzenia, przeniesienie produktów, naprawa',
+    verificationMethod: 'Przegląd zapisów temperatury, kalibracja czujników',
+    recordKeeping: 'Dziennik temperatury',
   });
 
-  const ccp3 = await prisma.cCP.upsert({
-    where: { name: 'CCP3 - Obróbka termiczna' },
-    update: {},
-    create: {
-      name: 'CCP3 - Obróbka termiczna',
-      description: 'Kontrola temperatury wewnętrznej produktu podczas obróbki cieplnej',
-      hazardType: 'BIOLOGICAL',
-      criticalLimit: 'Temperatura wewnętrzna produktu ≥ 72°C przez min. 2 minuty',
-      monitoringMethod: 'Pomiar temperatury wewnętrznej termometrem szpilkowym',
-      monitoringFrequency: 'Każda partia produkcyjna',
-      correctiveAction: 'Przedłużenie obróbki termicznej, ponowna obróbka lub odrzucenie partii',
-      verificationMethod: 'Przegląd zapisów, kalibracja termometrów, badania mikrobiologiczne',
-      recordKeeping: 'Karta kontroli obróbki termicznej',
-    },
+  const ccp3 = await findOrCreateCCP({
+    name: 'CCP3 - Obróbka termiczna',
+    description: 'Kontrola temperatury wewnętrznej produktu podczas obróbki cieplnej',
+    hazardType: 'BIOLOGICAL',
+    criticalLimit: 'Temperatura wewnętrzna produktu ≥ 72°C przez min. 2 minuty',
+    monitoringMethod: 'Pomiar temperatury wewnętrznej termometrem szpilkowym',
+    monitoringFrequency: 'Każda partia produkcyjna',
+    correctiveAction: 'Przedłużenie obróbki termicznej, ponowna obróbka lub odrzucenie partii',
+    verificationMethod: 'Przegląd zapisów, kalibracja termometrów, badania mikrobiologiczne',
+    recordKeeping: 'Karta kontroli obróbki termicznej',
   });
 
   const ccps = [ccp1, ccp2, ccp3];
