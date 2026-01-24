@@ -37,8 +37,12 @@ router.put('/', authenticateToken, async (req, res) => {
   try {
     const authReq = req as any;
     
+    console.log('PUT /settings - userId:', authReq.userId, 'role:', authReq.userRole);
+    console.log('PUT /settings - body:', JSON.stringify(req.body));
+    
     // Tylko admin może edytować ustawienia
     if (authReq.userRole !== 'ADMIN') {
+      console.log('PUT /settings - Brak uprawnień, rola:', authReq.userRole);
       return res.status(403).json({ error: 'Brak uprawnień do edycji ustawień' });
     }
 
@@ -48,6 +52,7 @@ router.put('/', authenticateToken, async (req, res) => {
     } = req.body;
 
     let settings = await prisma.companySettings.findFirst();
+    console.log('PUT /settings - existing settings id:', settings?.id);
     
     const data = {
       companyName: companyName || '',
@@ -72,10 +77,15 @@ router.put('/', authenticateToken, async (req, res) => {
       settings = await prisma.companySettings.create({ data });
     }
 
+    console.log('PUT /settings - saved successfully, id:', settings.id);
     res.json(settings);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Błąd podczas aktualizacji ustawień:', error);
-    res.status(500).json({ error: 'Wystąpił błąd podczas aktualizacji ustawień' });
+    console.error('Error details:', error.message, error.code);
+    res.status(500).json({ 
+      error: 'Wystąpił błąd podczas aktualizacji ustawień',
+      details: error.message
+    });
   }
 });
 
