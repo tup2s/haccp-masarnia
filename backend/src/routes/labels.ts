@@ -263,7 +263,8 @@ router.get('/html/curing/:id', authenticateToken, async (req: AuthRequest, res: 
     const labelWidth = settings?.labelWidth || 60;
     const labelHeight = settings?.labelHeight || 40;
     const companyName = settings?.companyName || 'Masarnia';
-    const productName = batch.reception?.rawMaterial?.name || 'Mięso';
+    const productName = batch.productName || batch.reception?.rawMaterial?.name || 'Mięso';
+    const batchInfo = batch.reception?.batchNumber ? `Partia dostawy: ${batch.reception.batchNumber}` : '';
     
     // Generuj HTML etykiety gotowej do wydruku
     const html = `
@@ -352,6 +353,8 @@ router.get('/html/curing/:id', authenticateToken, async (req: AuthRequest, res: 
   <div class="product-name">${productName}</div>
   
   ${batch.meatDescription ? `<div class="meat-desc">${batch.meatDescription}</div>` : ''}
+  
+  ${batchInfo ? `<div class="meat-desc">${batchInfo}</div>` : ''}
   
   <div class="info-row">
     <span>Ilość: ${batch.quantity} ${batch.unit}</span>

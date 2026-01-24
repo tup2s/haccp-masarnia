@@ -182,10 +182,11 @@ export interface CuringBatch {
   id: number;
   batchNumber: string;
   receptionId: number;
+  productName: string; // Nazwa peklowanego produktu
   quantity: number;
   unit: string;
   curingMethod: string;
-  meatDescription?: string; // Opis mięsa: tłusta II, chuda II, mięso kl I
+  meatDescription?: string; // Dodatkowy opis: tłusta II, chuda II, mięso kl I
   // Peklowanie suche
   curingSaltAmount?: number;
   // Peklowanie nastrzykowe - solanka

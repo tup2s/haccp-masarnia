@@ -22,10 +22,11 @@ export default function Curing() {
 
   const [formData, setFormData] = useState({
     receptionId: '',
+    productName: '', // Nazwa peklowanego produktu (główna nazwa)
     quantity: '',
     unit: 'kg',
     curingMethod: 'DRY',
-    meatDescription: '', // Opis mięsa: tłusta II, chuda II, mięso kl I
+    meatDescription: '', // Dodatkowy opis: tłusta II, chuda II, mięso kl I
     // Suche
     curingSaltAmount: '',
     // Nastrzykowe - solanka
@@ -65,6 +66,7 @@ export default function Curing() {
   const openModal = () => {
     setFormData({
       receptionId: '',
+      productName: '',
       quantity: '',
       unit: 'kg',
       curingMethod: 'DRY',
@@ -88,6 +90,7 @@ export default function Curing() {
     setEditBatch(batch);
     setFormData({
       receptionId: batch.receptionId.toString(),
+      productName: batch.productName || '',
       quantity: batch.quantity.toString(),
       unit: batch.unit,
       curingMethod: batch.curingMethod,
@@ -140,6 +143,7 @@ export default function Curing() {
       
       const payload: any = {
         receptionId: parseInt(formData.receptionId),
+        productName: formData.productName,
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
         curingMethod: formData.curingMethod,
@@ -322,7 +326,8 @@ export default function Curing() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr partii</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Surowiec</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produkt peklowany</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Partia dostawy</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ilość</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metoda</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start</th>
@@ -338,11 +343,15 @@ export default function Curing() {
                     <span className="font-mono font-medium text-meat-600">{batch.batchNumber}</span>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <div className="font-medium text-gray-900">{batch.reception?.rawMaterial?.name}</div>
-                    <div className="text-gray-500 text-xs">{batch.reception?.supplier?.name}</div>
+                    <div className="font-medium text-gray-900">{batch.productName}</div>
                     {batch.meatDescription && (
                       <div className="text-amber-600 text-xs mt-1">{batch.meatDescription}</div>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <div className="text-gray-700">{batch.reception?.batchNumber}</div>
+                    <div className="text-gray-500 text-xs">{batch.reception?.rawMaterial?.name}</div>
+                    <div className="text-gray-400 text-xs">{batch.reception?.supplier?.name}</div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {batch.quantity} {batch.unit}
@@ -441,8 +450,23 @@ export default function Curing() {
                 {editBatch ? 'Edytuj partię peklowania' : 'Nowa partia peklowania'}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Nazwa peklowanego produktu - główna nazwa */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mięso do peklowania *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nazwa peklowanego produktu *</label>
+                  <input
+                    type="text"
+                    className="input"
+                    required
+                    placeholder="np. Karkówka na szynkę wiejską, Schab peklowany..."
+                    value={formData.productName}
+                    onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Główna nazwa produktu peklowanego</p>
+                </div>
+
+                {/* Wybór partii dostawy */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Partia dostawy (surowiec) *</label>
                   <select
                     className="input"
                     required
@@ -450,13 +474,14 @@ export default function Curing() {
                     onChange={(e) => handleReceptionChange(e.target.value)}
                     disabled={!!editBatch}
                   >
-                    <option value="">Wybierz przyjęcie mięsa</option>
+                    <option value="">Wybierz partię dostawy mięsa</option>
                     {meatReceptions.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.rawMaterial?.name} - {r.batchNumber} ({r.quantity} {r.unit}) - {r.supplier?.name}
+                        📦 {r.batchNumber} | {r.rawMaterial?.name} | {r.quantity} {r.unit} | {r.supplier?.name} | {dayjs(r.receivedAt).format('DD.MM.YYYY')}
                       </option>
                     ))}
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">Wybierz konkretną partię dostawy z przyjęcia mięsa</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -485,17 +510,17 @@ export default function Curing() {
                   </div>
                 </div>
 
-                {/* Opis mięsa - co jest peklowane */}
+                {/* Dodatkowy opis mięsa */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Co jest peklowane</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Dodatkowy opis (opcjonalnie)</label>
                   <textarea
                     className="input"
                     rows={2}
-                    placeholder="np. tłusta II, chuda II, mięso kl I, karkówka..."
+                    placeholder="np. tłusta II, chuda II, mięso kl I, z kością..."
                     value={formData.meatDescription}
                     onChange={(e) => setFormData({ ...formData, meatDescription: e.target.value })}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Wpisz rodzaje mięsa z tej dostawy</p>
+                  <p className="text-xs text-gray-500 mt-1">Szczegóły dotyczące mięsa w tej partii</p>
                 </div>
 
                 {/* Suche peklowanie */}
@@ -651,7 +676,8 @@ export default function Curing() {
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Zakończ peklowanie</h2>
               <p className="text-gray-500 mb-4">
                 Partia: <strong>{completeModal.batchNumber}</strong><br />
-                {completeModal.reception?.rawMaterial?.name} - {completeModal.quantity} {completeModal.unit}
+                Produkt: <strong>{completeModal.productName}</strong><br />
+                {completeModal.quantity} {completeModal.unit} (partia dostawy: {completeModal.reception?.batchNumber})
               </p>
 
               <div className="bg-green-50 rounded-lg p-4 mb-4">
@@ -743,9 +769,19 @@ export default function Curing() {
                 Partia peklowania {viewBatch.batchNumber}
               </h2>
               <div className="space-y-4">
+                {/* Nazwa peklowanego produktu */}
+                <div className="bg-meat-50 rounded-lg p-4">
+                  <p className="text-sm font-medium text-meat-800 mb-1">Produkt peklowany</p>
+                  <p className="text-lg font-semibold text-meat-900">{viewBatch.productName}</p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Surowiec</p>
+                    <p className="text-sm text-gray-500">Nr partii dostawy</p>
+                    <p className="font-medium">{viewBatch.reception?.batchNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Surowiec z dostawy</p>
                     <p className="font-medium">{viewBatch.reception?.rawMaterial?.name}</p>
                   </div>
                   <div>
@@ -782,10 +818,10 @@ export default function Curing() {
                   </div>
                 </div>
 
-                {/* Opis mięsa */}
+                {/* Dodatkowy opis mięsa */}
                 {viewBatch.meatDescription && (
                   <div className="bg-amber-50 rounded-lg p-4">
-                    <p className="text-sm font-medium text-amber-800 mb-1">Co jest peklowane</p>
+                    <p className="text-sm font-medium text-amber-800 mb-1">Dodatkowy opis</p>
                     <p className="text-amber-900">{viewBatch.meatDescription}</p>
                   </div>
                 )}

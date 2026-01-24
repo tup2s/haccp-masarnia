@@ -126,6 +126,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const {
       receptionId,
+      productName, // Nazwa peklowanego produktu
       quantity,
       unit = 'kg',
       curingMethod,
@@ -162,6 +163,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       data: {
         batchNumber: finalBatchNumber,
         receptionId,
+        productName,
         quantity,
         unit,
         curingMethod,
@@ -199,6 +201,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const {
+      productName,
       quantity,
       curingMethod,
       meatDescription,
@@ -216,6 +219,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     } = req.body;
 
     const updateData: any = {};
+    if (productName !== undefined) updateData.productName = productName;
     if (quantity !== undefined) updateData.quantity = quantity;
     if (curingMethod !== undefined) updateData.curingMethod = curingMethod;
     if (meatDescription !== undefined) updateData.meatDescription = meatDescription;
