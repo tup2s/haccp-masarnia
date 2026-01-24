@@ -20,7 +20,7 @@ interface Employee {
   name: string;
   email: string;
   role: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export default function Settings() {
@@ -54,20 +54,20 @@ export default function Settings() {
     try {
       setLoading(true);
       const [settingsRes, usersRes] = await Promise.all([
-        api.get('/settings'),
-        api.get('/users')
+        api.getSettings(),
+        api.getUsers()
       ]);
       setCompanySettings({
-        id: settingsRes.data.id,
-        companyName: settingsRes.data.companyName || '',
-        address: settingsRes.data.address || '',
-        nip: settingsRes.data.nip || '',
-        vetNumber: settingsRes.data.vetNumber || '',
-        phone: settingsRes.data.phone || '',
-        email: settingsRes.data.email || '',
-        ownerName: settingsRes.data.ownerName || '',
+        id: settingsRes.id,
+        companyName: settingsRes.companyName || '',
+        address: settingsRes.address || '',
+        nip: settingsRes.nip || '',
+        vetNumber: settingsRes.vetNumber || '',
+        phone: settingsRes.phone || '',
+        email: settingsRes.email || '',
+        ownerName: settingsRes.ownerName || '',
       });
-      setEmployees(usersRes.data);
+      setEmployees(usersRes);
     } catch (error) {
       console.error('Błąd ładowania danych:', error);
       toast.error('Błąd podczas ładowania ustawień');
@@ -80,7 +80,7 @@ export default function Settings() {
     e.preventDefault();
     setSaving(true);
     try {
-      await api.put('/settings', companySettings);
+      await api.updateSettings(companySettings);
       toast.success('Dane firmy zapisane');
     } catch (error) {
       console.error('Błąd zapisu:', error);

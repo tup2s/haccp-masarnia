@@ -15,7 +15,6 @@ export default function Trainings() {
     description: '',
     trainingDate: dayjs().format('YYYY-MM-DD'),
     trainer: '',
-    duration: '',
     participantIds: [] as number[],
   });
 
@@ -44,7 +43,6 @@ export default function Trainings() {
       description: '',
       trainingDate: dayjs().format('YYYY-MM-DD'),
       trainer: '',
-      duration: '',
       participantIds: [],
     });
     setIsModalOpen(true);
@@ -68,10 +66,10 @@ export default function Trainings() {
     try {
       await api.createTraining({
         title: formData.title,
-        description: formData.description || null,
+        type: 'HACCP',
+        description: formData.description || undefined,
         trainingDate: formData.trainingDate,
-        trainer: formData.trainer || null,
-        duration: formData.duration ? parseInt(formData.duration) : null,
+        trainer: formData.trainer || '',
         participantIds: formData.participantIds,
       });
       toast.success('Szkolenie dodane');
@@ -120,9 +118,6 @@ export default function Trainings() {
                       </span>
                       {training.trainer && (
                         <span>Prowadzący: {training.trainer}</span>
-                      )}
-                      {training.duration && (
-                        <span>{training.duration} min</span>
                       )}
                     </div>
                   </div>
@@ -211,16 +206,6 @@ export default function Trainings() {
                       onChange={(e) => setFormData({ ...formData, trainingDate: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Czas trwania (min)</label>
-                    <input
-                      type="number"
-                      className="input"
-                      min="1"
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    />
-                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Prowadzący</label>
@@ -277,12 +262,6 @@ export default function Trainings() {
                     <p className="text-sm text-gray-500">Data</p>
                     <p className="font-medium">{dayjs(viewTraining.trainingDate).format('DD.MM.YYYY')}</p>
                   </div>
-                  {viewTraining.duration && (
-                    <div>
-                      <p className="text-sm text-gray-500">Czas trwania</p>
-                      <p className="font-medium">{viewTraining.duration} min</p>
-                    </div>
-                  )}
                   {viewTraining.trainer && (
                     <div className="col-span-2">
                       <p className="text-sm text-gray-500">Prowadzący</p>
@@ -305,7 +284,7 @@ export default function Trainings() {
                           {p.user?.name?.charAt(0)}
                         </div>
                         <span>{p.user?.name}</span>
-                        {p.completed && <span className="text-green-500">✓</span>}
+                        {p.passed && <span className="text-green-500">✓</span>}
                       </div>
                     ))}
                   </div>

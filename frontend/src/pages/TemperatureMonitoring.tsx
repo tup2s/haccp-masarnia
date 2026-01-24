@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, TemperaturePoint, TemperatureReading } from '../services/api';
-import { PlusIcon, BeakerIcon } from '@heroicons/react/24/outline';
+import { BeakerIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import { Line } from 'react-chartjs-2';

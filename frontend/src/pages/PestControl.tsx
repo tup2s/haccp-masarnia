@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, PestControlPoint, PestControlCheck } from '../services/api';
-import { PlusIcon, BugAntIcon, MapPinIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BugAntIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -14,15 +14,13 @@ export default function PestControl() {
   const [selectedPoint, setSelectedPoint] = useState<PestControlPoint | null>(null);
   const [pointForm, setPointForm] = useState({
     name: '',
-    pointType: 'BAIT_STATION',
+    type: 'BAIT_STATION',
     location: '',
-    checkFrequency: 'MONTHLY',
   });
   const [checkForm, setCheckForm] = useState({
-    pointId: '',
+    pestControlPointId: '',
     status: 'OK',
-    activityDetected: false,
-    notes: '',
+    findings: '',
   });
 
   useEffect(() => {
@@ -49,23 +47,21 @@ export default function PestControl() {
       setSelectedPoint(point);
       setPointForm({
         name: point.name,
-        pointType: point.pointType,
+        type: point.type,
         location: point.location || '',
-        checkFrequency: point.checkFrequency,
       });
     } else {
       setSelectedPoint(null);
-      setPointForm({ name: '', pointType: 'BAIT_STATION', location: '', checkFrequency: 'MONTHLY' });
+      setPointForm({ name: '', type: 'BAIT_STATION', location: '' });
     }
     setIsPointModalOpen(true);
   };
 
   const openCheckModal = (point: PestControlPoint) => {
     setCheckForm({
-      pointId: point.id.toString(),
+      pestControlPointId: point.id.toString(),
       status: 'OK',
-      activityDetected: false,
-      notes: '',
+      findings: '',
     });
     setIsCheckModalOpen(true);
   };
@@ -91,15 +87,11 @@ export default function PestControl() {
     e.preventDefault();
     try {
       await api.createPestControlCheck({
-        pointId: parseInt(checkForm.pointId),
+        pestControlPointId: parseInt(checkForm.pestControlPointId),
         status: checkForm.status,
-        activityDetected: checkForm.activityDetected,
-        notes: checkForm.notes || null,
+        findings: checkForm.findings || undefined,
       });
       toast.success('Kontrola zarejestrowana');
-      if (checkForm.activityDetected) {
-        toast.error('Wykryto aktywność szkodników! Zostanie utworzone działanie korygujące.', { duration: 5000 });
-      }
       setIsCheckModalOpen(false);
       loadData();
     } catch (error) {
@@ -123,15 +115,6 @@ export default function PestControl() {
       case 'INSECT_TRAP': return '🪰';
       case 'UV_LAMP': return '💡';
       default: return '📍';
-    }
-  };
-
-  const getFrequencyLabel = (freq: string) => {
-    switch (freq) {
-      case 'DAILY': return 'Codziennie';
-      case 'WEEKLY': return 'Co tydzień';
-      case 'MONTHLY': return 'Co miesiąc';
-      default: return freq;
     }
   };
 
@@ -186,10 +169,10 @@ export default function PestControl() {
           {points.map((point) => (
             <div key={point.id} className="card">
               <div className="flex items-start gap-3">
-                <div className="text-2xl">{getPointTypeIcon(point.pointType)}</div>
+                <div className="text-2xl">{getPointTypeIcon(point.type)}</div>
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">{point.name}</h3>
-                  <p className="text-sm text-gray-500">{getPointTypeLabel(point.pointType)}</p>
+                  <p className="text-sm text-gray-500">{getPointTypeLabel(point.type)}</p>
                 </div>
                 <span className={`badge ${point.isActive ? 'badge-success' : 'badge-danger'}`}>
                   {point.isActive ? 'Aktywny' : 'Nieaktywny'}
@@ -201,9 +184,6 @@ export default function PestControl() {
                   {point.location}
                 </div>
               )}
-              <div className="mt-2 text-sm text-gray-500">
-                Kontrola: {getFrequencyLabel(point.checkFrequency)}
-              </div>
               <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
                 <button
                   onClick={() => openCheckModal(point)}
@@ -242,37 +222,29 @@ export default function PestControl() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Punkt</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Aktywność</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kontrolujący</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Uwagi</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ustalenia</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {checks.map((check) => (
-                  <tr key={check.id} className={`hover:bg-gray-50 ${check.activityDetected ? 'bg-red-50' : ''}`}>
+                  <tr key={check.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {dayjs(check.checkDate).format('DD.MM.YYYY HH:mm')}
+                      {dayjs(check.checkedAt).format('DD.MM.YYYY HH:mm')}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                      {check.point?.name}
+                      {check.pestControlPoint?.name}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`badge ${check.status === 'OK' ? 'badge-success' : 'badge-warning'}`}>
                         {check.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      {check.activityDetected ? (
-                        <ExclamationTriangleIcon className="w-5 h-5 text-red-500 mx-auto" />
-                      ) : (
-                        <span className="text-green-500">✓</span>
-                      )}
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {check.user?.name}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
-                      {check.checkedBy?.name}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {check.notes || '-'}
+                      {check.findings || '-'}
                     </td>
                   </tr>
                 ))}
@@ -315,8 +287,8 @@ export default function PestControl() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Typ punktu *</label>
                   <select
                     className="input"
-                    value={pointForm.pointType}
-                    onChange={(e) => setPointForm({ ...pointForm, pointType: e.target.value })}
+                    value={pointForm.type}
+                    onChange={(e) => setPointForm({ ...pointForm, type: e.target.value })}
                   >
                     <option value="BAIT_STATION">Stacja deratyzacyjna</option>
                     <option value="INSECT_TRAP">Pułapka na owady</option>
@@ -333,18 +305,6 @@ export default function PestControl() {
                     value={pointForm.location}
                     onChange={(e) => setPointForm({ ...pointForm, location: e.target.value })}
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Częstotliwość kontroli *</label>
-                  <select
-                    className="input"
-                    value={pointForm.checkFrequency}
-                    onChange={(e) => setPointForm({ ...pointForm, checkFrequency: e.target.value })}
-                  >
-                    <option value="DAILY">Codziennie</option>
-                    <option value="WEEKLY">Co tydzień</option>
-                    <option value="MONTHLY">Co miesiąc</option>
-                  </select>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={() => setIsPointModalOpen(false)} className="flex-1 btn-secondary">
@@ -372,8 +332,8 @@ export default function PestControl() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Punkt</label>
                   <select
                     className="input"
-                    value={checkForm.pointId}
-                    onChange={(e) => setCheckForm({ ...checkForm, pointId: e.target.value })}
+                    value={checkForm.pestControlPointId}
+                    onChange={(e) => setCheckForm({ ...checkForm, pestControlPointId: e.target.value })}
                   >
                     {points.map((p) => (
                       <option key={p.id} value={p.id}>{p.name} - {p.location}</option>
@@ -394,30 +354,13 @@ export default function PestControl() {
                   </select>
                 </div>
                 <div>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                      checked={checkForm.activityDetected}
-                      onChange={(e) => setCheckForm({ ...checkForm, activityDetected: e.target.checked })}
-                    />
-                    <span className="text-sm font-medium text-red-700">
-                      Wykryto aktywność szkodników
-                    </span>
-                  </label>
-                  {checkForm.activityDetected && (
-                    <p className="mt-1 text-sm text-red-600">
-                      ⚠️ Zostanie automatycznie utworzone działanie korygujące
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Uwagi</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ustalenia</label>
                   <textarea
                     className="input"
                     rows={2}
-                    value={checkForm.notes}
-                    onChange={(e) => setCheckForm({ ...checkForm, notes: e.target.value })}
+                    placeholder="Opisz ustalenia z kontroli..."
+                    value={checkForm.findings}
+                    onChange={(e) => setCheckForm({ ...checkForm, findings: e.target.value })}
                   />
                 </div>
                 <div className="flex gap-3 pt-4">

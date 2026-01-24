@@ -16,20 +16,22 @@ export default function HACCPPlan() {
   const [ccpForm, setCcpForm] = useState({
     name: '',
     description: '',
+    hazardType: 'BIOLOGICAL',
     criticalLimit: '',
-    monitoringProcedure: '',
+    monitoringMethod: '',
+    monitoringFrequency: '',
     correctiveAction: '',
-    verificationProcedure: '',
-    records: '',
+    verificationMethod: '',
+    recordKeeping: '',
   });
 
   const [hazardForm, setHazardForm] = useState({
     name: '',
     type: 'BIOLOGICAL',
-    description: '',
-    severity: 'MEDIUM',
-    likelihood: 'MEDIUM',
-    controlMeasures: '',
+    source: '',
+    preventiveMeasure: '',
+    significance: 'MEDIUM',
+    processStep: '',
   });
 
   useEffect(() => {
@@ -57,22 +59,26 @@ export default function HACCPPlan() {
       setCcpForm({
         name: ccp.name,
         description: ccp.description || '',
+        hazardType: ccp.hazardType || 'BIOLOGICAL',
         criticalLimit: ccp.criticalLimit,
-        monitoringProcedure: ccp.monitoringProcedure || '',
+        monitoringMethod: ccp.monitoringMethod || '',
+        monitoringFrequency: ccp.monitoringFrequency || '',
         correctiveAction: ccp.correctiveAction || '',
-        verificationProcedure: ccp.verificationProcedure || '',
-        records: ccp.records || '',
+        verificationMethod: ccp.verificationMethod || '',
+        recordKeeping: ccp.recordKeeping || '',
       });
     } else {
       setEditingCCP(null);
       setCcpForm({
         name: '',
         description: '',
+        hazardType: 'BIOLOGICAL',
         criticalLimit: '',
-        monitoringProcedure: '',
+        monitoringMethod: '',
+        monitoringFrequency: '',
         correctiveAction: '',
-        verificationProcedure: '',
-        records: '',
+        verificationMethod: '',
+        recordKeeping: '',
       });
     }
     setIsCCPModalOpen(true);
@@ -84,20 +90,20 @@ export default function HACCPPlan() {
       setHazardForm({
         name: hazard.name,
         type: hazard.type,
-        description: hazard.description || '',
-        severity: hazard.severity,
-        likelihood: hazard.likelihood,
-        controlMeasures: hazard.controlMeasures || '',
+        source: hazard.source || '',
+        preventiveMeasure: hazard.preventiveMeasure || '',
+        significance: hazard.significance || 'MEDIUM',
+        processStep: hazard.processStep || '',
       });
     } else {
       setEditingHazard(null);
       setHazardForm({
         name: '',
         type: 'BIOLOGICAL',
-        description: '',
-        severity: 'MEDIUM',
-        likelihood: 'MEDIUM',
-        controlMeasures: '',
+        source: '',
+        preventiveMeasure: '',
+        significance: 'MEDIUM',
+        processStep: '',
       });
     }
     setIsHazardModalOpen(true);
@@ -155,12 +161,9 @@ export default function HACCPPlan() {
     }
   };
 
-  const getRiskColor = (severity: string, likelihood: string) => {
-    const severityScore = severity === 'HIGH' ? 3 : severity === 'MEDIUM' ? 2 : 1;
-    const likelihoodScore = likelihood === 'HIGH' ? 3 : likelihood === 'MEDIUM' ? 2 : 1;
-    const risk = severityScore * likelihoodScore;
-    if (risk >= 6) return 'bg-red-500';
-    if (risk >= 3) return 'bg-yellow-500';
+  const getRiskColor = (significance: string) => {
+    if (significance === 'HIGH') return 'bg-red-500';
+    if (significance === 'MEDIUM') return 'bg-yellow-500';
     return 'bg-green-500';
   };
 
@@ -242,10 +245,10 @@ export default function HACCPPlan() {
                   <p className="text-xs font-medium text-red-700 uppercase">Limit krytyczny</p>
                   <p className="mt-1 font-medium text-red-900">{ccp.criticalLimit}</p>
                 </div>
-                {ccp.monitoringProcedure && (
+                {ccp.monitoringMethod && (
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <p className="text-xs font-medium text-blue-700 uppercase">Monitoring</p>
-                    <p className="mt-1 text-sm text-blue-900">{ccp.monitoringProcedure}</p>
+                    <p className="mt-1 text-sm text-blue-900">{ccp.monitoringMethod} ({ccp.monitoringFrequency})</p>
                   </div>
                 )}
                 {ccp.correctiveAction && (
@@ -254,16 +257,16 @@ export default function HACCPPlan() {
                     <p className="mt-1 text-sm text-orange-900">{ccp.correctiveAction}</p>
                   </div>
                 )}
-                {ccp.verificationProcedure && (
+                {ccp.verificationMethod && (
                   <div className="bg-green-50 p-3 rounded-lg">
                     <p className="text-xs font-medium text-green-700 uppercase">Weryfikacja</p>
-                    <p className="mt-1 text-sm text-green-900">{ccp.verificationProcedure}</p>
+                    <p className="mt-1 text-sm text-green-900">{ccp.verificationMethod}</p>
                   </div>
                 )}
-                {ccp.records && (
+                {ccp.recordKeeping && (
                   <div className="bg-purple-50 p-3 rounded-lg">
                     <p className="text-xs font-medium text-purple-700 uppercase">Zapisy</p>
-                    <p className="mt-1 text-sm text-purple-900">{ccp.records}</p>
+                    <p className="mt-1 text-sm text-purple-900">{ccp.recordKeeping}</p>
                   </div>
                 )}
               </div>
@@ -300,8 +303,8 @@ export default function HACCPPlan() {
                     <td className="px-4 py-3">
                       <div>
                         <p className="font-medium text-gray-900">{hazard.name}</p>
-                        {hazard.description && (
-                          <p className="text-sm text-gray-500 truncate max-w-xs">{hazard.description}</p>
+                        {hazard.source && (
+                          <p className="text-sm text-gray-500 truncate max-w-xs">Źródło: {hazard.source}</p>
                         )}
                       </div>
                     </td>
@@ -312,14 +315,14 @@ export default function HACCPPlan() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${getRiskColor(hazard.severity, hazard.likelihood)}`}></div>
+                        <div className={`w-3 h-3 rounded-full ${getRiskColor(hazard.significance)}`}></div>
                         <span className="text-sm text-gray-500">
-                          {hazard.severity}/{hazard.likelihood}
+                          {hazard.significance}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
-                      {hazard.controlMeasures || '-'}
+                      {hazard.preventiveMeasure || '-'}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -387,13 +390,13 @@ export default function HACCPPlan() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Procedura monitorowania</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Metoda monitorowania</label>
                   <textarea
                     className="input"
                     rows={2}
                     placeholder="Jak i kiedy monitorować..."
-                    value={ccpForm.monitoringProcedure}
-                    onChange={(e) => setCcpForm({ ...ccpForm, monitoringProcedure: e.target.value })}
+                    value={ccpForm.monitoringMethod}
+                    onChange={(e) => setCcpForm({ ...ccpForm, monitoringMethod: e.target.value })}
                   />
                 </div>
                 <div>
@@ -407,22 +410,22 @@ export default function HACCPPlan() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Procedura weryfikacji</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Metoda weryfikacji</label>
                   <textarea
                     className="input"
                     rows={2}
-                    value={ccpForm.verificationProcedure}
-                    onChange={(e) => setCcpForm({ ...ccpForm, verificationProcedure: e.target.value })}
+                    value={ccpForm.verificationMethod}
+                    onChange={(e) => setCcpForm({ ...ccpForm, verificationMethod: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Wymagane zapisy</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prowadzenie zapisów</label>
                   <input
                     type="text"
                     className="input"
                     placeholder="np. Dziennik temperatur"
-                    value={ccpForm.records}
-                    onChange={(e) => setCcpForm({ ...ccpForm, records: e.target.value })}
+                    value={ccpForm.recordKeeping}
+                    onChange={(e) => setCcpForm({ ...ccpForm, recordKeeping: e.target.value })}
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
@@ -473,48 +476,34 @@ export default function HACCPPlan() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Opis</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Źródło zagrożenia</label>
                   <textarea
                     className="input"
                     rows={2}
-                    value={hazardForm.description}
-                    onChange={(e) => setHazardForm({ ...hazardForm, description: e.target.value })}
+                    value={hazardForm.source}
+                    onChange={(e) => setHazardForm({ ...hazardForm, source: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Dotkliwość</label>
-                    <select
-                      className="input"
-                      value={hazardForm.severity}
-                      onChange={(e) => setHazardForm({ ...hazardForm, severity: e.target.value })}
-                    >
-                      <option value="LOW">Niska</option>
-                      <option value="MEDIUM">Średnia</option>
-                      <option value="HIGH">Wysoka</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prawdopodobieństwo</label>
-                    <select
-                      className="input"
-                      value={hazardForm.likelihood}
-                      onChange={(e) => setHazardForm({ ...hazardForm, likelihood: e.target.value })}
-                    >
-                      <option value="LOW">Niskie</option>
-                      <option value="MEDIUM">Średnie</option>
-                      <option value="HIGH">Wysokie</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Istotność</label>
+                  <select
+                    className="input"
+                    value={hazardForm.significance}
+                    onChange={(e) => setHazardForm({ ...hazardForm, significance: e.target.value })}
+                  >
+                    <option value="LOW">Niska</option>
+                    <option value="MEDIUM">Średnia</option>
+                    <option value="HIGH">Wysoka</option>
+                  </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Środki kontroli</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Środki zapobiegawcze</label>
                   <textarea
                     className="input"
                     rows={2}
                     placeholder="Jak kontrolować to zagrożenie..."
-                    value={hazardForm.controlMeasures}
-                    onChange={(e) => setHazardForm({ ...hazardForm, controlMeasures: e.target.value })}
+                    value={hazardForm.preventiveMeasure}
+                    onChange={(e) => setHazardForm({ ...hazardForm, preventiveMeasure: e.target.value })}
                   />
                 </div>
                 <div className="flex gap-3 pt-4">

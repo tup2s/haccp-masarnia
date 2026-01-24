@@ -7,18 +7,8 @@ import {
   EyeIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { api } from '../services/api';
+import { api, RawMaterialReception } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-
-interface Reception {
-  id: number;
-  batchNumber: string;
-  quantity: number;
-  unit: string;
-  receivedAt: string;
-  rawMaterial: { name: string; category?: string };
-  supplier: { name: string };
-}
 
 interface ButcheringElement {
   id?: number;
@@ -63,7 +53,7 @@ const DESTINATIONS = [
 export default function Butchering() {
   const { user } = useAuth();
   const [butcherings, setButcherings] = useState<Butchering[]>([]);
-  const [receptions, setReceptions] = useState<Reception[]>([]);
+  const [receptions, setReceptions] = useState<RawMaterialReception[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Modal states
@@ -73,7 +63,7 @@ export default function Butchering() {
   const [editingButchering, setEditingButchering] = useState<Butchering | null>(null);
 
   // Form state
-  const [selectedReception, setSelectedReception] = useState<Reception | null>(null);
+  const [selectedReception, setSelectedReception] = useState<RawMaterialReception | null>(null);
   const [butcheringDate, setButcheringDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [elements, setElements] = useState<ButcheringElement[]>([
@@ -93,7 +83,7 @@ export default function Butchering() {
       ]);
       setButcherings(butcheringsRes);
       // Filtruj tylko przyjęcia mięsa (półtusze, tusze)
-      const meatReceptions = receptionsRes.filter((r: Reception) => 
+      const meatReceptions = receptionsRes.filter((r: RawMaterialReception) => 
         r.rawMaterial?.category === 'MEAT' || 
         r.rawMaterial?.name?.toLowerCase().includes('tusz') ||
         r.rawMaterial?.name?.toLowerCase().includes('półtusz')

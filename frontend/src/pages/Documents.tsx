@@ -21,13 +21,12 @@ export default function Documents() {
   const [filter, setFilter] = useState<string>('all');
   const [formData, setFormData] = useState({
     title: '',
-    documentNumber: '',
     category: 'PROCEDURE',
     version: '1.0',
-    description: '',
+    fileName: '',
     filePath: '',
     validFrom: dayjs().format('YYYY-MM-DD'),
-    validTo: '',
+    validUntil: '',
   });
 
   useEffect(() => {
@@ -50,25 +49,23 @@ export default function Documents() {
       setEditingDoc(doc);
       setFormData({
         title: doc.title,
-        documentNumber: doc.documentNumber || '',
         category: doc.category,
         version: doc.version || '1.0',
-        description: doc.description || '',
+        fileName: doc.fileName || '',
         filePath: doc.filePath || '',
         validFrom: doc.validFrom ? dayjs(doc.validFrom).format('YYYY-MM-DD') : '',
-        validTo: doc.validTo ? dayjs(doc.validTo).format('YYYY-MM-DD') : '',
+        validUntil: doc.validUntil ? dayjs(doc.validUntil).format('YYYY-MM-DD') : '',
       });
     } else {
       setEditingDoc(null);
       setFormData({
         title: '',
-        documentNumber: '',
         category: 'PROCEDURE',
         version: '1.0',
-        description: '',
+        fileName: '',
         filePath: '',
         validFrom: dayjs().format('YYYY-MM-DD'),
-        validTo: '',
+        validUntil: '',
       });
     }
     setIsModalOpen(true);
@@ -79,10 +76,9 @@ export default function Documents() {
     try {
       const payload = {
         ...formData,
-        validTo: formData.validTo || null,
-        description: formData.description || null,
-        documentNumber: formData.documentNumber || null,
-        filePath: formData.filePath || null,
+        validUntil: formData.validUntil || undefined,
+        filePath: formData.filePath || undefined,
+        fileName: formData.fileName || formData.title,
       };
       if (editingDoc) {
         await api.updateDocument(editingDoc.id, payload);
@@ -168,7 +164,7 @@ export default function Documents() {
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dokument</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategoria</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr dok.</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plik</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Wersja</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ważny od</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -178,7 +174,7 @@ export default function Documents() {
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredDocs.map((doc) => {
                 const catInfo = getCategoryInfo(doc.category);
-                const isExpired = doc.validTo && dayjs(doc.validTo).isBefore(dayjs());
+                const isExpired = doc.validUntil && dayjs(doc.validUntil).isBefore(dayjs());
                 return (
                   <tr key={doc.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
@@ -186,9 +182,6 @@ export default function Documents() {
                         <DocumentTextIcon className="w-5 h-5 text-gray-400" />
                         <div>
                           <p className="font-medium text-gray-900">{doc.title}</p>
-                          {doc.description && (
-                            <p className="text-sm text-gray-500 truncate max-w-xs">{doc.description}</p>
-                          )}
                         </div>
                       </div>
                     </td>
@@ -197,7 +190,7 @@ export default function Documents() {
                         {catInfo.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{doc.documentNumber || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">{doc.fileName || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">{doc.version}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {doc.validFrom ? dayjs(doc.validFrom).format('DD.MM.YYYY') : '-'}
@@ -205,10 +198,8 @@ export default function Documents() {
                     <td className="px-4 py-3">
                       {isExpired ? (
                         <span className="badge badge-danger">Wygasły</span>
-                      ) : doc.isActive ? (
-                        <span className="badge badge-success">Aktywny</span>
                       ) : (
-                        <span className="badge badge-warning">Nieaktywny</span>
+                        <span className="badge badge-success">Aktywny</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -267,13 +258,13 @@ export default function Documents() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Numer dokumentu</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nazwa pliku</label>
                     <input
                       type="text"
                       className="input"
-                      placeholder="np. P-01, I-03"
-                      value={formData.documentNumber}
-                      onChange={(e) => setFormData({ ...formData, documentNumber: e.target.value })}
+                      placeholder="np. procedura-haccp.pdf"
+                      value={formData.fileName}
+                      onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
                     />
                   </div>
                   <div>
@@ -297,15 +288,6 @@ export default function Documents() {
                       <option key={cat.value} value={cat.value}>{cat.label}</option>
                     ))}
                   </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Opis</label>
-                  <textarea
-                    className="input"
-                    rows={2}
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ścieżka pliku</label>
@@ -333,8 +315,8 @@ export default function Documents() {
                     <input
                       type="date"
                       className="input"
-                      value={formData.validTo}
-                      onChange={(e) => setFormData({ ...formData, validTo: e.target.value })}
+                      value={formData.validUntil}
+                      onChange={(e) => setFormData({ ...formData, validUntil: e.target.value })}
                     />
                   </div>
                 </div>

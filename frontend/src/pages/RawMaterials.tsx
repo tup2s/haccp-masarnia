@@ -20,7 +20,7 @@ export default function RawMaterials() {
     name: '',
     category: 'MEAT',
     unit: 'kg',
-    storageTemp: '',
+    storageConditions: '',
     shelfLife: '',
     allergens: '',
   });
@@ -47,13 +47,13 @@ export default function RawMaterials() {
         name: material.name,
         category: material.category,
         unit: material.unit,
-        storageTemp: material.storageTemp || '',
+        storageConditions: material.storageConditions || '',
         shelfLife: material.shelfLife?.toString() || '',
         allergens: material.allergens || '',
       });
     } else {
       setEditingMaterial(null);
-      setFormData({ name: '', category: 'MEAT', unit: 'kg', storageTemp: '', shelfLife: '', allergens: '' });
+      setFormData({ name: '', category: 'MEAT', unit: 'kg', storageConditions: '', shelfLife: '', allergens: '' });
     }
     setIsModalOpen(true);
   };
@@ -63,7 +63,7 @@ export default function RawMaterials() {
     try {
       const payload = {
         ...formData,
-        shelfLife: formData.shelfLife ? parseInt(formData.shelfLife) : null,
+        shelfLife: formData.shelfLife ? parseInt(formData.shelfLife) : undefined,
       };
       if (editingMaterial) {
         await api.updateRawMaterial(editingMaterial.id, payload);
@@ -150,7 +150,7 @@ export default function RawMaterials() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">{material.unit}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{material.storageTemp || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{material.storageConditions || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{material.shelfLife || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{material.allergens || '-'}</td>
                   <td className="px-4 py-3">
@@ -234,13 +234,13 @@ export default function RawMaterials() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Temp. przechowywania</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Warunki przechowywania</label>
                     <input
                       type="text"
                       className="input"
-                      placeholder="np. 0-4°C"
-                      value={formData.storageTemp}
-                      onChange={(e) => setFormData({ ...formData, storageTemp: e.target.value })}
+                      placeholder="np. 0-4°C, suche miejsce"
+                      value={formData.storageConditions}
+                      onChange={(e) => setFormData({ ...formData, storageConditions: e.target.value })}
                     />
                   </div>
                   <div>

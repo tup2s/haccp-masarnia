@@ -28,7 +28,7 @@ export default function Reports() {
   const generateTemperatureReport = async () => {
     setIsGenerating('temperature');
     try {
-      const blob = await api.getTemperatureReport(temperatureForm.startDate, temperatureForm.endDate);
+      const blob = await api.generateTemperatureReport(temperatureForm.startDate, temperatureForm.endDate);
       const filename = `raport-temperatury-${temperatureForm.startDate}-${temperatureForm.endDate}.pdf`;
       downloadPdf(blob, filename);
       toast.success('Raport wygenerowany');
@@ -46,7 +46,7 @@ export default function Reports() {
     }
     setIsGenerating('traceability');
     try {
-      const blob = await api.getTraceabilityReport(traceabilityForm.batchNumber.trim());
+      const blob = await api.generateTraceabilityReport(traceabilityForm.batchNumber.trim());
       const filename = `traceability-${traceabilityForm.batchNumber}.pdf`;
       downloadPdf(blob, filename);
       toast.success('Raport wygenerowany');
@@ -60,7 +60,7 @@ export default function Reports() {
   const generateHACCPReport = async () => {
     setIsGenerating('haccp');
     try {
-      const blob = await api.getHACCPReport();
+      const blob = await api.generateHACCPReport();
       const filename = `plan-haccp-${dayjs().format('YYYY-MM-DD')}.pdf`;
       downloadPdf(blob, filename);
       toast.success('Raport wygenerowany');

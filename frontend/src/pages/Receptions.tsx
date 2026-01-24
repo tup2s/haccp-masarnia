@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, RawMaterialReception, Supplier, RawMaterial } from '../services/api';
-import { PlusIcon, CheckCircleIcon, XCircleIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -18,9 +18,6 @@ export default function Receptions() {
     batchNumber: '',
     expiryDate: '',
     temperature: '',
-    vehicleClean: true,
-    packagingIntact: true,
-    documentationComplete: true,
     notes: '',
   });
 
@@ -58,9 +55,6 @@ export default function Receptions() {
       batchNumber: '',
       expiryDate: '',
       temperature: '',
-      vehicleClean: true,
-      packagingIntact: true,
-      documentationComplete: true,
       notes: '',
     });
     setIsModalOpen(true);
@@ -76,11 +70,8 @@ export default function Receptions() {
         unit: formData.unit,
         batchNumber: formData.batchNumber,
         expiryDate: formData.expiryDate,
-        temperature: formData.temperature ? parseFloat(formData.temperature) : null,
-        vehicleClean: formData.vehicleClean,
-        packagingIntact: formData.packagingIntact,
-        documentationComplete: formData.documentationComplete,
-        notes: formData.notes || null,
+        temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
+        notes: formData.notes || undefined,
       };
       await api.createReception(payload);
       toast.success('Przyjęcie zarejestrowane');
@@ -122,7 +113,6 @@ export default function Receptions() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ilość</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr partii</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temp.</th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Kontrola</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               </tr>
             </thead>
@@ -130,7 +120,7 @@ export default function Receptions() {
               {receptions.map((reception) => (
                 <tr key={reception.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-900">
-                    {dayjs(reception.receptionDate).format('DD.MM.YYYY HH:mm')}
+                    {dayjs(reception.receivedAt).format('DD.MM.YYYY HH:mm')}
                   </td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">
                     {reception.rawMaterial?.name}
@@ -146,25 +136,6 @@ export default function Receptions() {
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {reception.temperature ? `${reception.temperature}°C` : '-'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-center gap-1">
-                      {reception.vehicleClean ? (
-                        <CheckCircleIcon className="w-5 h-5 text-green-500" title="Pojazd czysty" />
-                      ) : (
-                        <XCircleIcon className="w-5 h-5 text-red-500" title="Pojazd brudny" />
-                      )}
-                      {reception.packagingIntact ? (
-                        <CheckCircleIcon className="w-5 h-5 text-green-500" title="Opakowanie OK" />
-                      ) : (
-                        <XCircleIcon className="w-5 h-5 text-red-500" title="Uszkodzone opakowanie" />
-                      )}
-                      {reception.documentationComplete ? (
-                        <CheckCircleIcon className="w-5 h-5 text-green-500" title="Dokumenty OK" />
-                      ) : (
-                        <XCircleIcon className="w-5 h-5 text-red-500" title="Brak dokumentów" />
-                      )}
-                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`badge ${reception.isCompliant ? 'badge-success' : 'badge-danger'}`}>
@@ -283,39 +254,6 @@ export default function Receptions() {
                       value={formData.expiryDate}
                       onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                     />
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Kontrola przyjęcia</p>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-meat-600 focus:ring-meat-500"
-                        checked={formData.vehicleClean}
-                        onChange={(e) => setFormData({ ...formData, vehicleClean: e.target.checked })}
-                      />
-                      <span className="text-sm text-gray-700">Pojazd czysty i odpowiedni do transportu</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-meat-600 focus:ring-meat-500"
-                        checked={formData.packagingIntact}
-                        onChange={(e) => setFormData({ ...formData, packagingIntact: e.target.checked })}
-                      />
-                      <span className="text-sm text-gray-700">Opakowanie nienaruszone</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-meat-600 focus:ring-meat-500"
-                        checked={formData.documentationComplete}
-                        onChange={(e) => setFormData({ ...formData, documentationComplete: e.target.checked })}
-                      />
-                      <span className="text-sm text-gray-700">Dokumentacja kompletna (HDI, świadectwo)</span>
-                    </label>
                   </div>
                 </div>
 

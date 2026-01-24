@@ -113,8 +113,8 @@ export default function Suppliers() {
                       <p className="text-sm text-meat-600 font-medium">Nr wet: {supplier.vetNumber}</p>
                     )}
                   </div>
-                  <span className={`badge ${supplier.isActive ? 'badge-success' : 'badge-danger'}`}>
-                    {supplier.isActive ? 'Aktywny' : 'Nieaktywny'}
+                  <span className={`badge ${supplier.isApproved ? 'badge-success' : 'badge-danger'}`}>
+                    {supplier.isApproved ? 'Zatwierdzony' : 'Niezatwierdzony'}
                   </span>
                 </div>
                 <div className="mt-3 space-y-1 text-sm text-gray-500">

@@ -138,7 +138,6 @@ export default function Users() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Użytkownik</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rola</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Utworzony</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Akcje</th>
               </tr>
@@ -158,11 +157,6 @@ export default function Users() {
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${getRoleColor(user.role)}`}>
                       {getRoleLabel(user.role)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`badge ${user.isActive ? 'badge-success' : 'badge-danger'}`}>
-                      {user.isActive ? 'Aktywny' : 'Nieaktywny'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">

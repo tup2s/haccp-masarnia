@@ -10,7 +10,6 @@ export default function Products() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    sku: '',
     category: '',
     description: '',
     unit: 'kg',
@@ -39,7 +38,6 @@ export default function Products() {
       setEditingProduct(product);
       setFormData({
         name: product.name,
-        sku: product.sku || '',
         category: product.category || '',
         description: product.description || '',
         unit: product.unit,
@@ -51,7 +49,6 @@ export default function Products() {
       setEditingProduct(null);
       setFormData({
         name: '',
-        sku: '',
         category: '',
         description: '',
         unit: 'kg',
@@ -68,7 +65,7 @@ export default function Products() {
     try {
       const payload = {
         ...formData,
-        shelfLife: formData.shelfLife ? parseInt(formData.shelfLife) : null,
+        shelfLife: formData.shelfLife ? parseInt(formData.shelfLife) : undefined,
       };
       if (editingProduct) {
         await api.updateProduct(editingProduct.id, payload);
@@ -124,7 +121,6 @@ export default function Products() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-gray-900 truncate">{product.name}</h3>
-                {product.sku && <p className="text-sm text-gray-500">SKU: {product.sku}</p>}
                 {product.category && (
                   <span className="inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded bg-gray-100 text-gray-800">
                     {product.category}
@@ -193,15 +189,6 @@ export default function Products() {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                    <input
-                      type="text"
-                      className="input"
-                      value={formData.sku}
-                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     />
                   </div>
                   <div>

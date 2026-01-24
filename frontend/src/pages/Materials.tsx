@@ -103,13 +103,13 @@ export default function Materials() {
     try {
       setLoading(true);
       const [materialsRes, suppliersRes, receiptsRes] = await Promise.all([
-        api.get('/materials'),
-        api.get('/suppliers'),
-        api.get('/materials/receipts/all'),
+        api.getMaterials(),
+        api.getSuppliers(),
+        api.getMaterialReceipts(),
       ]);
-      setMaterials(materialsRes.data);
-      setSuppliers(suppliersRes.data);
-      setReceipts(receiptsRes.data);
+      setMaterials(materialsRes);
+      setSuppliers(suppliersRes);
+      setReceipts(receiptsRes);
     } catch (error) {
       console.error('Błąd ładowania:', error);
       toast.error('Błąd podczas ładowania danych');
@@ -132,10 +132,10 @@ export default function Materials() {
       };
 
       if (editingMaterial) {
-        await api.put(`/materials/${editingMaterial.id}`, data);
+        await api.updateMaterial(editingMaterial.id, data);
         toast.success('Materiał zaktualizowany');
       } else {
-        await api.post('/materials', data);
+        await api.createMaterial(data);
         toast.success('Materiał dodany');
       }
 
@@ -150,7 +150,7 @@ export default function Materials() {
   const handleSubmitReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/materials/receipts', {
+      await api.createMaterialReceipt({
         materialId: parseInt(receiptForm.materialId),
         supplierId: receiptForm.supplierId ? parseInt(receiptForm.supplierId) : null,
         batchNumber: receiptForm.batchNumber,
@@ -173,7 +173,7 @@ export default function Materials() {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.delete(`/materials/${id}`);
+      await api.deleteMaterial(id);
       toast.success('Materiał usunięty');
       setShowDeleteConfirm(null);
       loadData();
