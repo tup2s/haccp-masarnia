@@ -7,7 +7,7 @@ import {
   EyeIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import api from '../services/api';
+import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 interface Reception {
@@ -16,7 +16,7 @@ interface Reception {
   quantity: number;
   unit: string;
   receivedAt: string;
-  rawMaterial: { name: string };
+  rawMaterial: { name: string; category?: string };
   supplier: { name: string };
 }
 
@@ -88,17 +88,17 @@ export default function Butchering() {
     try {
       setLoading(true);
       const [butcheringsRes, receptionsRes] = await Promise.all([
-        api.get('/butchering'),
-        api.get('/receptions'),
+        api.getButcherings(),
+        api.getReceptions(),
       ]);
-      setButcherings(butcheringsRes.data);
+      setButcherings(butcheringsRes);
       // Filtruj tylko przyjęcia mięsa (półtusze, tusze)
-      const meatReceptions = receptionsRes.data.filter((r: any) => 
+      const meatReceptions = receptionsRes.filter((r: Reception) => 
         r.rawMaterial?.category === 'MEAT' || 
         r.rawMaterial?.name?.toLowerCase().includes('tusz') ||
         r.rawMaterial?.name?.toLowerCase().includes('półtusz')
       );
-      setReceptions(meatReceptions.length > 0 ? meatReceptions : receptionsRes.data);
+      setReceptions(meatReceptions.length > 0 ? meatReceptions : receptionsRes);
     } catch (error) {
       console.error('Błąd ładowania:', error);
       toast.error('Błąd podczas ładowania danych');
@@ -131,10 +131,10 @@ export default function Butchering() {
       };
 
       if (editingButchering) {
-        await api.put(`/butchering/${editingButchering.id}`, data);
+        await api.updateButchering(editingButchering.id, data);
         toast.success('Rozbior zaktualizowany');
       } else {
-        await api.post('/butchering', data);
+        await api.createButchering(data);
         toast.success('Rozbior zarejestrowany');
       }
 
@@ -148,7 +148,7 @@ export default function Butchering() {
 
   const handleDelete = async (id: number) => {
     try {
-      await api.delete(`/butchering/${id}`);
+      await api.deleteButchering(id);
       toast.success('Rozbior usunięty');
       setShowDeleteConfirm(null);
       loadData();
@@ -165,7 +165,7 @@ export default function Butchering() {
     setElements(elements.filter((_, i) => i !== index));
   };
 
-  const updateElement = (index: number, field: keyof ButcheringElement, value: any) => {
+  const updateElement = (index: number, field: keyof ButcheringElement, value: string | number) => {
     const updated = [...elements];
     updated[index] = { ...updated[index], [field]: value };
     setElements(updated);

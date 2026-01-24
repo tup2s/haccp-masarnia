@@ -14,13 +14,15 @@ export default function Cleaning() {
   const [selectedArea, setSelectedArea] = useState<CleaningArea | null>(null);
   const [areaForm, setAreaForm] = useState({
     name: '',
-    cleaningFrequency: 'DAILY',
-    procedure: '',
+    location: '',
+    frequency: 'DAILY',
+    method: '',
     chemicals: '',
   });
   const [recordForm, setRecordForm] = useState({
-    areaId: '',
-    chemicalsUsed: '',
+    cleaningAreaId: '',
+    method: '',
+    chemicals: '',
     notes: '',
   });
 
@@ -48,21 +50,23 @@ export default function Cleaning() {
       setSelectedArea(area);
       setAreaForm({
         name: area.name,
-        cleaningFrequency: area.cleaningFrequency,
-        procedure: area.procedure || '',
+        location: area.location || '',
+        frequency: area.frequency,
+        method: area.method || '',
         chemicals: area.chemicals || '',
       });
     } else {
       setSelectedArea(null);
-      setAreaForm({ name: '', cleaningFrequency: 'DAILY', procedure: '', chemicals: '' });
+      setAreaForm({ name: '', location: '', frequency: 'DAILY', method: '', chemicals: '' });
     }
     setIsAreaModalOpen(true);
   };
 
   const openRecordModal = (area: CleaningArea) => {
     setRecordForm({
-      areaId: area.id.toString(),
-      chemicalsUsed: area.chemicals || '',
+      cleaningAreaId: area.id.toString(),
+      method: area.method || '',
+      chemicals: area.chemicals || '',
       notes: '',
     });
     setIsRecordModalOpen(true);
@@ -89,9 +93,10 @@ export default function Cleaning() {
     e.preventDefault();
     try {
       await api.createCleaningRecord({
-        areaId: parseInt(recordForm.areaId),
-        chemicalsUsed: recordForm.chemicalsUsed || null,
-        notes: recordForm.notes || null,
+        cleaningAreaId: parseInt(recordForm.cleaningAreaId),
+        method: recordForm.method,
+        chemicals: recordForm.chemicals || undefined,
+        notes: recordForm.notes || undefined,
       });
       toast.success('Mycie zarejestrowane');
       setIsRecordModalOpen(false);
@@ -176,15 +181,15 @@ export default function Cleaning() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">{area.name}</h3>
-                  <span className={`inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded ${getFrequencyColor(area.cleaningFrequency)}`}>
-                    {getFrequencyLabel(area.cleaningFrequency)}
+                  <span className={`inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded ${getFrequencyColor(area.frequency)}`}>
+                    {getFrequencyLabel(area.frequency)}
                   </span>
                 </div>
               </div>
-              {area.procedure && (
+              {area.method && (
                 <div className="mt-3 text-sm text-gray-500">
-                  <p className="font-medium text-gray-700">Procedura:</p>
-                  <p className="whitespace-pre-wrap">{area.procedure}</p>
+                  <p className="font-medium text-gray-700">Metoda:</p>
+                  <p className="whitespace-pre-wrap">{area.method}</p>
                 </div>
               )}
               {area.chemicals && (
@@ -239,16 +244,16 @@ export default function Cleaning() {
                   <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
                       <ClockIcon className="w-4 h-4 inline mr-1 text-gray-400" />
-                      {dayjs(record.cleaningDate).format('DD.MM.YYYY HH:mm')}
+                      {dayjs(record.cleanedAt).format('DD.MM.YYYY HH:mm')}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                      {record.area?.name}
+                      {record.cleaningArea?.name}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
-                      {record.chemicalsUsed || '-'}
+                      {record.chemicals || '-'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
-                      {record.performedBy?.name}
+                      {record.user?.name}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {record.notes || '-'}
@@ -290,11 +295,20 @@ export default function Cleaning() {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Lokalizacja</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={areaForm.location}
+                    onChange={(e) => setAreaForm({ ...areaForm, location: e.target.value })}
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Częstotliwość mycia *</label>
                   <select
                     className="input"
-                    value={areaForm.cleaningFrequency}
-                    onChange={(e) => setAreaForm({ ...areaForm, cleaningFrequency: e.target.value })}
+                    value={areaForm.frequency}
+                    onChange={(e) => setAreaForm({ ...areaForm, frequency: e.target.value })}
                   >
                     <option value="DAILY">Codziennie</option>
                     <option value="WEEKLY">Co tydzień</option>
@@ -303,13 +317,13 @@ export default function Cleaning() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Procedura mycia</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Metoda mycia</label>
                   <textarea
                     className="input"
                     rows={3}
                     placeholder="Opisz sposób mycia i dezynfekcji..."
-                    value={areaForm.procedure}
-                    onChange={(e) => setAreaForm({ ...areaForm, procedure: e.target.value })}
+                    value={areaForm.method}
+                    onChange={(e) => setAreaForm({ ...areaForm, method: e.target.value })}
                   />
                 </div>
                 <div>
@@ -348,8 +362,8 @@ export default function Cleaning() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Strefa</label>
                   <select
                     className="input"
-                    value={recordForm.areaId}
-                    onChange={(e) => setRecordForm({ ...recordForm, areaId: e.target.value })}
+                    value={recordForm.cleaningAreaId}
+                    onChange={(e) => setRecordForm({ ...recordForm, cleaningAreaId: e.target.value })}
                   >
                     {areas.map((a) => (
                       <option key={a.id} value={a.id}>{a.name}</option>
@@ -357,12 +371,21 @@ export default function Cleaning() {
                   </select>
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Metoda</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={recordForm.method}
+                    onChange={(e) => setRecordForm({ ...recordForm, method: e.target.value })}
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Użyte środki</label>
                   <input
                     type="text"
                     className="input"
-                    value={recordForm.chemicalsUsed}
-                    onChange={(e) => setRecordForm({ ...recordForm, chemicalsUsed: e.target.value })}
+                    value={recordForm.chemicals}
+                    onChange={(e) => setRecordForm({ ...recordForm, chemicals: e.target.value })}
                   />
                 </div>
                 <div>
