@@ -552,7 +552,7 @@ export default function Production() {
                             <option value="0">Wybierz element peklowany</option>
                             {curingBatches.map((c) => (
                               <option key={c.id} value={c.id}>
-                                🧂 {c.productName} - {c.batchNumber} ({c.availableQuantity} {c.unit} dostępne)
+                                🧂 {c.productName || c.reception?.rawMaterial?.name} - {c.batchNumber} ({c.availableQuantity} {c.unit} dostępne)
                               </option>
                             ))}
                           </select>

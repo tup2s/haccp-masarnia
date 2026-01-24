@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, RawMaterialReception, Supplier, RawMaterial } from '../services/api';
-import { PlusIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ClipboardDocumentListIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -10,6 +10,12 @@ export default function Receptions() {
   const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editReception, setEditReception] = useState<RawMaterialReception | null>(null);
+  const [deleteModal, setDeleteModal] = useState<RawMaterialReception | null>(null);
+  
+  const userRole = JSON.parse(localStorage.getItem('user') || '{}').role || 'EMPLOYEE';
+  const isAdmin = userRole === 'ADMIN';
+  
   const [formData, setFormData] = useState({
     supplierId: '',
     rawMaterialId: '',
@@ -18,6 +24,7 @@ export default function Receptions() {
     batchNumber: '',
     expiryDate: '',
     temperature: '',
+    isCompliant: true,
     notes: '',
   });
 
@@ -55,7 +62,25 @@ export default function Receptions() {
       batchNumber: '',
       expiryDate: '',
       temperature: '',
+      isCompliant: true,
       notes: '',
+    });
+    setEditReception(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (reception: RawMaterialReception) => {
+    setEditReception(reception);
+    setFormData({
+      supplierId: reception.supplierId.toString(),
+      rawMaterialId: reception.rawMaterialId.toString(),
+      quantity: reception.quantity.toString(),
+      unit: reception.unit,
+      batchNumber: reception.batchNumber,
+      expiryDate: reception.expiryDate ? dayjs(reception.expiryDate).format('YYYY-MM-DD') : '',
+      temperature: reception.temperature?.toString() || '',
+      isCompliant: reception.isCompliant,
+      notes: reception.notes || '',
     });
     setIsModalOpen(true);
   };
@@ -71,14 +96,35 @@ export default function Receptions() {
         batchNumber: formData.batchNumber,
         expiryDate: formData.expiryDate,
         temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
+        isCompliant: formData.isCompliant,
         notes: formData.notes || undefined,
       };
-      await api.createReception(payload);
-      toast.success('Przyjęcie zarejestrowane');
+      
+      if (editReception) {
+        await api.updateReception(editReception.id, payload);
+        toast.success('Przyjęcie zaktualizowane');
+      } else {
+        await api.createReception(payload);
+        toast.success('Przyjęcie zarejestrowane');
+      }
+      
       setIsModalOpen(false);
+      setEditReception(null);
       loadReceptions();
     } catch (error) {
       toast.error('Błąd podczas zapisywania');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteModal) return;
+    try {
+      await api.deleteReception(deleteModal.id);
+      toast.success('Przyjęcie usunięte');
+      setDeleteModal(null);
+      loadReceptions();
+    } catch (error) {
+      toast.error('Błąd podczas usuwania');
     }
   };
 
@@ -114,6 +160,7 @@ export default function Receptions() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr partii</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temp.</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                {isAdmin && <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Akcje</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -142,6 +189,24 @@ export default function Receptions() {
                       {reception.isCompliant ? 'Zgodne' : 'Niezgodne'}
                     </span>
                   </td>
+                  {isAdmin && (
+                    <td className="px-4 py-3 text-right space-x-1">
+                      <button
+                        onClick={() => openEditModal(reception)}
+                        className="p-1 text-gray-400 hover:text-blue-600"
+                        title="Edytuj"
+                      >
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteModal(reception)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                        title="Usuń"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -161,9 +226,11 @@ export default function Receptions() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setIsModalOpen(false)}></div>
+            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => { setIsModalOpen(false); setEditReception(null); }}></div>
             <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Nowe przyjęcie surowca</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                {editReception ? 'Edytuj przyjęcie surowca' : 'Nowe przyjęcie surowca'}
+              </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
@@ -257,6 +324,19 @@ export default function Receptions() {
                   </div>
                 </div>
 
+                {/* Status zgodności */}
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                      checked={formData.isCompliant}
+                      onChange={(e) => setFormData({ ...formData, isCompliant: e.target.checked })}
+                    />
+                    <span className="text-sm font-medium text-gray-700">Surowiec zgodny z wymaganiami</span>
+                  </label>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Uwagi</label>
                   <textarea
@@ -268,14 +348,42 @@ export default function Receptions() {
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 btn-secondary">
+                  <button type="button" onClick={() => { setIsModalOpen(false); setEditReception(null); }} className="flex-1 btn-secondary">
                     Anuluj
                   </button>
                   <button type="submit" className="flex-1 btn-primary">
-                    Zarejestruj przyjęcie
+                    {editReception ? 'Zapisz zmiany' : 'Zarejestruj przyjęcie'}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setDeleteModal(null)}></div>
+            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Usuń przyjęcie</h2>
+              <p className="text-gray-500 mb-4">
+                Czy na pewno chcesz usunąć przyjęcie <strong>{deleteModal.rawMaterial?.name}</strong> z dnia {dayjs(deleteModal.receivedAt).format('DD.MM.YYYY')}?
+              </p>
+              <div className="bg-red-50 rounded-lg p-4 mb-4">
+                <p className="text-sm text-red-800">
+                  ⚠️ Ta operacja jest nieodwracalna. Wszystkie dane przyjęcia zostaną usunięte.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteModal(null)} className="flex-1 btn-secondary">
+                  Anuluj
+                </button>
+                <button onClick={handleDelete} className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium">
+                  Usuń przyjęcie
+                </button>
+              </div>
             </div>
           </div>
         </div>

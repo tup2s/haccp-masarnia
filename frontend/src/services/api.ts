@@ -182,7 +182,7 @@ export interface CuringBatch {
   id: number;
   batchNumber: string;
   receptionId: number;
-  productName: string; // Nazwa peklowanego produktu
+  productName?: string; // Nazwa peklowanego produktu (opcjonalne dla starych rekordów)
   quantity: number;
   unit: string;
   curingMethod: string;

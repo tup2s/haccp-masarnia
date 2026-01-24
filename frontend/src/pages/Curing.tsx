@@ -343,7 +343,7 @@ export default function Curing() {
                     <span className="font-mono font-medium text-meat-600">{batch.batchNumber}</span>
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <div className="font-medium text-gray-900">{batch.productName}</div>
+                    <div className="font-medium text-gray-900">{batch.productName || batch.reception?.rawMaterial?.name || '-'}</div>
                     {batch.meatDescription && (
                       <div className="text-amber-600 text-xs mt-1">{batch.meatDescription}</div>
                     )}
@@ -772,7 +772,7 @@ export default function Curing() {
                 {/* Nazwa peklowanego produktu */}
                 <div className="bg-meat-50 rounded-lg p-4">
                   <p className="text-sm font-medium text-meat-800 mb-1">Produkt peklowany</p>
-                  <p className="text-lg font-semibold text-meat-900">{viewBatch.productName}</p>
+                  <p className="text-lg font-semibold text-meat-900">{viewBatch.productName || viewBatch.reception?.rawMaterial?.name || '-'}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
