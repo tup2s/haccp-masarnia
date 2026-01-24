@@ -13,7 +13,6 @@ export default function Curing() {
   const [editBatch, setEditBatch] = useState<CuringBatch | null>(null);
   const [completeModal, setCompleteModal] = useState<CuringBatch | null>(null);
   const [deleteModal, setDeleteModal] = useState<CuringBatch | null>(null);
-  const [printingId, setPrintingId] = useState<number | null>(null);
   const [completeNotes, setCompleteNotes] = useState('');
   const [completeEndDate, setCompleteEndDate] = useState('');
   const [completeEndTime, setCompleteEndTime] = useState('');
@@ -217,16 +216,10 @@ export default function Curing() {
     }
   };
 
-  const handlePrintLabel = async (batch: CuringBatch) => {
-    setPrintingId(batch.id);
-    try {
-      const result = await api.printCuringLabel(batch.id, 1);
-      toast.success(result.message);
-    } catch (error: any) {
-      toast.error(error.message || 'Błąd drukowania etykiety');
-    } finally {
-      setPrintingId(null);
-    }
+  const handlePrintLabel = (batch: CuringBatch) => {
+    // Otwórz etykietę w nowym oknie - użytkownik może wydrukować na dowolnej drukarce
+    api.openCuringLabelForPrint(batch.id);
+    toast.success('Otwarto etykietę do wydruku');
   };
 
   const getStatusColor = (status: string) => {
@@ -399,11 +392,10 @@ export default function Curing() {
                     </button>
                     <button
                       onClick={() => handlePrintLabel(batch)}
-                      disabled={printingId === batch.id}
-                      className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-50"
+                      className="p-1 text-gray-400 hover:text-purple-600"
                       title="Drukuj etykietę"
                     >
-                      <PrinterIcon className={`w-5 h-5 ${printingId === batch.id ? 'animate-pulse' : ''}`} />
+                      <PrinterIcon className="w-5 h-5" />
                     </button>
                     {isAdmin && (
                       <>

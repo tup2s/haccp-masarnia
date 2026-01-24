@@ -1,12 +1,13 @@
 // API URL - w produkcji używaj zmiennej środowiskowej VITE_API_URL
 // VITE_API_URL powinien być bez /api na końcu (np. https://haccp-masarnia.onrender.com)
+
 const getApiUrl = () => {
   if (import.meta.env.VITE_API_URL) {
     // Produkcja - dodaj /api do URL
     const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, ''); // usuń trailing slash
     return `${baseUrl}/api`;
   }
-  // Lokalnie
+  // Lokalnie (development)
   if (window.location.hostname === 'localhost') {
     return '/api';  // Używaj proxy Vite
   }
@@ -628,11 +629,18 @@ export const api = {
     request<any>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Labels / Printing
-  printCuringLabel: (batchId: number, copies?: number) =>
+  // Drukowanie bezpośrednie na drukarkę sieciową Godex (tylko gdy backend ma dostęp do drukarki)
+  printCuringLabelDirect: (batchId: number, copies?: number) =>
     request<{ success: boolean; message: string }>(`/labels/print/curing/${batchId}`, { 
       method: 'POST', 
       body: JSON.stringify({ copies: copies || 1 }) 
     }),
+  // Otwórz etykietę jako HTML w nowym oknie do wydruku (działa wszędzie)
+  openCuringLabelForPrint: (batchId: number) => {
+    const token = authToken;
+    const url = `${API_URL}/labels/html/curing/${batchId}?token=${token}`;
+    window.open(url, '_blank', 'width=400,height=300');
+  },
   previewCuringLabel: (batchId: number) =>
     request<any>(`/labels/preview/curing/${batchId}`),
   testPrinter: () =>

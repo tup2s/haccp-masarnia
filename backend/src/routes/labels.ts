@@ -230,6 +230,143 @@ router.get('/preview/curing/:id', authenticateToken, async (req: AuthRequest, re
   }
 });
 
+// GET /api/labels/html/curing/:id - Generuj etykietę jako HTML do wydruku z przeglądarki
+router.get('/html/curing/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const settings = await prisma.companySettings.findFirst();
+    
+    const batch = await prisma.curingBatch.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        reception: {
+          include: {
+            rawMaterial: true,
+            supplier: true,
+          }
+        }
+      }
+    });
+    
+    if (!batch) {
+      return res.status(404).json({ error: 'Partia nie znaleziona' });
+    }
+    
+    const labelWidth = settings?.labelWidth || 60;
+    const labelHeight = settings?.labelHeight || 40;
+    const companyName = settings?.companyName || 'Masarnia';
+    const productName = batch.reception?.rawMaterial?.name || 'Mięso';
+    
+    // Generuj HTML etykiety gotowej do wydruku
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Etykieta ${batch.batchNumber}</title>
+  <style>
+    @page {
+      size: ${labelWidth}mm ${labelHeight}mm;
+      margin: 0;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      width: ${labelWidth}mm;
+      height: ${labelHeight}mm;
+      padding: 2mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .batch-number {
+      font-size: 14pt;
+      font-weight: bold;
+      text-align: center;
+      border-bottom: 1px solid #000;
+      padding-bottom: 1mm;
+    }
+    .product-name {
+      font-size: 10pt;
+      font-weight: bold;
+      text-align: center;
+    }
+    .meat-desc {
+      font-size: 8pt;
+      text-align: center;
+      color: #333;
+    }
+    .info-row {
+      font-size: 8pt;
+      display: flex;
+      justify-content: space-between;
+    }
+    .dates {
+      font-size: 9pt;
+      display: flex;
+      justify-content: space-around;
+    }
+    .company {
+      font-size: 6pt;
+      text-align: center;
+      border-top: 1px solid #000;
+      padding-top: 1mm;
+    }
+    @media print {
+      body { -webkit-print-color-adjust: exact; }
+    }
+    .no-print {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    @media print {
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <button class="no-print" onclick="window.print()">🖨️ Drukuj</button>
+  
+  <div class="batch-number">Partia: ${batch.batchNumber}</div>
+  
+  <div class="product-name">${productName}</div>
+  
+  ${batch.meatDescription ? `<div class="meat-desc">${batch.meatDescription}</div>` : ''}
+  
+  <div class="info-row">
+    <span>Ilość: ${batch.quantity} ${batch.unit}</span>
+    <span>Metoda: ${batch.curingMethod === 'DRY' ? 'Sucha' : 'Nastrzykowa'}</span>
+  </div>
+  
+  <div class="dates">
+    <span>Start: ${dayjs(batch.startDate).format('DD.MM.YYYY')}</span>
+    <span>Koniec: ${dayjs(batch.plannedEndDate).format('DD.MM.YYYY')}</span>
+  </div>
+  
+  <div class="company">${companyName}</div>
+</body>
+</html>`;
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+    
+  } catch (error) {
+    console.error('Error generating HTML label:', error);
+    res.status(500).json({ error: 'Błąd generowania etykiety HTML' });
+  }
+});
+
 // POST /api/labels/test - Test połączenia z drukarką
 router.post('/test', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
