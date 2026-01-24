@@ -1,7 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'haccp-masarnia-secret-key-2024';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET environment variable is not set!');
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
+
+const SECRET = JWT_SECRET || 'dev-secret-not-for-production';
 
 export interface AuthRequest extends Request {
   userId?: number;
@@ -18,7 +27,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; role: string };
+    const decoded = jwt.verify(token, SECRET) as { userId: number; role: string };
     req.userId = decoded.userId;
     req.userRole = decoded.role;
     next();
@@ -42,5 +51,5 @@ export const requireManager = (req: AuthRequest, res: Response, next: NextFuncti
 };
 
 export const generateToken = (userId: number, role: string): string => {
-  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '24h' });
+  return jwt.sign({ userId, role }, SECRET, { expiresIn: '24h' });
 };
