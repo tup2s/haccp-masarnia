@@ -14,7 +14,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:prod": "node dist/prisma/seed.js",
     "db:studio": "prisma studio",
-    "render:start": "prisma migrate deploy && node dist/index.js"
+    "render:start": "prisma migrate deploy && tsx prisma/seed.ts && node dist/index.js"
   },
   "keywords": [
     "haccp",
