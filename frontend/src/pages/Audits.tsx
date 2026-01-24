@@ -37,7 +37,7 @@ export default function Audits() {
     setSelectedChecklist(checklist);
     const items = checklist.items as any[];
     const initialResults: { [key: string]: { passed: boolean; notes: string } } = {};
-    items.forEach((_, index) => {
+    items.forEach((_item, index) => {
       initialResults[index.toString()] = { passed: true, notes: '' };
     });
     setAuditResults(initialResults);
@@ -134,9 +134,6 @@ export default function Audits() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">{checklist.name}</h3>
-                  {checklist.description && (
-                    <p className="text-sm text-gray-500 mt-1">{checklist.description}</p>
-                  )}
                   <p className="text-sm text-gray-400 mt-2">
                     {(checklist.items as any[]).length} punktów kontrolnych
                   </p>
@@ -171,18 +168,18 @@ export default function Audits() {
               onClick={() => setViewRecord(record)}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${getScoreColor(record.score)}`}>
-                  <span className="text-2xl font-bold">{record.score}%</span>
+                <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${getScoreColor(record.score ?? 0)}`}>
+                  <span className="text-2xl font-bold">{record.score ?? 0}%</span>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-900">{record.checklist?.name}</h3>
                   <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
                     <span>{dayjs(record.auditDate).format('DD.MM.YYYY HH:mm')}</span>
-                    <span>Audytor: {record.auditor?.name}</span>
+                    <span>Audytor: {record.user?.name || record.auditor}</span>
                   </div>
                 </div>
-                <span className={`badge ${record.score >= 80 ? 'badge-success' : 'badge-danger'}`}>
-                  {record.score >= 80 ? 'Zaliczony' : 'Niezaliczony'}
+                <span className={`badge ${(record.score ?? 0) >= 80 ? 'badge-success' : 'badge-danger'}`}>
+                  {(record.score ?? 0) >= 80 ? 'Zaliczony' : 'Niezaliczony'}
                 </span>
               </div>
             </div>
@@ -288,11 +285,11 @@ export default function Audits() {
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">{viewRecord.checklist?.name}</h2>
                   <p className="text-gray-500">
-                    {dayjs(viewRecord.auditDate).format('DD.MM.YYYY HH:mm')} • {viewRecord.auditor?.name}
+                    {dayjs(viewRecord.auditDate).format('DD.MM.YYYY HH:mm')} • {viewRecord.user?.name || viewRecord.auditor}
                   </p>
                 </div>
-                <div className={`w-20 h-20 rounded-lg flex items-center justify-center ${getScoreColor(viewRecord.score)}`}>
-                  <span className="text-3xl font-bold">{viewRecord.score}%</span>
+                <div className={`w-20 h-20 rounded-lg flex items-center justify-center ${getScoreColor(viewRecord.score ?? 0)}`}>
+                  <span className="text-3xl font-bold">{viewRecord.score ?? 0}%</span>
                 </div>
               </div>
 
