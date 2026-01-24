@@ -233,10 +233,17 @@ router.get('/preview/curing/:id', authenticateToken, async (req: AuthRequest, re
 // GET /api/labels/html/curing/:id - Generuj etykietę jako HTML do wydruku z przeglądarki
 router.get('/html/curing/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const batchId = parseInt(req.params.id);
+    console.log('Generating HTML label for batch ID:', batchId);
+    
+    if (isNaN(batchId)) {
+      return res.status(400).json({ error: 'Nieprawidłowe ID partii' });
+    }
+    
     const settings = await prisma.companySettings.findFirst();
     
     const batch = await prisma.curingBatch.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: batchId },
       include: {
         reception: {
           include: {
@@ -246,6 +253,8 @@ router.get('/html/curing/:id', authenticateToken, async (req: AuthRequest, res: 
         }
       }
     });
+    
+    console.log('Batch found:', batch ? batch.batchNumber : 'NOT FOUND');
     
     if (!batch) {
       return res.status(404).json({ error: 'Partia nie znaleziona' });
@@ -361,9 +370,12 @@ router.get('/html/curing/:id', authenticateToken, async (req: AuthRequest, res: 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating HTML label:', error);
-    res.status(500).json({ error: 'Błąd generowania etykiety HTML' });
+    res.status(500).json({ 
+      error: 'Błąd generowania etykiety HTML', 
+      details: error.message || 'Nieznany błąd'
+    });
   }
 });
 
