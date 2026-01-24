@@ -37,7 +37,7 @@ export default function Audits() {
     setSelectedChecklist(checklist);
     const items = checklist.items as any[];
     const initialResults: { [key: string]: { passed: boolean; notes: string } } = {};
-    items.forEach((_item, index) => {
+    items.forEach((_, index) => {
       initialResults[index.toString()] = { passed: true, notes: '' };
     });
     setAuditResults(initialResults);
@@ -61,7 +61,7 @@ export default function Audits() {
     try {
       await api.createAuditRecord({
         checklistId: selectedChecklist.id,
-        results,
+        results: results as any,
         score,
         notes: null,
       });
