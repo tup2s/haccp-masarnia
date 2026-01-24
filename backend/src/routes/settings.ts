@@ -35,10 +35,10 @@ router.get('/', authenticateToken, async (req, res) => {
 // PUT /api/settings - aktualizuj ustawienia firmy
 router.put('/', authenticateToken, async (req, res) => {
   try {
-    const { user } = req as any;
+    const authReq = req as any;
     
     // Tylko admin może edytować ustawienia
-    if (user.role !== 'ADMIN') {
+    if (authReq.userRole !== 'ADMIN') {
       return res.status(403).json({ error: 'Brak uprawnień do edycji ustawień' });
     }
 

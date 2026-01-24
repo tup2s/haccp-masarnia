@@ -25,6 +25,7 @@ export default function Curing() {
     quantity: '',
     unit: 'kg',
     curingMethod: 'DRY',
+    meatDescription: '', // Opis mięsa: tłusta II, chuda II, mięso kl I
     // Suche
     curingSaltAmount: '',
     // Nastrzykowe - solanka
@@ -67,6 +68,7 @@ export default function Curing() {
       quantity: '',
       unit: 'kg',
       curingMethod: 'DRY',
+      meatDescription: '',
       curingSaltAmount: '0.25',
       brineWater: '30',
       brineSalt: '2.4',
@@ -89,6 +91,7 @@ export default function Curing() {
       quantity: batch.quantity.toString(),
       unit: batch.unit,
       curingMethod: batch.curingMethod,
+      meatDescription: batch.meatDescription || '',
       curingSaltAmount: batch.curingSaltAmount?.toString() || '0.25',
       brineWater: batch.brineWater?.toString() || '30',
       brineSalt: batch.brineSalt?.toString() || '2.4',
@@ -140,6 +143,7 @@ export default function Curing() {
         quantity: parseFloat(formData.quantity),
         unit: formData.unit,
         curingMethod: formData.curingMethod,
+        meatDescription: formData.meatDescription || undefined,
         plannedDays: parseInt(formData.plannedDays),
         startDate: startDateTime,
         temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
@@ -330,6 +334,9 @@ export default function Curing() {
                   <td className="px-4 py-3 text-sm">
                     <div className="font-medium text-gray-900">{batch.reception?.rawMaterial?.name}</div>
                     <div className="text-gray-500 text-xs">{batch.reception?.supplier?.name}</div>
+                    {batch.meatDescription && (
+                      <div className="text-amber-600 text-xs mt-1">{batch.meatDescription}</div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {batch.quantity} {batch.unit}
@@ -463,6 +470,19 @@ export default function Curing() {
                       <option value="INJECTION">Nastrzykowe (solanka)</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Opis mięsa - co jest peklowane */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Co jest peklowane</label>
+                  <textarea
+                    className="input"
+                    rows={2}
+                    placeholder="np. tłusta II, chuda II, mięso kl I, karkówka..."
+                    value={formData.meatDescription}
+                    onChange={(e) => setFormData({ ...formData, meatDescription: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Wpisz rodzaje mięsa z tej dostawy</p>
                 </div>
 
                 {/* Suche peklowanie */}
@@ -748,6 +768,14 @@ export default function Curing() {
                     </span>
                   </div>
                 </div>
+
+                {/* Opis mięsa */}
+                {viewBatch.meatDescription && (
+                  <div className="bg-amber-50 rounded-lg p-4">
+                    <p className="text-sm font-medium text-amber-800 mb-1">Co jest peklowane</p>
+                    <p className="text-amber-900">{viewBatch.meatDescription}</p>
+                  </div>
+                )}
 
                 {/* Parametry peklowania */}
                 <div className="bg-gray-50 rounded-lg p-4">

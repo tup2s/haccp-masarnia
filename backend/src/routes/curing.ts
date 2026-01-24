@@ -72,10 +72,15 @@ router.get('/completed', authenticateToken, async (req: AuthRequest, res: Respon
 // GET /api/curing/available/meat - Dostępne mięso do peklowania (PRZED /:id!)
 router.get('/available/meat', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    // Pobierz przyjęcia mięsa, które nie są jeszcze w peklowaniu
+    // Pobierz przyjęcia mięsa z ostatnich 14 dni
+    const fourteenDaysAgo = dayjs().subtract(14, 'day').toDate();
+    
     const receptions = await req.prisma.rawMaterialReception.findMany({
       where: {
         isCompliant: true,
+        receivedAt: {
+          gte: fourteenDaysAgo,
+        },
         rawMaterial: {
           category: 'MEAT',
         },
@@ -124,6 +129,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       quantity,
       unit = 'kg',
       curingMethod,
+      meatDescription,
       // Peklowanie suche
       curingSaltAmount,
       // Peklowanie nastrzykowe - solanka
@@ -159,6 +165,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         quantity,
         unit,
         curingMethod,
+        meatDescription,
         curingSaltAmount,
         brineWater,
         brineSalt,
@@ -194,6 +201,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     const {
       quantity,
       curingMethod,
+      meatDescription,
       curingSaltAmount,
       brineWater,
       brineSalt,
@@ -210,6 +218,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     const updateData: any = {};
     if (quantity !== undefined) updateData.quantity = quantity;
     if (curingMethod !== undefined) updateData.curingMethod = curingMethod;
+    if (meatDescription !== undefined) updateData.meatDescription = meatDescription;
     if (curingSaltAmount !== undefined) updateData.curingSaltAmount = curingSaltAmount;
     if (brineWater !== undefined) updateData.brineWater = brineWater;
     if (brineSalt !== undefined) updateData.brineSalt = brineSalt;

@@ -184,6 +184,7 @@ export interface CuringBatch {
   quantity: number;
   unit: string;
   curingMethod: string;
+  meatDescription?: string; // Opis mięsa: tłusta II, chuda II, mięso kl I
   // Peklowanie suche
   curingSaltAmount?: number;
   // Peklowanie nastrzykowe - solanka

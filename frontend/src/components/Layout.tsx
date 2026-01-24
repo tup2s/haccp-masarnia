@@ -23,7 +23,6 @@ import {
   QueueListIcon,
   ArchiveBoxIcon,
   BuildingStorefrontIcon,
-  ScissorsIcon,
   SwatchIcon,
 } from '@heroicons/react/24/outline';
 
@@ -37,7 +36,6 @@ const productionNavigation = [
   { name: 'Surowce', href: '/surowce', icon: CubeIcon },
   { name: 'Materiały', href: '/materialy', icon: SwatchIcon },
   { name: 'Przyjęcia', href: '/przyjecia', icon: ArchiveBoxIcon },
-  { name: 'Rozbior', href: '/rozbior', icon: ScissorsIcon },
   { name: 'Peklowanie', href: '/peklowanie', icon: BeakerIcon },
   { name: 'Produkty', href: '/produkty', icon: BuildingStorefrontIcon },
   { name: 'Produkcja', href: '/produkcja', icon: ClipboardDocumentListIcon },

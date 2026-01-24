@@ -1,6 +1,6 @@
 {
   "name": "haccp-masarnia-backend",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "Backend API dla systemu HACCP masarni MLO",
   "main": "dist/index.js",
   "scripts": {

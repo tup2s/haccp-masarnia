@@ -191,6 +191,7 @@ model CuringBatch {
   quantity        Float     // Ilość mięsa do peklowania
   unit            String    @default("kg")
   curingMethod    String    // DRY (suche), INJECTION (nastrzykowe)
+  meatDescription String?   // Opis mięsa np. "tłusta II, chuda II, mięso kl I"
   
   // Peklowanie suche - azotynowa sól peklująca
   curingSaltAmount Float?   // Ilość soli peklowej (kg) - suche: 0.25 kg na 20 kg mięsa

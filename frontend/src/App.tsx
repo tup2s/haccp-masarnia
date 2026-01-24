@@ -22,7 +22,6 @@ import Reports from './pages/Reports';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Materials from './pages/Materials';
-import Butchering from './pages/Butchering';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token, isLoading } = useAuth();
@@ -55,7 +54,6 @@ function App() {
                 <Route path="/surowce" element={<RawMaterials />} />
                 <Route path="/przyjecia" element={<Receptions />} />
                 <Route path="/materialy" element={<Materials />} />
-                <Route path="/rozbior" element={<Butchering />} />
                 <Route path="/produkty" element={<Products />} />
                 <Route path="/produkcja" element={<Production />} />
                 <Route path="/peklowanie" element={<Curing />} />
