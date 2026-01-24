@@ -195,7 +195,7 @@ model CuringBatch {
   id              Int       @id @default(autoincrement())
   batchNumber     String    @unique
   receptionId     Int       // Partia dostawy surowca
-  productName     String    // Nazwa peklowanego produktu np. "Karkówka na szynkę", "Schab wiejski"
+  productName     String?   // Nazwa peklowanego produktu np. "Karkówka na szynkę", "Schab wiejski" (opcjonalne dla starych rekordów)
   quantity        Float     // Ilość mięsa do peklowania
   unit            String    @default("kg")
   curingMethod    String    // DRY (suche), INJECTION (nastrzykowe)
