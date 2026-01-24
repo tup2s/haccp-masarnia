@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, AuditChecklist, AuditRecord } from '../services/api';
-import { PlusIcon, ClipboardDocumentCheckIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentCheckIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -37,7 +37,7 @@ export default function Audits() {
     setSelectedChecklist(checklist);
     const items = checklist.items as any[];
     const initialResults: { [key: string]: { passed: boolean; notes: string } } = {};
-    items.forEach((item, index) => {
+    items.forEach((_, index) => {
       initialResults[index.toString()] = { passed: true, notes: '' };
     });
     setAuditResults(initialResults);

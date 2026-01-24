@@ -280,7 +280,7 @@ export interface AuditRecord {
   checklistId: number;
   auditDate: string;
   auditor: string;
-  results: Record<number, boolean>;
+  results: any;
   score?: number;
   findings?: string;
   recommendations?: string;
@@ -554,7 +554,7 @@ export const api = {
     if (limit) query.append('limit', limit.toString());
     return request<AuditRecord[]>(`/audits/records?${query}`);
   },
-  createAuditRecord: (data: { checklistId: number; auditor: string; results: Record<number, boolean>; findings?: string; recommendations?: string }) =>
+  createAuditRecord: (data: { checklistId: number; results: any; score?: number; notes?: string | null }) =>
     request<AuditRecord>('/audits/records', { method: 'POST', body: JSON.stringify(data) }),
   getAuditRecord: (id: number) => request<AuditRecord>(`/audits/records/${id}`),
 
