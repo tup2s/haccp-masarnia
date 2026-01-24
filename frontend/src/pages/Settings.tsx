@@ -32,7 +32,6 @@ export default function Settings() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [testingPrinter, setTestingPrinter] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   
   const [companySettings, setCompanySettings] = useState<CompanySettings>({
@@ -95,29 +94,12 @@ export default function Settings() {
     setSaving(true);
     try {
       await api.updateSettings(companySettings);
-      toast.success('Dane firmy zapisane');
-    } catch (error) {
+      toast.success('Ustawienia zapisane pomyślnie');
+    } catch (error: any) {
       console.error('Błąd zapisu:', error);
-      toast.error('Błąd podczas zapisywania danych');
+      toast.error(error.message || 'Błąd podczas zapisywania danych');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleTestPrinter = async () => {
-    if (!companySettings.printerIp) {
-      toast.error('Podaj adres IP drukarki');
-      return;
-    }
-    
-    setTestingPrinter(true);
-    try {
-      const result = await api.testPrinter();
-      toast.success(result.message);
-    } catch (error: any) {
-      toast.error(error.message || 'Błąd połączenia z drukarką');
-    } finally {
-      setTestingPrinter(false);
     }
   };
 
@@ -297,33 +279,12 @@ export default function Settings() {
             <div className="p-2 bg-purple-100 rounded-lg">
               <PrinterIcon className="w-6 h-6 text-purple-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">Drukarka etykiet</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Ustawienia etykiet</h2>
           </div>
-          <div className="space-y-4">
+          <form onSubmit={handleCompanySave} className="space-y-4">
             <p className="text-sm text-gray-500">
-              Konfiguracja drukarki Godex do drukowania etykiet partii peklowania.
+              Rozmiary etykiet dla partii peklowania. Drukowanie odbywa się przez przeglądarkę.
             </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Adres IP drukarki</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={companySettings.printerIp}
-                  onChange={(e) => setCompanySettings({ ...companySettings, printerIp: e.target.value })}
-                  placeholder="np. 192.168.1.100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={companySettings.printerPort}
-                  onChange={(e) => setCompanySettings({ ...companySettings, printerPort: parseInt(e.target.value) || 9100 })}
-                />
-              </div>
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Szerokość etykiety (mm)</label>
@@ -344,25 +305,18 @@ export default function Settings() {
                 />
               </div>
             </div>
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleTestPrinter}
-                disabled={testingPrinter || !companySettings.printerIp}
-                className="btn-secondary flex items-center gap-2"
-              >
-                {testingPrinter ? (
-                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <PrinterIcon className="w-4 h-4" />
-                )}
-                Testuj drukarkę
-              </button>
-              <p className="text-xs text-gray-400 self-center">
-                Kliknij "Zapisz zmiany" w sekcji "Dane zakładu" aby zapisać ustawienia drukarki.
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-700">
+                💡 Etykiety są generowane jako obrazy i drukowane przez przeglądarkę. 
+                Możesz wybrać dowolną drukarkę podłączoną do komputera.
               </p>
             </div>
-          </div>
+            {user?.role === 'ADMIN' && (
+              <button type="submit" className="btn-primary" disabled={saving}>
+                {saving ? 'Zapisywanie...' : 'Zapisz ustawienia etykiet'}
+              </button>
+            )}
+          </form>
         </div>
 
         {/* Notification Settings */}
