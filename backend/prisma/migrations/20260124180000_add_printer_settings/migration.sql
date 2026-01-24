@@ -1,0 +1,5 @@
+-- AlterTable - dodanie pól ustawień drukarki/etykiet
+ALTER TABLE "CompanySettings" ADD COLUMN IF NOT EXISTS "printerIp" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "CompanySettings" ADD COLUMN IF NOT EXISTS "printerPort" INTEGER NOT NULL DEFAULT 9100;
+ALTER TABLE "CompanySettings" ADD COLUMN IF NOT EXISTS "labelWidth" INTEGER NOT NULL DEFAULT 60;
+ALTER TABLE "CompanySettings" ADD COLUMN IF NOT EXISTS "labelHeight" INTEGER NOT NULL DEFAULT 40;
