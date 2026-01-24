@@ -22,6 +22,11 @@ model CompanySettings {
   phone             String   @default("")
   email             String   @default("")
   ownerName         String   @default("")
+  // Ustawienia drukarki etykiet
+  printerIp         String   @default("")
+  printerPort       Int      @default(9100)
+  labelWidth        Int      @default(60)  // szerokość etykiety w mm
+  labelHeight       Int      @default(40)  // wysokość etykiety w mm
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

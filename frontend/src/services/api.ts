@@ -626,6 +626,17 @@ export const api = {
   getSettings: () => request<any>('/settings'),
   updateSettings: (data: any) =>
     request<any>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Labels / Printing
+  printCuringLabel: (batchId: number, copies?: number) =>
+    request<{ success: boolean; message: string }>(`/labels/print/curing/${batchId}`, { 
+      method: 'POST', 
+      body: JSON.stringify({ copies: copies || 1 }) 
+    }),
+  previewCuringLabel: (batchId: number) =>
+    request<any>(`/labels/preview/curing/${batchId}`),
+  testPrinter: () =>
+    request<{ success: boolean; message: string }>('/labels/test', { method: 'POST' }),
 };
 
 export default api;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, CuringBatch, RawMaterialReception } from '../services/api';
-import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -13,6 +13,7 @@ export default function Curing() {
   const [editBatch, setEditBatch] = useState<CuringBatch | null>(null);
   const [completeModal, setCompleteModal] = useState<CuringBatch | null>(null);
   const [deleteModal, setDeleteModal] = useState<CuringBatch | null>(null);
+  const [printingId, setPrintingId] = useState<number | null>(null);
   const [completeNotes, setCompleteNotes] = useState('');
   const [completeEndDate, setCompleteEndDate] = useState('');
   const [completeEndTime, setCompleteEndTime] = useState('');
@@ -216,6 +217,18 @@ export default function Curing() {
     }
   };
 
+  const handlePrintLabel = async (batch: CuringBatch) => {
+    setPrintingId(batch.id);
+    try {
+      const result = await api.printCuringLabel(batch.id, 1);
+      toast.success(result.message);
+    } catch (error: any) {
+      toast.error(error.message || 'Błąd drukowania etykiety');
+    } finally {
+      setPrintingId(null);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'COMPLETED': return 'badge-success';
@@ -383,6 +396,14 @@ export default function Curing() {
                       title="Szczegóły"
                     >
                       <EyeIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handlePrintLabel(batch)}
+                      disabled={printingId === batch.id}
+                      className="p-1 text-gray-400 hover:text-purple-600 disabled:opacity-50"
+                      title="Drukuj etykietę"
+                    >
+                      <PrinterIcon className={`w-5 h-5 ${printingId === batch.id ? 'animate-pulse' : ''}`} />
                     </button>
                     {isAdmin && (
                       <>

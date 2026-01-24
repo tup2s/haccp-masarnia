@@ -24,6 +24,7 @@ import curingRoutes from './routes/curing';
 import settingsRoutes from './routes/settings';
 import materialsRoutes from './routes/materials';
 import butcheringRoutes from './routes/butchering';
+import labelsRoutes from './routes/labels';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -61,6 +62,7 @@ app.use('/api/curing', curingRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/materials', materialsRoutes);
 app.use('/api/butchering', butcheringRoutes);
+app.use('/api/labels', labelsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

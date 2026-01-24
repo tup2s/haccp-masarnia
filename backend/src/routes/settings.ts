@@ -42,35 +42,34 @@ router.put('/', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Brak uprawnień do edycji ustawień' });
     }
 
-    const { companyName, address, nip, vetNumber, phone, email, ownerName } = req.body;
+    const { 
+      companyName, address, nip, vetNumber, phone, email, ownerName,
+      printerIp, printerPort, labelWidth, labelHeight
+    } = req.body;
 
     let settings = await prisma.companySettings.findFirst();
     
+    const data = {
+      companyName: companyName || '',
+      address: address || '',
+      nip: nip || '',
+      vetNumber: vetNumber || '',
+      phone: phone || '',
+      email: email || '',
+      ownerName: ownerName || '',
+      printerIp: printerIp || '',
+      printerPort: printerPort || 9100,
+      labelWidth: labelWidth || 60,
+      labelHeight: labelHeight || 40,
+    };
+
     if (settings) {
       settings = await prisma.companySettings.update({
         where: { id: settings.id },
-        data: {
-          companyName: companyName || '',
-          address: address || '',
-          nip: nip || '',
-          vetNumber: vetNumber || '',
-          phone: phone || '',
-          email: email || '',
-          ownerName: ownerName || ''
-        }
+        data
       });
     } else {
-      settings = await prisma.companySettings.create({
-        data: {
-          companyName: companyName || '',
-          address: address || '',
-          nip: nip || '',
-          vetNumber: vetNumber || '',
-          phone: phone || '',
-          email: email || '',
-          ownerName: ownerName || ''
-        }
-      });
+      settings = await prisma.companySettings.create({ data });
     }
 
     res.json(settings);

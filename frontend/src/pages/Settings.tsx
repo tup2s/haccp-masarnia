@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Cog6ToothIcon, BuildingStorefrontIcon, ShieldCheckIcon, BellIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, BuildingStorefrontIcon, ShieldCheckIcon, BellIcon, UsersIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
@@ -13,6 +13,11 @@ interface CompanySettings {
   phone: string;
   email: string;
   ownerName: string;
+  // Ustawienia drukarki
+  printerIp: string;
+  printerPort: number;
+  labelWidth: number;
+  labelHeight: number;
 }
 
 interface Employee {
@@ -27,6 +32,7 @@ export default function Settings() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testingPrinter, setTestingPrinter] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   
   const [companySettings, setCompanySettings] = useState<CompanySettings>({
@@ -37,6 +43,10 @@ export default function Settings() {
     phone: '',
     email: '',
     ownerName: '',
+    printerIp: '',
+    printerPort: 9100,
+    labelWidth: 60,
+    labelHeight: 40,
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
@@ -66,6 +76,10 @@ export default function Settings() {
         phone: settingsRes.phone || '',
         email: settingsRes.email || '',
         ownerName: settingsRes.ownerName || '',
+        printerIp: settingsRes.printerIp || '',
+        printerPort: settingsRes.printerPort || 9100,
+        labelWidth: settingsRes.labelWidth || 60,
+        labelHeight: settingsRes.labelHeight || 40,
       });
       setEmployees(usersRes);
     } catch (error) {
@@ -87,6 +101,23 @@ export default function Settings() {
       toast.error('Błąd podczas zapisywania danych');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestPrinter = async () => {
+    if (!companySettings.printerIp) {
+      toast.error('Podaj adres IP drukarki');
+      return;
+    }
+    
+    setTestingPrinter(true);
+    try {
+      const result = await api.testPrinter();
+      toast.success(result.message);
+    } catch (error: any) {
+      toast.error(error.message || 'Błąd połączenia z drukarką');
+    } finally {
+      setTestingPrinter(false);
     }
   };
 
@@ -257,6 +288,80 @@ export default function Settings() {
             {employees.length === 0 && (
               <p className="text-center text-gray-500 py-4">Brak pracowników</p>
             )}
+          </div>
+        </div>
+
+        {/* Printer Settings */}
+        <div className="card">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <PrinterIcon className="w-6 h-6 text-purple-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Drukarka etykiet</h2>
+          </div>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500">
+              Konfiguracja drukarki Godex do drukowania etykiet partii peklowania.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Adres IP drukarki</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={companySettings.printerIp}
+                  onChange={(e) => setCompanySettings({ ...companySettings, printerIp: e.target.value })}
+                  placeholder="np. 192.168.1.100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                <input
+                  type="number"
+                  className="input"
+                  value={companySettings.printerPort}
+                  onChange={(e) => setCompanySettings({ ...companySettings, printerPort: parseInt(e.target.value) || 9100 })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Szerokość etykiety (mm)</label>
+                <input
+                  type="number"
+                  className="input"
+                  value={companySettings.labelWidth}
+                  onChange={(e) => setCompanySettings({ ...companySettings, labelWidth: parseInt(e.target.value) || 60 })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Wysokość etykiety (mm)</label>
+                <input
+                  type="number"
+                  className="input"
+                  value={companySettings.labelHeight}
+                  onChange={(e) => setCompanySettings({ ...companySettings, labelHeight: parseInt(e.target.value) || 40 })}
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleTestPrinter}
+                disabled={testingPrinter || !companySettings.printerIp}
+                className="btn-secondary flex items-center gap-2"
+              >
+                {testingPrinter ? (
+                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <PrinterIcon className="w-4 h-4" />
+                )}
+                Testuj drukarkę
+              </button>
+              <p className="text-xs text-gray-400 self-center">
+                Kliknij "Zapisz zmiany" w sekcji "Dane zakładu" aby zapisać ustawienia drukarki.
+              </p>
+            </div>
           </div>
         </div>
 
