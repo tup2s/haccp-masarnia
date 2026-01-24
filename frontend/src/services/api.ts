@@ -1,9 +1,19 @@
 // API URL - w produkcji używaj zmiennej środowiskowej VITE_API_URL
-// Lokalnie używa proxy Vite lub bezpośredniego połączenia z backendem
-const API_URL = import.meta.env.VITE_API_URL 
-  || (window.location.hostname === 'localhost' 
-    ? '/api'  // Lokalnie używaj proxy Vite
-    : `http://${window.location.hostname}:3001/api`);  // Z sieci używaj bezpośrednio backendu
+// VITE_API_URL powinien być bez /api na końcu (np. https://haccp-masarnia.onrender.com)
+const getApiUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    // Produkcja - dodaj /api do URL
+    const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, ''); // usuń trailing slash
+    return `${baseUrl}/api`;
+  }
+  // Lokalnie
+  if (window.location.hostname === 'localhost') {
+    return '/api';  // Używaj proxy Vite
+  }
+  return `http://${window.location.hostname}:3001/api`;  // Z sieci używaj bezpośrednio backendu
+};
+
+const API_URL = getApiUrl();
 
 let authToken: string | null = null;
 
