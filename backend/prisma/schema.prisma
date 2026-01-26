@@ -178,6 +178,8 @@ model RawMaterialReception {
   notes            String?
   documentNumber   String?  // HDI, faktura
   receivedAt       DateTime @default(now())
+  deliveryDate     DateTime?
+  deliveryTime     String?
   userId           Int
   createdAt        DateTime @default(now())
 
