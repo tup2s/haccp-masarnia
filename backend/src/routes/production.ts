@@ -25,6 +25,10 @@ router.get('/batches', authenticateToken, async (req: AuthRequest, res: Response
                 reception: { include: { rawMaterial: true } }
               }
             },
+            material: true,
+            materialReceipt: {
+              include: { material: true, supplier: true }
+            }
           },
         },
       },
@@ -54,6 +58,10 @@ router.get('/batches/:id', authenticateToken, async (req: AuthRequest, res: Resp
                 reception: { include: { rawMaterial: true } }
               }
             },
+            material: true,
+            materialReceipt: {
+              include: { material: true, supplier: true }
+            }
           },
         },
       },
@@ -145,6 +153,8 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
             rawMaterialId: m.rawMaterialId || null,
             receptionId: m.receptionId || null,
             curingBatchId: m.curingBatchId || null, // Element peklowany
+            materialId: m.materialId || null, // Materiał/dodatek
+            materialReceiptId: m.materialReceiptId || null, // Przyjęcie materiału
             quantity: m.quantity,
             unit: m.unit,
           })),
@@ -161,6 +171,10 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
               include: {
                 reception: { include: { rawMaterial: true } }
               }
+            },
+            material: true,
+            materialReceipt: {
+              include: { material: true, supplier: true }
             }
           } 
         },
@@ -208,7 +222,21 @@ router.put('/batches/:id', authenticateToken, async (req: AuthRequest, res: Resp
       include: {
         product: true,
         user: { select: { name: true } },
-        materials: { include: { rawMaterial: true, reception: true } },
+        materials: { 
+          include: { 
+            rawMaterial: true, 
+            reception: true,
+            curingBatch: {
+              include: {
+                reception: { include: { rawMaterial: true } }
+              }
+            },
+            material: true,
+            materialReceipt: {
+              include: { material: true, supplier: true }
+            }
+          } 
+        },
       },
     });
     res.json(batch);
@@ -226,13 +254,24 @@ router.post('/batches/:id/complete', authenticateToken, async (req: AuthRequest,
       return res.status(400).json({ error: 'Temperatura końcowa jest wymagana' });
     }
 
-    // Temperatura musi osiągnąć minimum 72°C dla bezpieczeństwa
-    const temperatureCompliant = finalTemperature >= 72;
+    // Pobierz partię z produktem żeby sprawdzić wymaganą temperaturę
+    const batch = await req.prisma.productionBatch.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: { product: true }
+    });
+
+    if (!batch) {
+      return res.status(404).json({ error: 'Partia nie znaleziona' });
+    }
+
+    // Użyj temperatury z produktu lub domyślnej 72°C
+    const requiredTemperature = batch.product.requiredTemperature || 72;
+    const temperatureCompliant = finalTemperature >= requiredTemperature;
 
     // Użyj podanej daty/godziny lub teraz
     const endTime = endDateTime ? new Date(endDateTime) : new Date();
 
-    const batch = await req.prisma.productionBatch.update({
+    const updatedBatch = await req.prisma.productionBatch.update({
       where: { id: parseInt(req.params.id) },
       data: {
         status: 'COMPLETED',
@@ -244,7 +283,21 @@ router.post('/batches/:id/complete', authenticateToken, async (req: AuthRequest,
       include: {
         product: true,
         user: { select: { name: true } },
-        materials: { include: { rawMaterial: true, reception: true } },
+        materials: { 
+          include: { 
+            rawMaterial: true, 
+            reception: true,
+            curingBatch: {
+              include: {
+                reception: { include: { rawMaterial: true } }
+              }
+            },
+            material: true,
+            materialReceipt: {
+              include: { material: true, supplier: true }
+            }
+          } 
+        },
       },
     });
 
@@ -252,8 +305,8 @@ router.post('/batches/:id/complete', authenticateToken, async (req: AuthRequest,
     if (!temperatureCompliant) {
       await req.prisma.correctiveAction.create({
         data: {
-          title: `Niezgodna temperatura - partia ${batch.batchNumber}`,
-          description: `Partia ${batch.batchNumber} (${batch.product.name}) nie osiągnęła wymaganej temperatury. Zmierzona temperatura: ${finalTemperature}°C (wymagane: ≥72°C)`,
+          title: `Niezgodna temperatura - partia ${updatedBatch.batchNumber}`,
+          description: `Partia ${updatedBatch.batchNumber} (${updatedBatch.product.name}) nie osiągnęła wymaganej temperatury. Zmierzona temperatura: ${finalTemperature}°C (wymagane: ≥${requiredTemperature}°C)`,
           cause: 'Niewystarczająca obróbka termiczna',
           status: 'OPEN',
           priority: 'HIGH',
@@ -263,7 +316,7 @@ router.post('/batches/:id/complete', authenticateToken, async (req: AuthRequest,
       });
     }
 
-    res.json(batch);
+    res.json(updatedBatch);
   } catch (error) {
     console.error('Error completing batch:', error);
     res.status(500).json({ error: 'Błąd zakończenia produkcji' });
@@ -355,6 +408,31 @@ router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequ
     });
   } catch (error) {
     res.status(500).json({ error: 'Błąd pobierania danych traceability' });
+  }
+});
+
+// GET /api/production/available-materials - Materiały dostępne do użycia
+router.get('/available-materials', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const materials = await req.prisma.materialReceipt.findMany({
+      where: {
+        expiryDate: {
+          gte: new Date() // Tylko nie przeterminowane
+        }
+      },
+      include: {
+        material: true,
+        supplier: true
+      },
+      orderBy: [
+        { material: { name: 'asc' } },
+        { receivedAt: 'desc' }
+      ]
+    });
+    res.json(materials);
+  } catch (error) {
+    console.error('Error fetching available materials:', error);
+    res.status(500).json({ error: 'Błąd pobierania dostępnych materiałów' });
   }
 });
 

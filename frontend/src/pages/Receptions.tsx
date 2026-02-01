@@ -3,6 +3,9 @@ import { api, RawMaterialReception, Supplier, RawMaterial } from '../services/ap
 import { PlusIcon, ClipboardDocumentListIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 export default function Receptions() {
   const [receptions, setReceptions] = useState<RawMaterialReception[]>([]);
@@ -167,7 +170,7 @@ export default function Receptions() {
               {receptions.map((reception) => (
                 <tr key={reception.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-900">
-                    {dayjs(reception.receivedAt).format('DD.MM.YYYY HH:mm')}
+                    {dayjs.utc(reception.receivedAt).local().format('DD.MM.YYYY HH:mm')}
                   </td>
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">
                     {reception.rawMaterial?.name}

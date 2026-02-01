@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { AuthRequest, authenticateToken } from '../middleware/auth';
+import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 import dayjs from 'dayjs';
 
 const router = Router();
@@ -19,7 +19,7 @@ router.get('/points', authenticateToken, async (req: AuthRequest, res: Response)
 });
 
 // POST /api/temperature/points
-router.post('/points', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.post('/points', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { name, location, type, minTemp, maxTemp, ccpId } = req.body;
     const point = await req.prisma.temperaturePoint.create({
@@ -32,7 +32,7 @@ router.post('/points', authenticateToken, async (req: AuthRequest, res: Response
 });
 
 // PUT /api/temperature/points/:id
-router.put('/points/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.put('/points/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { name, location, type, minTemp, maxTemp, ccpId, isActive } = req.body;
     const point = await req.prisma.temperaturePoint.update({
@@ -46,7 +46,7 @@ router.put('/points/:id', authenticateToken, async (req: AuthRequest, res: Respo
 });
 
 // DELETE /api/temperature/points/:id
-router.delete('/points/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.delete('/points/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     await req.prisma.temperaturePoint.update({
       where: { id: parseInt(req.params.id) },

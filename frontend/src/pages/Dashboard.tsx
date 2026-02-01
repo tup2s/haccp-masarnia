@@ -21,6 +21,9 @@ import {
   Legend,
 } from 'chart.js';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -157,7 +160,7 @@ export default function Dashboard() {
                 >
                   <p className="text-sm font-medium text-gray-900">{alert.message}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {dayjs(alert.createdAt).format('DD.MM.YYYY HH:mm')}
+                    {dayjs.utc(alert.createdAt).local().format('DD.MM.YYYY HH:mm')}
                   </p>
                 </div>
               ))}

@@ -3,6 +3,9 @@ import { api, CuringBatch, RawMaterialReception } from '../services/api';
 import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 export default function Curing() {
   const [batches, setBatches] = useState<CuringBatch[]>([]);
@@ -101,8 +104,8 @@ export default function Curing() {
       brineMaggi: batch.brineMaggi?.toString() || '0.3',
       brineSugar: batch.brineSugar?.toString() || '0.2',
       plannedDays: dayjs(batch.plannedEndDate).diff(dayjs(batch.startDate), 'day').toString(),
-      startDate: dayjs(batch.startDate).format('YYYY-MM-DD'),
-      startTime: dayjs(batch.startDate).format('HH:mm'),
+      startDate: dayjs.utc(batch.startDate).local().format('YYYY-MM-DD'),
+      startTime: dayjs.utc(batch.startDate).local().format('HH:mm'),
       temperature: batch.temperature?.toString() || '4',
       notes: batch.notes || '',
     });
@@ -139,7 +142,7 @@ export default function Curing() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const startDateTime = `${formData.startDate}T${formData.startTime}:00`;
+      const startDateTime = dayjs(`${formData.startDate} ${formData.startTime}`).toISOString();
       
       const payload: any = {
         receptionId: parseInt(formData.receptionId),
@@ -191,9 +194,9 @@ export default function Curing() {
     try {
       let endDateTime: string | undefined;
       if (completeEndDate && completeEndTime) {
-        endDateTime = `${completeEndDate}T${completeEndTime}:00`;
+        endDateTime = dayjs(`${completeEndDate} ${completeEndTime}`).toISOString();
       } else if (completeEndDate) {
-        endDateTime = `${completeEndDate}T${dayjs().format('HH:mm')}:00`;
+        endDateTime = dayjs(`${completeEndDate} ${dayjs().format('HH:mm')}`).toISOString();
       }
       
       await api.completeCuringBatch(completeModal.id, completeNotes || undefined, endDateTime);
@@ -360,14 +363,14 @@ export default function Curing() {
                     {getMethodLabel(batch.curingMethod)}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
-                    {dayjs(batch.startDate).format('DD.MM.YYYY HH:mm')}
+                    {dayjs.utc(batch.startDate).local().format('DD.MM.YYYY HH:mm')}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {batch.status === 'IN_PROGRESS' ? (
                       getDaysRemaining(batch.plannedEndDate)
                     ) : (
                       <span className="text-gray-500">
-                        {batch.actualEndDate ? dayjs(batch.actualEndDate).format('DD.MM.YYYY HH:mm') : '-'}
+                        {batch.actualEndDate ? dayjs.utc(batch.actualEndDate).local().format('DD.MM.YYYY HH:mm') : '-'}
                       </span>
                     )}
                   </td>
@@ -798,7 +801,7 @@ export default function Curing() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Start peklowania</p>
-                    <p className="font-medium">{dayjs(viewBatch.startDate).format('DD.MM.YYYY HH:mm')}</p>
+                    <p className="font-medium">{dayjs.utc(viewBatch.startDate).local().format('DD.MM.YYYY HH:mm')}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Planowany koniec</p>
@@ -807,7 +810,7 @@ export default function Curing() {
                   {viewBatch.actualEndDate && (
                     <div>
                       <p className="text-sm text-gray-500">Rzeczywisty koniec</p>
-                      <p className="font-medium">{dayjs(viewBatch.actualEndDate).format('DD.MM.YYYY HH:mm')}</p>
+                      <p className="font-medium">{dayjs.utc(viewBatch.actualEndDate).local().format('DD.MM.YYYY HH:mm')}</p>
                     </div>
                   )}
                   <div>

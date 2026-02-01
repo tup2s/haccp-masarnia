@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { AuthRequest, authenticateToken } from '../middleware/auth';
+import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -32,7 +32,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 });
 
 // POST /api/suppliers
-router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { name, address, phone, email, vetNumber, contactPerson, notes } = req.body;
     const supplier = await req.prisma.supplier.create({
@@ -45,7 +45,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 });
 
 // PUT /api/suppliers/:id
-router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { name, address, phone, email, vetNumber, contactPerson, isApproved, notes } = req.body;
     const supplier = await req.prisma.supplier.update({
@@ -59,7 +59,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 });
 
 // DELETE /api/suppliers/:id
-router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     await req.prisma.supplier.delete({
       where: { id: parseInt(req.params.id) },

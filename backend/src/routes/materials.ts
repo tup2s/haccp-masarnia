@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -42,7 +42,7 @@ router.get('/receipts/all', authenticateToken, async (req, res) => {
 });
 
 // POST /api/materials/receipts - przyjęcie materiału
-router.post('/receipts', authenticateToken, async (req, res) => {
+router.post('/receipts', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { materialId, supplierId, batchNumber, quantity, unit, expiryDate, pricePerUnit, documentNumber, notes } = req.body;
 
@@ -105,7 +105,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // POST /api/materials - dodaj materiał
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { name, category, unit, supplierId, minStock, storageConditions, allergens } = req.body;
 
@@ -130,7 +130,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // PUT /api/materials/:id
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { name, category, unit, supplierId, minStock, currentStock, storageConditions, allergens, isActive } = req.body;
 
@@ -157,7 +157,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/materials/:id
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     await prisma.material.delete({
       where: { id: parseInt(req.params.id) },

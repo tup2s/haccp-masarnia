@@ -3,6 +3,9 @@ import { api, CleaningArea, CleaningRecord } from '../services/api';
 import { PlusIcon, SparklesIcon, ClockIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 export default function Cleaning() {
   const [areas, setAreas] = useState<CleaningArea[]>([]);
@@ -244,7 +247,7 @@ export default function Cleaning() {
                   <tr key={record.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
                       <ClockIcon className="w-4 h-4 inline mr-1 text-gray-400" />
-                      {dayjs(record.cleanedAt).format('DD.MM.YYYY HH:mm')}
+                      {dayjs.utc(record.cleanedAt).local().format('DD.MM.YYYY HH:mm')}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
                       {record.cleaningArea?.name}

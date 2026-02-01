@@ -3,6 +3,9 @@ import { api, PestControlPoint, PestControlCheck } from '../services/api';
 import { PlusIcon, BugAntIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 export default function PestControl() {
   const [points, setPoints] = useState<PestControlPoint[]>([]);
@@ -230,7 +233,7 @@ export default function PestControl() {
                 {checks.map((check) => (
                   <tr key={check.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {dayjs(check.checkedAt).format('DD.MM.YYYY HH:mm')}
+                      {dayjs.utc(check.checkedAt).local().format('DD.MM.YYYY HH:mm')}
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
                       {check.pestControlPoint?.name}

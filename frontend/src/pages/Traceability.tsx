@@ -3,6 +3,9 @@ import { api, ProductionBatch } from '../services/api';
 import { MagnifyingGlassIcon, QueueListIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 export default function Traceability() {
   const [batchNumber, setBatchNumber] = useState('');
@@ -111,7 +114,7 @@ export default function Traceability() {
                         <div>
                           <p className="font-medium text-gray-900">{event.title}</p>
                           <p className="text-sm text-gray-500">
-                            {dayjs(event.date).format('DD.MM.YYYY HH:mm')}
+                            {dayjs.utc(event.date).local().format('DD.MM.YYYY HH:mm')}
                           </p>
                         </div>
                         <span className={`badge ${

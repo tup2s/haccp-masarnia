@@ -159,6 +159,44 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     // Oblicz planowaną datę zakończenia
     const plannedEndDate = dayjs(date).add(plannedDays || 7, 'day').toDate();
 
+    // Znajdź sól peklową w materiałach i odejmij zużycie
+    if (curingSaltAmount && parseFloat(curingSaltAmount) > 0) {
+      const saltMaterial = await req.prisma.material.findFirst({
+        where: { 
+          name: { contains: 'sól peklow', mode: 'insensitive' }
+        }
+      });
+
+      if (saltMaterial) {
+        // Oblicz zużycie soli = ilość mięsa * procent soli
+        const meatQuantity = parseFloat(quantity);
+        const saltPercentage = parseFloat(curingSaltAmount);
+        const saltUsed = (meatQuantity * saltPercentage) / 100; // kg soli
+
+        // Znajdź najstarsze dostępne przyjęcie soli peklowej
+        const saltReceipt = await req.prisma.materialReceipt.findFirst({
+          where: {
+            materialId: saltMaterial.id,
+            quantity: { gt: saltUsed } // Wystarczająca ilość
+          },
+          orderBy: { receivedAt: 'asc' } // FIFO - najstarsze pierwsze
+        });
+
+        if (saltReceipt) {
+          // Odejmij zużycie soli z przyjęcia
+          await req.prisma.materialReceipt.update({
+            where: { id: saltReceipt.id },
+            data: {
+              quantity: saltReceipt.quantity - saltUsed
+            }
+          });
+        } else {
+          console.warn(`Brak wystarczającej ilości soli peklowej (potrzeba ${saltUsed} kg)`);
+          // Kontynuuj bez błędu - może sól jest dodawana innym sposobem
+        }
+      }
+    }
+
     const batch = await req.prisma.curingBatch.create({
       data: {
         batchNumber: finalBatchNumber,

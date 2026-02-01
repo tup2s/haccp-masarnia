@@ -57,7 +57,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function Materials() {
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
   const [materials, setMaterials] = useState<Material[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [receipts, setReceipts] = useState<MaterialReceipt[]>([]);
@@ -250,22 +250,24 @@ export default function Materials() {
           <h1 className="text-2xl font-bold text-gray-900">Materiały i Dodatki</h1>
           <p className="text-gray-500 mt-1">Przyprawy, osłonki, opakowania</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => { resetReceiptForm(); setShowReceiptModal(true); }}
-            className="btn-secondary flex items-center gap-2"
-          >
-            <ArchiveBoxArrowDownIcon className="w-5 h-5" />
-            Przyjęcie
-          </button>
-          <button
-            onClick={() => { resetForm(); setShowMaterialModal(true); }}
-            className="btn-primary flex items-center gap-2"
-          >
-            <PlusIcon className="w-5 h-5" />
-            Dodaj materiał
-          </button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => { resetReceiptForm(); setShowReceiptModal(true); }}
+              className="btn-secondary flex items-center gap-2"
+            >
+              <ArchiveBoxArrowDownIcon className="w-5 h-5" />
+              Przyjęcie
+            </button>
+            <button
+              onClick={() => { resetForm(); setShowMaterialModal(true); }}
+              className="btn-primary flex items-center gap-2"
+            >
+              <PlusIcon className="w-5 h-5" />
+              Dodaj materiał
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Alert niski stan */}
@@ -343,19 +345,21 @@ export default function Materials() {
                     )}
                   </div>
                   <div className="flex gap-1">
-                    <button
-                      onClick={() => openEditModal(material)}
-                      className="p-1 text-gray-400 hover:text-blue-600"
-                    >
-                      <PencilIcon className="w-4 h-4" />
-                    </button>
-                    {user?.role === 'ADMIN' && (
-                      <button
-                        onClick={() => setShowDeleteConfirm(material.id)}
-                        className="p-1 text-gray-400 hover:text-red-600"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() => openEditModal(material)}
+                          className="p-1 text-gray-400 hover:text-blue-600"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(material.id)}
+                          className="p-1 text-gray-400 hover:text-red-600"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

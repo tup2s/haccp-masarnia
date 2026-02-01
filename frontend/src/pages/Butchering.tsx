@@ -51,7 +51,7 @@ const DESTINATIONS = [
 ];
 
 export default function Butchering() {
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
   const [butcherings, setButcherings] = useState<Butchering[]>([]);
   const [receptions, setReceptions] = useState<RawMaterialReception[]>([]);
   const [loading, setLoading] = useState(true);
@@ -204,13 +204,15 @@ export default function Butchering() {
           <h1 className="text-2xl font-bold text-gray-900">Rozbior</h1>
           <p className="text-gray-500 mt-1">Rozbior półtusz na elementy</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="btn-primary flex items-center gap-2"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Nowy rozbior
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="btn-primary flex items-center gap-2"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Nowy rozbior
+          </button>
+        )}
       </div>
 
       {/* Butcherings List */}
@@ -237,21 +239,23 @@ export default function Butchering() {
                 >
                   <EyeIcon className="w-5 h-5" />
                 </button>
-                <button
-                  onClick={() => openEditModal(butchering)}
-                  className="p-2 text-gray-400 hover:text-blue-600"
-                  title="Edytuj"
-                >
-                  <PencilIcon className="w-5 h-5" />
-                </button>
-                {user?.role === 'ADMIN' && (
-                  <button
-                    onClick={() => setShowDeleteConfirm(butchering.id)}
-                    className="p-2 text-gray-400 hover:text-red-600"
-                    title="Usuń"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => openEditModal(butchering)}
+                      className="p-2 text-gray-400 hover:text-blue-600"
+                      title="Edytuj"
+                    >
+                      <PencilIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(butchering.id)}
+                      className="p-2 text-gray-400 hover:text-red-600"
+                      title="Usuń"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>

@@ -3,9 +3,14 @@ import { api, TemperaturePoint, TemperatureReading } from '../services/api';
 import { BeakerIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { Line } from 'react-chartjs-2';
 
+dayjs.extend(utc);
+import { useAuth } from '../context/AuthContext';
+
 export default function TemperatureMonitoring() {
+  const { isAdmin } = useAuth();
   const [points, setPoints] = useState<TemperaturePoint[]>([]);
   const [readings, setReadings] = useState<TemperatureReading[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,7 +150,7 @@ export default function TemperatureMonitoring() {
   };
 
   const chartData = trends.length > 0 ? {
-    labels: trends[0]?.readings?.map((r: any) => dayjs(r.readAt).format('DD.MM HH:mm')) || [],
+    labels: trends[0]?.readings?.map((r: any) => dayjs.utc(r.readAt).local().format('DD.MM HH:mm')) || [],
     datasets: trends.map((trend, index) => ({
       label: trend.pointName,
       data: trend.readings.map((r: any) => r.temperature),
@@ -170,10 +175,12 @@ export default function TemperatureMonitoring() {
           <h1 className="text-2xl font-bold text-gray-900">Monitoring temperatury</h1>
           <p className="text-gray-500 mt-1">Kontrola temperatury w punktach krytycznych</p>
         </div>
-        <button onClick={openAddPoint} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-5 h-5" />
-          Dodaj pomieszczenie
-        </button>
+        {isAdmin && (
+          <button onClick={openAddPoint} className="btn-primary flex items-center gap-2">
+            <PlusIcon className="w-5 h-5" />
+            Dodaj pomieszczenie
+          </button>
+        )}
       </div>
 
       {/* Temperature Points Grid */}
@@ -200,20 +207,24 @@ export default function TemperatureMonitoring() {
               >
                 {/* Action buttons */}
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => openEditPoint(point, e)}
-                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                    title="Edytuj"
-                  >
-                    <PencilIcon className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDeletePoint(point); }}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
-                    title="Usuń"
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={(e) => openEditPoint(point, e)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                        title="Edytuj"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeletePoint(point); }}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                        title="Usuń"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between mb-3">
@@ -244,7 +255,7 @@ export default function TemperatureMonitoring() {
                         {lastReading.temperature}°C
                       </p>
                       <p className="text-xs text-gray-400">
-                        {dayjs(lastReading.readAt).format('DD.MM.YYYY HH:mm')}
+                        {dayjs.utc(lastReading.readAt).local().format('DD.MM.YYYY HH:mm')}
                       </p>
                     </div>
                   ) : (
@@ -302,7 +313,7 @@ export default function TemperatureMonitoring() {
               {readings.slice(0, 20).map((reading) => (
                 <tr key={reading.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-900">
-                    {dayjs(reading.readAt).format('DD.MM.YYYY HH:mm')}
+                    {dayjs.utc(reading.readAt).local().format('DD.MM.YYYY HH:mm')}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {reading.temperaturePoint?.name}

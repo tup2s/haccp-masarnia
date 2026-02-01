@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { api, Product } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function Products() {
+  const { isAdmin } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,10 +107,12 @@ export default function Products() {
           <h1 className="text-2xl font-bold text-gray-900">Produkty</h1>
           <p className="text-gray-500 mt-1">Katalog wyrobów gotowych</p>
         </div>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-5 h-5" />
-          Dodaj produkt
-        </button>
+        {isAdmin && (
+          <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
+            <PlusIcon className="w-5 h-5" />
+            Dodaj produkt
+          </button>
+        )}
       </div>
 
       {/* Products Grid */}
@@ -145,18 +149,22 @@ export default function Products() {
               )}
             </div>
             <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => openModal(product)}
-                className="flex-1 flex items-center justify-center gap-1 text-sm text-gray-600 hover:text-meat-600"
-              >
-                <PencilIcon className="w-4 h-4" /> Edytuj
-              </button>
-              <button
-                onClick={() => handleDelete(product.id)}
-                className="flex-1 flex items-center justify-center gap-1 text-sm text-gray-600 hover:text-red-600"
-              >
-                <TrashIcon className="w-4 h-4" /> Usuń
-              </button>
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => openModal(product)}
+                    className="flex-1 flex items-center justify-center gap-1 text-sm text-gray-600 hover:text-meat-600"
+                  >
+                    <PencilIcon className="w-4 h-4" /> Edytuj
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="flex-1 flex items-center justify-center gap-1 text-sm text-gray-600 hover:text-red-600"
+                  >
+                    <TrashIcon className="w-4 h-4" /> Usuń
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))}

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -69,7 +69,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // POST /api/butchering - utwórz rozbior
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { receptionId, batchNumber, butcheringDate, notes, elements } = req.body;
 
@@ -101,7 +101,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // PUT /api/butchering/:id
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { butcheringDate, notes, elements } = req.body;
     const id = parseInt(req.params.id);
@@ -137,7 +137,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/butchering/:id
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     await prisma.butchering.delete({
       where: { id: parseInt(req.params.id) },

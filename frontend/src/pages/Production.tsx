@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { api, ProductionBatch, Product, RawMaterialReception, CuringBatch } from '../services/api';
+import { api, ProductionBatch, Product, RawMaterialReception, CuringBatch, MaterialReceipt } from '../services/api';
 import { PlusIcon, QueueListIcon, EyeIcon, CheckCircleIcon, FireIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 interface CompletedCuringBatch extends CuringBatch {
   availableQuantity: number;
@@ -13,6 +16,7 @@ export default function Production() {
   const [products, setProducts] = useState<Product[]>([]);
   const [receptions, setReceptions] = useState<RawMaterialReception[]>([]);
   const [curingBatches, setCuringBatches] = useState<CompletedCuringBatch[]>([]);
+  const [availableMaterials, setAvailableMaterials] = useState<MaterialReceipt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editBatch, setEditBatch] = useState<ProductionBatch | null>(null);
@@ -37,11 +41,11 @@ export default function Production() {
     startTime: dayjs().format('HH:mm'),
     expiryDate: '',
     notes: '',
-    materials: [] as { receptionId?: number; curingBatchId?: number; quantity: number; unit: string }[],
+    materials: [] as { receptionId?: number; curingBatchId?: number; materialId?: number; materialReceiptId?: number; quantity: number; unit: string }[],
   });
 
   useEffect(() => {
-    Promise.all([loadBatches(), loadProducts(), loadReceptions(), loadCuringBatches()]);
+    Promise.all([loadBatches(), loadProducts(), loadReceptions(), loadCuringBatches(), loadAvailableMaterials()]);
   }, []);
 
   const loadCuringBatches = async () => {
@@ -50,6 +54,15 @@ export default function Production() {
       setCuringBatches(data);
     } catch (error) {
       console.error('Błąd ładowania partii peklowania');
+    }
+  };
+
+  const loadAvailableMaterials = async () => {
+    try {
+      const data = await api.getAvailableMaterials();
+      setAvailableMaterials(data);
+    } catch (error) {
+      console.error('Błąd ładowania dostępnych materiałów');
     }
   };
 
@@ -101,7 +114,7 @@ export default function Production() {
       quantity: batch.quantity.toString(),
       unit: batch.unit,
       productionDate: dayjs(batch.productionDate).format('YYYY-MM-DD'),
-      startTime: batch.startTime ? dayjs(batch.startTime).format('HH:mm') : dayjs().format('HH:mm'),
+      startTime: batch.startTime ? dayjs.utc(batch.startTime).local().format('HH:mm') : dayjs().format('HH:mm'),
       expiryDate: dayjs(batch.expiryDate).format('YYYY-MM-DD'),
       notes: batch.notes || '',
       materials: batch.materials?.map(m => ({
@@ -121,11 +134,16 @@ export default function Production() {
     setFormData({ ...formData, productId, expiryDate });
   };
 
-  const addMaterial = (type: 'reception' | 'curing') => {
+  const addMaterial = (type: 'reception' | 'curing' | 'material') => {
     if (type === 'curing') {
       setFormData({
         ...formData,
         materials: [...formData.materials, { curingBatchId: 0, quantity: 0, unit: 'kg' }],
+      });
+    } else if (type === 'material') {
+      setFormData({
+        ...formData,
+        materials: [...formData.materials, { materialReceiptId: 0, quantity: 0, unit: 'kg' }],
       });
     } else {
       setFormData({
@@ -151,7 +169,7 @@ export default function Production() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const startDateTime = `${formData.productionDate}T${formData.startTime}:00`;
+      const startDateTime = dayjs(`${formData.productionDate} ${formData.startTime}`).toISOString();
       
       if (editBatch) {
         // Aktualizacja istniejącej partii
@@ -167,7 +185,9 @@ export default function Production() {
       } else {
         // Nowa partia
         const validMaterials = formData.materials.filter(m => 
-          (m.receptionId && m.receptionId > 0) || (m.curingBatchId && m.curingBatchId > 0)
+          (m.receptionId && m.receptionId > 0) || 
+          (m.curingBatchId && m.curingBatchId > 0) ||
+          (m.materialReceiptId && m.materialReceiptId > 0)
         );
         const payload = {
           productId: parseInt(formData.productId),
@@ -212,8 +232,10 @@ export default function Production() {
       return;
     }
 
+    const requiredTemp = completeModal.product?.requiredTemperature || 72;
+
     try {
-      const endDateTime = `${completeData.endDate}T${completeData.endTime}:00`;
+      const endDateTime = dayjs(`${completeData.endDate} ${completeData.endTime}`).toISOString();
       
       await api.completeProductionBatch(completeModal.id, {
         finalTemperature: temp,
@@ -221,10 +243,10 @@ export default function Production() {
         endDateTime,
       });
       
-      if (temp >= 72) {
-        toast.success(`Produkcja zakończona! Temperatura ${temp}°C - ZGODNA`);
+      if (temp >= requiredTemp) {
+        toast.success(`Produkcja zakończona! Temperatura ${temp}°C - ZGODNA (wymagane ≥${requiredTemp}°C)`);
       } else {
-        toast.error(`Produkcja zakończona! Temperatura ${temp}°C - NIEZGODNA (wymagane ≥72°C). Utworzono działanie korygujące.`);
+        toast.error(`Produkcja zakończona! Temperatura ${temp}°C - NIEZGODNA (wymagane ≥${requiredTemp}°C). Utworzono działanie korygujące.`);
       }
       
       setCompleteModal(null);
@@ -357,10 +379,10 @@ export default function Production() {
                     {batch.quantity} {batch.unit}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
-                    {batch.startTime ? dayjs(batch.startTime).format('DD.MM HH:mm') : dayjs(batch.productionDate).format('DD.MM.YYYY')}
+                    {batch.startTime ? dayjs.utc(batch.startTime).local().format('DD.MM HH:mm') : dayjs(batch.productionDate).format('DD.MM.YYYY')}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
-                    {batch.endTime ? dayjs(batch.endTime).format('DD.MM HH:mm') : '-'}
+                    {batch.endTime ? dayjs.utc(batch.endTime).local().format('DD.MM HH:mm') : '-'}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {batch.finalTemperature !== undefined && batch.finalTemperature !== null ? (
@@ -524,6 +546,15 @@ export default function Production() {
                         >
                           + Surowiec
                         </button>
+                        {availableMaterials.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => addMaterial('material')}
+                            className="text-sm text-green-600 hover:text-green-700"
+                          >
+                            + Dodatek
+                          </button>
+                        )}
                         {curingBatches.length > 0 && (
                           <button
                             type="button"
@@ -537,7 +568,7 @@ export default function Production() {
                     </div>
                     {formData.materials.length === 0 && (
                       <p className="text-sm text-gray-500 text-center py-4">
-                        Opcjonalnie dodaj surowce lub elementy peklowane
+                        Opcjonalnie dodaj surowce, dodatki lub elementy peklowane
                       </p>
                     )}
                     {formData.materials.map((mat, index) => (
@@ -553,6 +584,20 @@ export default function Production() {
                             {curingBatches.map((c) => (
                               <option key={c.id} value={c.id}>
                                 🧂 {c.productName || c.reception?.rawMaterial?.name} - {c.batchNumber} ({c.availableQuantity} {c.unit} dostępne)
+                              </option>
+                            ))}
+                          </select>
+                        ) : mat.materialReceiptId !== undefined ? (
+                          // Zwykły materiał (przyprawy, osłonki itp.)
+                          <select
+                            className="input flex-1 border-green-300 bg-green-50"
+                            value={mat.materialReceiptId}
+                            onChange={(e) => updateMaterial(index, 'materialReceiptId', parseInt(e.target.value))}
+                          >
+                            <option value="0">Wybierz materiał</option>
+                            {availableMaterials.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                🌿 {m.material?.name} - {m.batchNumber} ({m.quantity} {m.material?.unit})
                               </option>
                             ))}
                           </select>
@@ -658,7 +703,7 @@ export default function Production() {
                     autoFocus
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Wymagana temperatura minimalna: <strong className="text-green-600">≥72°C</strong>
+                    Wymagana temperatura minimalna: <strong className="text-green-600">≥{completeModal.product?.requiredTemperature || 72}°C</strong>
                   </p>
                 </div>
 
@@ -777,7 +822,7 @@ export default function Production() {
                     <p className="text-sm text-gray-500">Start produkcji</p>
                     <p className="font-medium">
                       {viewBatch.startTime 
-                        ? dayjs(viewBatch.startTime).format('DD.MM.YYYY HH:mm')
+                        ? dayjs.utc(viewBatch.startTime).local().format('DD.MM.YYYY HH:mm')
                         : dayjs(viewBatch.productionDate).format('DD.MM.YYYY')
                       }
                     </p>
@@ -786,7 +831,7 @@ export default function Production() {
                     <p className="text-sm text-gray-500">Koniec produkcji</p>
                     <p className="font-medium">
                       {viewBatch.endTime 
-                        ? dayjs(viewBatch.endTime).format('DD.MM.YYYY HH:mm')
+                        ? dayjs.utc(viewBatch.endTime).local().format('DD.MM.YYYY HH:mm')
                         : 'W trakcie'
                       }
                     </p>
@@ -810,7 +855,10 @@ export default function Production() {
                     <p className={`text-2xl font-bold ${viewBatch.temperatureCompliant ? 'text-green-600' : 'text-red-600'}`}>
                       {viewBatch.finalTemperature}°C
                       <span className="text-sm font-normal ml-2">
-                        {viewBatch.temperatureCompliant ? '✓ Zgodna' : '✗ Niezgodna (wymagane ≥72°C)'}
+                        {viewBatch.temperatureCompliant 
+                          ? '✓ Zgodna' 
+                          : `✗ Niezgodna (wymagane ≥${viewBatch.product?.requiredTemperature || 72}°C)`
+                        }
                       </span>
                     </p>
                   </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api, RawMaterial } from '../services/api';
 import { PlusIcon, PencilIcon, TrashIcon, CubeIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
   { value: 'MEAT', label: 'Mięso' },
@@ -12,6 +13,7 @@ const CATEGORIES = [
 ];
 
 export default function RawMaterials() {
+  const { isAdmin } = useAuth();
   const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,10 +116,12 @@ export default function RawMaterials() {
           <h1 className="text-2xl font-bold text-gray-900">Surowce</h1>
           <p className="text-gray-500 mt-1">Katalog surowców i materiałów</p>
         </div>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-5 h-5" />
-          Dodaj surowiec
-        </button>
+        {isAdmin && (
+          <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
+            <PlusIcon className="w-5 h-5" />
+            Dodaj surowiec
+          </button>
+        )}
       </div>
 
       {/* Materials Table */}
@@ -132,7 +136,7 @@ export default function RawMaterials() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temp. przech.</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Termin (dni)</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Alergeny</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Akcje</th>
+                {isAdmin && <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Akcje</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -153,22 +157,24 @@ export default function RawMaterials() {
                   <td className="px-4 py-3 text-sm text-gray-500">{material.storageConditions || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{material.shelfLife || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{material.allergens || '-'}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => openModal(material)}
-                        className="p-1 text-gray-400 hover:text-meat-600"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(material.id)}
-                        className="p-1 text-gray-400 hover:text-red-600"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+                  {isAdmin && (
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openModal(material)}
+                          className="p-1 text-gray-400 hover:text-meat-600"
+                        >
+                          <PencilIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(material.id)}
+                          className="p-1 text-gray-400 hover:text-red-600"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

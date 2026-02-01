@@ -145,6 +145,7 @@ export interface Product {
   shelfLife: number;
   storageTemp: string;
   allergens?: string;
+  requiredTemperature?: number; // Wymagana temperatura wewnętrzna w °C
   isActive: boolean;
 }
 
@@ -167,15 +168,51 @@ export interface ProductionBatch {
   materials?: BatchMaterial[];
 }
 
+export interface Material {
+  id: number;
+  name: string;
+  category: string;
+  unit: string;
+  supplierId?: number;
+  minStock?: number;
+  currentStock: number;
+  storageConditions?: string;
+  allergens?: string;
+  isActive: boolean;
+  supplier?: Supplier;
+}
+
+export interface MaterialReceipt {
+  id: number;
+  materialId: number;
+  supplierId?: number;
+  batchNumber: string;
+  quantity: number;
+  unit: string;
+  expiryDate?: string;
+  pricePerUnit?: number;
+  documentNumber?: string;
+  receivedAt: string;
+  notes?: string;
+  material: Material;
+  supplier?: Supplier;
+}
+
 export interface BatchMaterial {
   id: number;
   batchId: number;
-  rawMaterialId: number;
+  rawMaterialId?: number;
   receptionId?: number;
+  curingBatchId?: number;
+  materialId?: number;
+  materialReceiptId?: number;
   quantity: number;
   unit: string;
   rawMaterial?: RawMaterial;
   reception?: RawMaterialReception;
+  curingBatch?: CuringBatch;
+  material?: Material;
+  materialReceipt?: MaterialReceipt;
 }
 
 export interface CuringBatch {
@@ -467,6 +504,7 @@ export const api = {
   completeProductionBatch: (id: number, data: { finalTemperature: number; notes?: string; endDateTime?: string }) =>
     request<ProductionBatch>(`/production/batches/${id}/complete`, { method: 'POST', body: JSON.stringify(data) }),
   getTraceability: (batchNumber: string) => request<{ batch: ProductionBatch; timeline: any[] }>(`/production/traceability/${batchNumber}`),
+  getAvailableMaterials: () => request<MaterialReceipt[]>(`/production/available-materials`),
 
   // Curing (Peklowanie)
   getCuringBatches: (params?: { status?: string; limit?: number }) => {
