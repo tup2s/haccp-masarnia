@@ -148,17 +148,25 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     // Admin może wybrać innego operatora
     const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
 
-    // Generuj numer partii peklowania w formacie dd-mm
+    // Generuj numer partii peklowania w formacie DD-MM
+    // Jeśli tego samego dnia jest więcej partii, dodaj sufiks -2, -3 itd.
     const date = startDate ? new Date(startDate) : new Date();
-    const batchNumber = dayjs(date).format('DD-MM');
-
-    // Sprawdź czy taka partia już istnieje (jeśli tak, dodaj sufiks)
-    const existingBatch = await req.prisma.curingBatch.findUnique({
-      where: { batchNumber },
+    const dateStr = dayjs(date).format('DD-MM');
+    
+    // Sprawdź ile partii już jest tego dnia (batchNumber zaczyna się od DD-MM)
+    const countToday = await req.prisma.curingBatch.count({
+      where: {
+        batchNumber: {
+          startsWith: dateStr,
+        },
+      },
     });
-    const finalBatchNumber = existingBatch 
-      ? `${batchNumber}-${await req.prisma.curingBatch.count() + 1}`
-      : batchNumber;
+    
+    // Pierwsza partia w dniu = sama data (DD-MM)
+    // Kolejne = data + sufiks (-2, -3 itd.)
+    const finalBatchNumber = countToday === 0 
+      ? dateStr 
+      : `${dateStr}-${countToday + 1}`;
 
     // Oblicz planowaną datę zakończenia
     const plannedEndDate = dayjs(date).add(plannedDays || 7, 'day').toDate();
