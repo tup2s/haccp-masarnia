@@ -1,14 +1,65 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api, ProductionBatch, Product, RawMaterialReception, CuringBatch, MaterialReceipt } from '../services/api';
-import { PlusIcon, QueueListIcon, EyeIcon, CheckCircleIcon, FireIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, QueueListIcon, EyeIcon, CheckCircleIcon, FireIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import isBetween from 'dayjs/plugin/isBetween';
 
 dayjs.extend(utc);
+dayjs.extend(isBetween);
+
+// Typy filtrów czasowych
+type TimeFilter = 'all' | 'today' | 'yesterday' | 'this_week' | 'last_week' | 'this_month';
+
+const TIME_FILTERS: { value: TimeFilter; label: string }[] = [
+  { value: 'all', label: 'Wszystkie' },
+  { value: 'today', label: 'Dzisiaj' },
+  { value: 'yesterday', label: 'Wczoraj' },
+  { value: 'this_week', label: 'Ten tydzień' },
+  { value: 'last_week', label: 'Poprzedni tydzień' },
+  { value: 'this_month', label: 'Ten miesiąc' },
+];
+
+// Funkcja filtrowania po dacie - używa any dla elastyczności z różnymi typami
+const filterByTimeGeneric = (
+  items: any[],
+  filter: TimeFilter,
+  dateField: string = 'createdAt'
+): any[] => {
+  if (filter === 'all') return items;
+  
+  const now = dayjs();
+  const today = now.startOf('day');
+  const yesterday = today.subtract(1, 'day');
+  const thisWeekStart = now.startOf('week');
+  const lastWeekStart = thisWeekStart.subtract(1, 'week');
+  const lastWeekEnd = thisWeekStart.subtract(1, 'day');
+  const thisMonthStart = now.startOf('month');
+
+  return items.filter(item => {
+    const itemDate = dayjs(item[dateField]);
+    switch (filter) {
+      case 'today':
+        return itemDate.isSame(today, 'day');
+      case 'yesterday':
+        return itemDate.isSame(yesterday, 'day');
+      case 'this_week':
+        return itemDate.isAfter(thisWeekStart.subtract(1, 'day')) && itemDate.isBefore(now.add(1, 'day'));
+      case 'last_week':
+        return itemDate.isAfter(lastWeekStart.subtract(1, 'day')) && itemDate.isBefore(lastWeekEnd.add(1, 'day'));
+      case 'this_month':
+        return itemDate.isAfter(thisMonthStart.subtract(1, 'day')) && itemDate.isBefore(now.add(1, 'day'));
+      default:
+        return true;
+    }
+  });
+};
 
 interface CompletedCuringBatch extends CuringBatch {
   availableQuantity: number;
+  productName?: string;
+  endDate?: string;
 }
 
 export default function Production() {
@@ -32,6 +83,14 @@ export default function Production() {
 
   const userRole = JSON.parse(localStorage.getItem('user') || '{}').role || 'EMPLOYEE';
   const isAdmin = userRole === 'ADMIN';
+
+  // Stany dla modalnych okienek wyboru surowców
+  const [selectModal, setSelectModal] = useState<{
+    type: 'reception' | 'curing' | 'material';
+    index: number;
+  } | null>(null);
+  const [selectFilter, setSelectFilter] = useState<TimeFilter>('this_week');
+  const [selectSearch, setSelectSearch] = useState('');
 
   const [formData, setFormData] = useState({
     productId: '',
@@ -85,6 +144,83 @@ export default function Production() {
   const loadReceptions = async () => {
     const data = await api.getReceptions();
     setReceptions(data.filter((r: RawMaterialReception) => r.isCompliant));
+  };
+
+  // Filtrowane listy dla modali wyboru
+  const filteredReceptions = useMemo((): RawMaterialReception[] => {
+    let filtered = filterByTimeGeneric(receptions, selectFilter, 'receivedAt') as RawMaterialReception[];
+    if (selectSearch.trim()) {
+      const search = selectSearch.toLowerCase();
+      filtered = filtered.filter(r => 
+        r.rawMaterial?.name?.toLowerCase().includes(search) ||
+        r.batchNumber?.toLowerCase().includes(search) ||
+        r.supplier?.name?.toLowerCase().includes(search)
+      );
+    }
+    return filtered;
+  }, [receptions, selectFilter, selectSearch]);
+
+  const filteredCuringBatches = useMemo((): CompletedCuringBatch[] => {
+    let filtered = filterByTimeGeneric(curingBatches, selectFilter, 'startDate') as CompletedCuringBatch[];
+    if (selectSearch.trim()) {
+      const search = selectSearch.toLowerCase();
+      filtered = filtered.filter(c => 
+        c.batchNumber?.toLowerCase().includes(search) ||
+        c.productName?.toLowerCase().includes(search) ||
+        c.reception?.rawMaterial?.name?.toLowerCase().includes(search)
+      );
+    }
+    return filtered;
+  }, [curingBatches, selectFilter, selectSearch]);
+
+  const filteredMaterials = useMemo((): MaterialReceipt[] => {
+    let filtered = filterByTimeGeneric(availableMaterials, selectFilter, 'receivedAt') as MaterialReceipt[];
+    if (selectSearch.trim()) {
+      const search = selectSearch.toLowerCase();
+      filtered = filtered.filter(m => 
+        m.material?.name?.toLowerCase().includes(search) ||
+        m.batchNumber?.toLowerCase().includes(search)
+      );
+    }
+    return filtered;
+  }, [availableMaterials, selectFilter, selectSearch]);
+
+  // Otwórz modal wyboru
+  const openSelectModal = (type: 'reception' | 'curing' | 'material', index: number) => {
+    setSelectModal({ type, index });
+    setSelectFilter('this_week');
+    setSelectSearch('');
+  };
+
+  // Wybierz element z modalu
+  const handleSelectItem = (id: number) => {
+    if (!selectModal) return;
+    const { type, index } = selectModal;
+    
+    if (type === 'reception') {
+      updateMaterial(index, 'receptionId', id);
+    } else if (type === 'curing') {
+      updateMaterial(index, 'curingBatchId', id);
+    } else if (type === 'material') {
+      updateMaterial(index, 'materialReceiptId', id);
+    }
+    
+    setSelectModal(null);
+  };
+
+  // Pobierz nazwę wybranego elementu
+  const getSelectedItemName = (mat: any): string => {
+    if (mat.curingBatchId && mat.curingBatchId > 0) {
+      const item = curingBatches.find(c => c.id === mat.curingBatchId);
+      return item ? `🧂 ${(item as any).productName || item.reception?.rawMaterial?.name} - ${item.batchNumber}` : 'Wybierz...';
+    } else if (mat.materialReceiptId && mat.materialReceiptId > 0) {
+      const item = availableMaterials.find(m => m.id === mat.materialReceiptId);
+      return item ? `🌿 ${item.material?.name} - ${item.batchNumber}` : 'Wybierz...';
+    } else if (mat.receptionId && mat.receptionId > 0) {
+      const item = receptions.find(r => r.id === mat.receptionId);
+      return item ? `🥩 ${item.rawMaterial?.name} - ${item.batchNumber}` : 'Wybierz...';
+    }
+    return 'Wybierz...';
   };
 
   const openModal = () => {
@@ -574,47 +710,41 @@ export default function Production() {
                     {formData.materials.map((mat, index) => (
                       <div key={index} className="flex gap-2 mb-2">
                         {mat.curingBatchId !== undefined ? (
-                          // Element peklowany
-                          <select
-                            className="input flex-1 border-purple-300 bg-purple-50"
-                            value={mat.curingBatchId}
-                            onChange={(e) => updateMaterial(index, 'curingBatchId', parseInt(e.target.value))}
+                          // Element peklowany - przycisk otwierający modal
+                          <button
+                            type="button"
+                            onClick={() => openSelectModal('curing', index)}
+                            className="input flex-1 border-purple-300 bg-purple-50 text-left hover:bg-purple-100 transition-colors flex items-center justify-between"
                           >
-                            <option value="0">Wybierz element peklowany</option>
-                            {curingBatches.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                🧂 {c.productName || c.reception?.rawMaterial?.name} - {c.batchNumber} ({c.availableQuantity} {c.unit} dostępne)
-                              </option>
-                            ))}
-                          </select>
+                            <span className={mat.curingBatchId > 0 ? 'text-gray-900' : 'text-gray-400'}>
+                              {getSelectedItemName(mat)}
+                            </span>
+                            <MagnifyingGlassIcon className="w-4 h-4 text-purple-400" />
+                          </button>
                         ) : mat.materialReceiptId !== undefined ? (
-                          // Zwykły materiał (przyprawy, osłonki itp.)
-                          <select
-                            className="input flex-1 border-green-300 bg-green-50"
-                            value={mat.materialReceiptId}
-                            onChange={(e) => updateMaterial(index, 'materialReceiptId', parseInt(e.target.value))}
+                          // Zwykły materiał - przycisk otwierający modal
+                          <button
+                            type="button"
+                            onClick={() => openSelectModal('material', index)}
+                            className="input flex-1 border-green-300 bg-green-50 text-left hover:bg-green-100 transition-colors flex items-center justify-between"
                           >
-                            <option value="0">Wybierz materiał</option>
-                            {availableMaterials.map((m) => (
-                              <option key={m.id} value={m.id}>
-                                🌿 {m.material?.name} - {m.batchNumber} ({m.quantity} {m.material?.unit})
-                              </option>
-                            ))}
-                          </select>
+                            <span className={mat.materialReceiptId > 0 ? 'text-gray-900' : 'text-gray-400'}>
+                              {getSelectedItemName(mat)}
+                            </span>
+                            <MagnifyingGlassIcon className="w-4 h-4 text-green-400" />
+                          </button>
                         ) : (
-                          // Zwykły surowiec
-                          <select
-                            className="input flex-1"
-                            value={mat.receptionId}
-                            onChange={(e) => updateMaterial(index, 'receptionId', parseInt(e.target.value))}
+                          // Zwykły surowiec - przycisk otwierający modal
+                          <button
+                            type="button"
+                            onClick={() => openSelectModal('reception', index)}
+                            className="input flex-1 text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
                           >
-                            <option value="0">Wybierz surowiec</option>
-                            {receptions.map((r) => (
-                              <option key={r.id} value={r.id}>
-                                {r.rawMaterial?.name} - {r.batchNumber} ({r.quantity} {r.unit})
-                              </option>
-                            ))}
-                          </select>
+                            <span className={mat.receptionId && mat.receptionId > 0 ? 'text-gray-900' : 'text-gray-400'}>
+                              {getSelectedItemName(mat)}
+                            </span>
+                            <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                          </button>
                         )}
                         <input
                           type="number"
@@ -887,6 +1017,175 @@ export default function Production() {
               <div className="mt-6">
                 <button onClick={() => setViewBatch(null)} className="w-full btn-secondary">
                   Zamknij
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Select Item Modal - Wybór surowców/peklowania/materiałów */}
+      {selectModal && (
+        <div className="fixed inset-0 z-[60] overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-40" onClick={() => setSelectModal(null)}></div>
+            <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[85vh] flex flex-col">
+              {/* Header */}
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {selectModal.type === 'reception' && '🥩 Wybierz surowiec (dostawę)'}
+                    {selectModal.type === 'curing' && '🧂 Wybierz element peklowany'}
+                    {selectModal.type === 'material' && '🌿 Wybierz materiał/dodatek'}
+                  </h3>
+                  <button
+                    onClick={() => setSelectModal(null)}
+                    className="p-1 hover:bg-gray-100 rounded-lg"
+                  >
+                    <XMarkIcon className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Filtry czasowe */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <FunnelIcon className="w-4 h-4 text-gray-400 mt-1.5" />
+                  {TIME_FILTERS.map(f => (
+                    <button
+                      key={f.value}
+                      type="button"
+                      onClick={() => setSelectFilter(f.value)}
+                      className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                        selectFilter === f.value
+                          ? 'bg-meat-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Wyszukiwarka */}
+                <div className="relative">
+                  <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    className="input pl-10"
+                    placeholder="Szukaj po nazwie, numerze partii..."
+                    value={selectSearch}
+                    onChange={(e) => setSelectSearch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {/* Lista elementów */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {selectModal.type === 'reception' && (
+                  <div className="space-y-2">
+                    {filteredReceptions.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">Brak dostaw w wybranym okresie</p>
+                    ) : (
+                      filteredReceptions.map(r => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => handleSelectItem(r.id)}
+                          className="w-full p-3 border border-gray-200 rounded-lg hover:border-meat-400 hover:bg-meat-50 transition-colors text-left flex items-center justify-between group"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-900 group-hover:text-meat-700">
+                              🥩 {r.rawMaterial?.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {r.batchNumber} • {r.quantity} {r.unit} • {r.supplier?.name}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {dayjs(r.receivedAt).format('DD.MM.YYYY')}
+                            </p>
+                          </div>
+                          <span className="text-meat-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Wybierz →
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {selectModal.type === 'curing' && (
+                  <div className="space-y-2">
+                    {filteredCuringBatches.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">Brak partii peklowanych w wybranym okresie</p>
+                    ) : (
+                      filteredCuringBatches.map(c => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => handleSelectItem(c.id)}
+                          className="w-full p-3 border border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors text-left flex items-center justify-between group"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-900 group-hover:text-purple-700">
+                              🧂 {(c as any).productName || c.reception?.rawMaterial?.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {c.batchNumber} • <span className="text-purple-600 font-medium">{c.availableQuantity} {c.unit} dostępne</span>
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              Peklowanie: {dayjs(c.startDate).format('DD.MM')} - {dayjs(c.endDate).format('DD.MM.YYYY')}
+                            </p>
+                          </div>
+                          <span className="text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Wybierz →
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {selectModal.type === 'material' && (
+                  <div className="space-y-2">
+                    {filteredMaterials.length === 0 ? (
+                      <p className="text-center text-gray-500 py-8">Brak materiałów w wybranym okresie</p>
+                    ) : (
+                      filteredMaterials.map(m => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => handleSelectItem(m.id)}
+                          className="w-full p-3 border border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors text-left flex items-center justify-between group"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-900 group-hover:text-green-700">
+                              🌿 {m.material?.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {m.batchNumber} • {m.quantity} {m.material?.unit}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {dayjs(m.receivedAt).format('DD.MM.YYYY')}
+                            </p>
+                          </div>
+                          <span className="text-green-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Wybierz →
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                <button
+                  type="button"
+                  onClick={() => setSelectModal(null)}
+                  className="w-full btn-secondary"
+                >
+                  Anuluj
                 </button>
               </div>
             </div>
