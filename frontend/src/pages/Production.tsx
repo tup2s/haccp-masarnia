@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { api, ProductionBatch, Product, RawMaterialReception, CuringBatch, MaterialReceipt } from '../services/api';
+import { api, ProductionBatch, Product, RawMaterialReception, CuringBatch, MaterialReceipt, User } from '../services/api';
 import { PlusIcon, QueueListIcon, EyeIcon, CheckCircleIcon, FireIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { SelectModal, filterByTime, TimeFilter, TIME_FILTERS } from '../components/SelectModal';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { useAuth } from '../context/AuthContext';
 
 dayjs.extend(utc);
 
@@ -15,6 +16,7 @@ interface CompletedCuringBatch extends CuringBatch {
 }
 
 export default function Production() {
+  const { isAdmin } = useAuth();
   const [batches, setBatches] = useState<ProductionBatch[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [receptions, setReceptions] = useState<RawMaterialReception[]>([]);
@@ -32,9 +34,8 @@ export default function Production() {
     endDate: dayjs().format('YYYY-MM-DD'),
     endTime: dayjs().format('HH:mm'),
   });
-
-  const userRole = JSON.parse(localStorage.getItem('user') || '{}').role || 'EMPLOYEE';
-  const isAdmin = userRole === 'ADMIN';
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
 
   // Stany dla modalnych okienek wyboru surowców
   const [selectModal, setSelectModal] = useState<{
@@ -60,7 +61,19 @@ export default function Production() {
 
   useEffect(() => {
     Promise.all([loadBatches(), loadProducts(), loadReceptions(), loadCuringBatches(), loadAvailableMaterials()]);
-  }, []);
+    if (isAdmin) {
+      loadUsers();
+    }
+  }, [isAdmin]);
+
+  const loadUsers = async () => {
+    try {
+      const data = await api.getUsers();
+      setUsers(data.filter(u => u.isActive));
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
 
   const loadCuringBatches = async () => {
     try {
@@ -195,6 +208,7 @@ export default function Production() {
       materials: [],
     });
     setEditBatch(null);
+    setSelectedUserId('');
     setIsModalOpen(true);
   };
 
@@ -289,6 +303,7 @@ export default function Production() {
           expiryDate: formData.expiryDate,
           notes: formData.notes || undefined,
           materials: validMaterials,
+          userId: selectedUserId || undefined, // Admin może wybrać operatora
         };
         await api.createProductionBatch(payload);
         toast.success('Partia produkcyjna utworzona - status: W produkcji');
@@ -296,6 +311,7 @@ export default function Production() {
       
       setIsModalOpen(false);
       setEditBatch(null);
+      setSelectedUserId('');
       loadBatches();
       loadCuringBatches(); // Odśwież dostępne partie peklowania
     } catch (error) {
@@ -552,6 +568,23 @@ export default function Production() {
                 {editBatch ? 'Edytuj partię produkcyjną' : 'Nowa partia produkcyjna'}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Wybór operatora - tylko dla admina */}
+                {isAdmin && users.length > 0 && !editBatch && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+                    <select
+                      className="input"
+                      value={selectedUserId}
+                      onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : '')}
+                    >
+                      <option value="">-- Bieżący użytkownik --</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>{user.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Produkt *</label>

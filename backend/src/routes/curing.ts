@@ -142,7 +142,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       startDate, // opcjonalna data/godzina rozpoczęcia
       temperature,
       notes,
+      userId: selectedUserId, // Admin może wybrać operatora
     } = req.body;
+
+    // Admin może wybrać innego operatora
+    const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
 
     // Generuj numer partii peklowania w formacie dd-mm
     const date = startDate ? new Date(startDate) : new Date();
@@ -215,7 +219,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         plannedEndDate,
         temperature,
         notes,
-        userId: req.userId!,
+        userId: effectiveUserId,
       },
       include: {
         reception: {

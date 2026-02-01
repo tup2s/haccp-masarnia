@@ -63,6 +63,7 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  isActive?: boolean;
   createdAt?: string;
 }
 
@@ -441,7 +442,7 @@ export const api = {
     if (params?.limit) query.append('limit', params.limit.toString());
     return request<TemperatureReading[]>(`/temperature/readings?${query}`);
   },
-  createTemperatureReading: (data: { temperaturePointId: number; temperature: number; notes?: string }) =>
+  createTemperatureReading: (data: { temperaturePointId: number; temperature: number; notes?: string; userId?: number }) =>
     request<TemperatureReading>('/temperature/readings', { method: 'POST', body: JSON.stringify(data) }),
   getTemperatureTrends: (params?: { pointId?: number; days?: number }) => {
     const query = new URLSearchParams();
@@ -550,7 +551,7 @@ export const api = {
     if (limit) query.append('limit', limit.toString());
     return request<CleaningRecord[]>(`/cleaning/records?${query}`);
   },
-  createCleaningRecord: (data: { cleaningAreaId: number; method: string; chemicals?: string; isVerified?: boolean; notes?: string }) =>
+  createCleaningRecord: (data: { cleaningAreaId: number; method: string; chemicals?: string; isVerified?: boolean; notes?: string; userId?: number }) =>
     request<CleaningRecord>('/cleaning/records', { method: 'POST', body: JSON.stringify(data) }),
 
   // Pest Control

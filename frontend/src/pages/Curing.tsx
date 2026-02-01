@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { api, CuringBatch, RawMaterialReception } from '../services/api';
+import { api, CuringBatch, RawMaterialReception, User } from '../services/api';
 import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon, PrinterIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { SelectModal } from '../components/SelectModal';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { useAuth } from '../context/AuthContext';
 
 dayjs.extend(utc);
 
 export default function Curing() {
+  const { isAdmin } = useAuth();
   const [batches, setBatches] = useState<CuringBatch[]>([]);
   const [meatReceptions, setMeatReceptions] = useState<RawMaterialReception[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,12 +22,11 @@ export default function Curing() {
   const [completeNotes, setCompleteNotes] = useState('');
   const [completeEndDate, setCompleteEndDate] = useState('');
   const [completeEndTime, setCompleteEndTime] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   
   // Modal wyboru surowca
   const [isReceptionSelectOpen, setIsReceptionSelectOpen] = useState(false);
-  
-  const userRole = JSON.parse(localStorage.getItem('user') || '{}').role || 'EMPLOYEE';
-  const isAdmin = userRole === 'ADMIN';
 
   const [formData, setFormData] = useState({
     receptionId: '',
@@ -50,7 +51,19 @@ export default function Curing() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    if (isAdmin) {
+      loadUsers();
+    }
+  }, [isAdmin]);
+
+  const loadUsers = async () => {
+    try {
+      const data = await api.getUsers();
+      setUsers(data.filter(u => u.isActive));
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -90,6 +103,7 @@ export default function Curing() {
       notes: '',
     });
     setEditBatch(null);
+    setSelectedUserId('');
     setIsModalOpen(true);
   };
 
@@ -159,6 +173,7 @@ export default function Curing() {
         startDate: startDateTime,
         temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
         notes: formData.notes || undefined,
+        userId: selectedUserId || undefined, // Admin może wybrać operatora
       };
 
       if (formData.curingMethod === 'DRY') {
@@ -457,6 +472,23 @@ export default function Curing() {
                 {editBatch ? 'Edytuj partię peklowania' : 'Nowa partia peklowania'}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Wybór operatora - tylko dla admina */}
+                {isAdmin && users.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+                    <select
+                      className="input"
+                      value={selectedUserId}
+                      onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : '')}
+                    >
+                      <option value="">-- Bieżący użytkownik --</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>{user.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* Nazwa peklowanego produktu - główna nazwa */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nazwa peklowanego produktu *</label>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api, TemperaturePoint, TemperatureReading } from '../services/api';
+import { api, TemperaturePoint, TemperatureReading, User } from '../services/api';
 import { BeakerIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
@@ -21,6 +21,8 @@ export default function TemperatureMonitoring() {
   const [temperature, setTemperature] = useState('');
   const [notes, setNotes] = useState('');
   const [trends, setTrends] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   
   // Form state for point
   const [pointForm, setPointForm] = useState({
@@ -33,7 +35,19 @@ export default function TemperatureMonitoring() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    if (isAdmin) {
+      loadUsers();
+    }
+  }, [isAdmin]);
+
+  const loadUsers = async () => {
+    try {
+      const data = await api.getUsers();
+      setUsers(data.filter(u => u.isActive));
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -61,11 +75,13 @@ export default function TemperatureMonitoring() {
         temperaturePointId: selectedPoint.id,
         temperature: parseFloat(temperature),
         notes: notes || undefined,
+        userId: selectedUserId || undefined, // Admin może wybrać operatora
       });
       toast.success('Pomiar zapisany');
       setShowReadingModal(false);
       setTemperature('');
       setNotes('');
+      setSelectedUserId('');
       setSelectedPoint(null);
       loadData();
     } catch (error) {
@@ -406,6 +422,21 @@ export default function TemperatureMonitoring() {
                 Limity: {selectedPoint.minTemp}°C do {selectedPoint.maxTemp}°C
               </p>
               <form onSubmit={handleAddReading} className="space-y-4">
+                {isAdmin && users.length > 0 && (
+                  <div>
+                    <label className="label">Operator</label>
+                    <select
+                      className="input"
+                      value={selectedUserId}
+                      onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : '')}
+                    >
+                      <option value="">-- Bieżący użytkownik --</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>{user.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="label">Temperatura (°C)</label>
                   <input

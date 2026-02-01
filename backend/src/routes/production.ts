@@ -108,7 +108,10 @@ router.get('/batches/number/:batchNumber', authenticateToken, async (req: AuthRe
 // POST /api/production/batches
 router.post('/batches', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { productId, quantity, unit, productionDate, startDateTime, notes, materials } = req.body;
+    const { productId, quantity, unit, productionDate, startDateTime, notes, materials, userId: selectedUserId } = req.body;
+
+    // Admin może wybrać innego operatora
+    const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
 
     // Get product for shelf life
     const product = await req.prisma.product.findUnique({
@@ -155,7 +158,7 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
         productionDate: date,
         expiryDate,
         notes,
-        userId: req.userId!,
+        userId: effectiveUserId,
         startTime, // Godzina rozpoczęcia produkcji
         materials: materials ? {
           create: materials.map((m: any) => ({

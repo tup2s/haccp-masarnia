@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api, CleaningArea, CleaningRecord } from '../services/api';
+import { api, CleaningArea, CleaningRecord, User } from '../services/api';
 import { PlusIcon, SparklesIcon, ClockIcon, CheckBadgeIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
@@ -17,6 +17,8 @@ export default function Cleaning() {
   const [isAreaModalOpen, setIsAreaModalOpen] = useState(false);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [selectedArea, setSelectedArea] = useState<CleaningArea | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [areaForm, setAreaForm] = useState({
     name: '',
     location: '',
@@ -33,7 +35,19 @@ export default function Cleaning() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    if (isAdmin) {
+      loadUsers();
+    }
+  }, [isAdmin]);
+
+  const loadUsers = async () => {
+    try {
+      const data = await api.getUsers();
+      setUsers(data.filter(u => u.isActive));
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -124,9 +138,11 @@ export default function Cleaning() {
         method: recordForm.method,
         chemicals: recordForm.chemicals || undefined,
         notes: recordForm.notes || undefined,
+        userId: selectedUserId || undefined, // Admin może wybrać operatora
       });
       toast.success('Mycie zarejestrowane');
       setIsRecordModalOpen(false);
+      setSelectedUserId('');
       loadData();
     } catch (error) {
       toast.error('Błąd podczas zapisywania');
@@ -408,6 +424,23 @@ export default function Cleaning() {
             <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Rejestruj mycie</h2>
               <form onSubmit={handleRecordSubmit} className="space-y-4">
+                {/* Wybór operatora - tylko dla admina */}
+                {isAdmin && users.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
+                    <select
+                      className="input"
+                      value={selectedUserId}
+                      onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : '')}
+                    >
+                      <option value="">-- Bieżący użytkownik --</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>{user.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Strefa</label>
                   <select

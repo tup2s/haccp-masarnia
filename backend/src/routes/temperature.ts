@@ -86,7 +86,10 @@ router.get('/readings', authenticateToken, async (req: AuthRequest, res: Respons
 // POST /api/temperature/readings
 router.post('/readings', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { temperaturePointId, temperature, notes } = req.body;
+    const { temperaturePointId, temperature, notes, userId: selectedUserId } = req.body;
+    
+    // Admin może wybrać innego operatora
+    const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
     
     const point = await req.prisma.temperaturePoint.findUnique({
       where: { id: temperaturePointId },
@@ -104,7 +107,7 @@ router.post('/readings', authenticateToken, async (req: AuthRequest, res: Respon
         temperature,
         isCompliant,
         notes,
-        userId: req.userId!,
+        userId: effectiveUserId,
       },
       include: {
         temperaturePoint: true,
@@ -119,7 +122,7 @@ router.post('/readings', authenticateToken, async (req: AuthRequest, res: Respon
           title: `Przekroczenie temperatury - ${point.name}`,
           description: `Zmierzona temperatura: ${temperature}°C. Limity: ${point.minTemp}°C - ${point.maxTemp}°C`,
           priority: 'HIGH',
-          userId: req.userId!,
+          userId: effectiveUserId,
         },
       });
     }

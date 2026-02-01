@@ -81,7 +81,11 @@ router.get('/records', authenticateToken, async (req: AuthRequest, res: Response
 // POST /api/cleaning/records
 router.post('/records', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { cleaningAreaId, method, chemicals, isVerified, notes } = req.body;
+    const { cleaningAreaId, method, chemicals, isVerified, notes, userId: selectedUserId } = req.body;
+    
+    // Admin może wybrać innego operatora
+    const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
+    
     const record = await req.prisma.cleaningRecord.create({
       data: {
         cleaningAreaId,
@@ -89,7 +93,7 @@ router.post('/records', authenticateToken, async (req: AuthRequest, res: Respons
         chemicals,
         isVerified,
         notes,
-        userId: req.userId!,
+        userId: effectiveUserId,
       },
       include: {
         cleaningArea: true,
