@@ -34,6 +34,11 @@ export default function Receptions() {
     temperature: '',
     isCompliant: true,
     notes: '',
+    receivedTime: '',
+    vehicleClean: true,
+    vehicleTemperature: '',
+    packagingIntact: true,
+    documentsComplete: true,
   });
 
   useEffect(() => {
@@ -72,6 +77,11 @@ export default function Receptions() {
       temperature: '',
       isCompliant: true,
       notes: '',
+      receivedTime: dayjs().format('HH:mm'),
+      vehicleClean: true,
+      vehicleTemperature: '',
+      packagingIntact: true,
+      documentsComplete: true,
     });
     setEditReception(null);
     setIsModalOpen(true);
@@ -89,6 +99,11 @@ export default function Receptions() {
       temperature: reception.temperature?.toString() || '',
       isCompliant: reception.isCompliant,
       notes: reception.notes || '',
+      receivedTime: (reception as any).receivedTime || dayjs(reception.receivedAt).format('HH:mm'),
+      vehicleClean: (reception as any).vehicleClean ?? true,
+      vehicleTemperature: (reception as any).vehicleTemperature?.toString() || '',
+      packagingIntact: (reception as any).packagingIntact ?? true,
+      documentsComplete: (reception as any).documentsComplete ?? true,
     });
     setIsModalOpen(true);
   };
@@ -106,6 +121,11 @@ export default function Receptions() {
         temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
         isCompliant: formData.isCompliant,
         notes: formData.notes || undefined,
+        receivedTime: formData.receivedTime || undefined,
+        vehicleClean: formData.vehicleClean,
+        vehicleTemperature: formData.vehicleTemperature ? parseFloat(formData.vehicleTemperature) : undefined,
+        packagingIntact: formData.packagingIntact,
+        documentsComplete: formData.documentsComplete,
       };
       
       if (editReception) {
@@ -323,6 +343,18 @@ export default function Receptions() {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Godzina przyjęcia</label>
+                    <input
+                      type="time"
+                      className="input"
+                      value={formData.receivedTime}
+                      onChange={(e) => setFormData({ ...formData, receivedTime: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Data ważności *</label>
                     <input
                       type="date"
@@ -331,6 +363,53 @@ export default function Receptions() {
                       value={formData.expiryDate}
                       onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Temp. pojazdu (°C)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="input"
+                      placeholder="np. 2.5"
+                      value={formData.vehicleTemperature}
+                      onChange={(e) => setFormData({ ...formData, vehicleTemperature: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Kontrola dostawy */}
+                <div className="bg-blue-50 rounded-lg p-4 space-y-3">
+                  <h4 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                    🚚 Kontrola dostawy
+                  </h4>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        checked={formData.vehicleClean}
+                        onChange={(e) => setFormData({ ...formData, vehicleClean: e.target.checked })}
+                      />
+                      <span className="text-sm text-gray-700">Pojazd czysty</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        checked={formData.packagingIntact}
+                        onChange={(e) => setFormData({ ...formData, packagingIntact: e.target.checked })}
+                      />
+                      <span className="text-sm text-gray-700">Opakowania nieuszkodzone</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        checked={formData.documentsComplete}
+                        onChange={(e) => setFormData({ ...formData, documentsComplete: e.target.checked })}
+                      />
+                      <span className="text-sm text-gray-700">Dokumenty kompletne (HDI, WZ)</span>
+                    </label>
                   </div>
                 </div>
 

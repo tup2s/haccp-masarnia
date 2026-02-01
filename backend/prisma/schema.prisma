@@ -137,25 +137,30 @@ model RawMaterial {
 }
 
 model RawMaterialReception {
-  id             Int             @id @default(autoincrement())
-  rawMaterialId  Int
-  supplierId     Int
-  batchNumber    String
-  quantity       Float
-  unit           String
-  expiryDate     DateTime?
-  temperature    Float?
-  isCompliant    Boolean         @default(true)
-  notes          String?
-  documentNumber String?
-  receivedAt     DateTime        @default(now())
-  userId         Int
-  createdAt      DateTime        @default(now())
-  batchMaterials BatchMaterial[]
-  curingBatches  CuringBatch[]
-  rawMaterial    RawMaterial     @relation(fields: [rawMaterialId], references: [id])
-  supplier       Supplier        @relation(fields: [supplierId], references: [id])
-  user           User            @relation(fields: [userId], references: [id])
+  id                 Int             @id @default(autoincrement())
+  rawMaterialId      Int
+  supplierId         Int
+  batchNumber        String
+  quantity           Float
+  unit               String
+  expiryDate         DateTime?
+  temperature        Float?
+  isCompliant        Boolean         @default(true)
+  notes              String?
+  documentNumber     String?
+  receivedAt         DateTime        @default(now())
+  receivedTime       String?
+  vehicleClean       Boolean?        @default(true)
+  vehicleTemperature Float?
+  packagingIntact    Boolean?        @default(true)
+  documentsComplete  Boolean?        @default(true)
+  userId             Int
+  createdAt          DateTime        @default(now())
+  batchMaterials     BatchMaterial[]
+  curingBatches      CuringBatch[]
+  rawMaterial        RawMaterial     @relation(fields: [rawMaterialId], references: [id])
+  supplier           Supplier        @relation(fields: [supplierId], references: [id])
+  user               User            @relation(fields: [userId], references: [id])
 }
 
 model CuringBatch {

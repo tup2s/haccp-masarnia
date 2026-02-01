@@ -55,7 +55,12 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       temperature, 
       isCompliant = true, 
       notes, 
-      documentNumber 
+      documentNumber,
+      receivedTime,
+      vehicleClean,
+      vehicleTemperature,
+      packagingIntact,
+      documentsComplete
     } = req.body;
 
     const reception = await req.prisma.rawMaterialReception.create({
@@ -70,6 +75,11 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         isCompliant,
         notes,
         documentNumber,
+        receivedTime,
+        vehicleClean,
+        vehicleTemperature,
+        packagingIntact,
+        documentsComplete,
         userId: req.userId!,
       },
       include: {
@@ -110,7 +120,12 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       temperature, 
       isCompliant, 
       notes, 
-      documentNumber 
+      documentNumber,
+      receivedTime,
+      vehicleClean,
+      vehicleTemperature,
+      packagingIntact,
+      documentsComplete
     } = req.body;
 
     const reception = await req.prisma.rawMaterialReception.update({
@@ -126,6 +141,11 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
         isCompliant,
         notes,
         documentNumber,
+        receivedTime,
+        vehicleClean,
+        vehicleTemperature,
+        packagingIntact,
+        documentsComplete,
       },
       include: {
         rawMaterial: true,
