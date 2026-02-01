@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, Document } from '../services/api';
-import { PlusIcon, DocumentTextIcon, FolderIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, DocumentTextIcon, FolderIcon, PencilIcon, TrashIcon, ArrowTopRightOnSquareIcon, LinkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -190,7 +190,21 @@ export default function Documents() {
                         {catInfo.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{doc.fileName || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {doc.filePath && doc.filePath.startsWith('http') ? (
+                        <a 
+                          href={doc.filePath} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                          {doc.fileName || 'Otwórz'}
+                        </a>
+                      ) : (
+                        doc.fileName || '-'
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-500">{doc.version}</td>
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {doc.validFrom ? dayjs(doc.validFrom).format('DD.MM.YYYY') : '-'}
@@ -204,15 +218,28 @@ export default function Documents() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
+                        {doc.filePath && doc.filePath.startsWith('http') && (
+                          <a
+                            href={doc.filePath}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 text-blue-500 hover:text-blue-700"
+                            title="Otwórz plik"
+                          >
+                            <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+                          </a>
+                        )}
                         <button
                           onClick={() => openModal(doc)}
                           className="p-1 text-gray-400 hover:text-meat-600"
+                          title="Edytuj"
                         >
                           <PencilIcon className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(doc.id)}
                           className="p-1 text-gray-400 hover:text-red-600"
+                          title="Usuń"
                         >
                           <TrashIcon className="w-5 h-5" />
                         </button>
@@ -290,15 +317,36 @@ export default function Documents() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ścieżka pliku</label>
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="np. dokumenty/procedury/P-01.pdf"
-                    value={formData.filePath}
-                    onChange={(e) => setFormData({ ...formData, filePath: e.target.value })}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Lokalna ścieżka do pliku dokumentu</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Link do pliku (URL)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      className="input flex-1"
+                      placeholder="https://drive.google.com/... lub https://..."
+                      value={formData.filePath}
+                      onChange={(e) => setFormData({ ...formData, filePath: e.target.value })}
+                    />
+                    {formData.filePath && formData.filePath.startsWith('http') && (
+                      <a
+                        href={formData.filePath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-secondary px-3 flex items-center"
+                        title="Otwórz link"
+                      >
+                        <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-blue-800 font-medium mb-1">💡 Gdzie przechowywać pliki?</p>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>• <strong>Google Drive</strong> - wklej link udostępniania</li>
+                      <li>• <strong>OneDrive</strong> - skopiuj link do pliku</li>
+                      <li>• <strong>Dropbox</strong> - użyj linku udostępniania</li>
+                      <li>• <strong>Własny serwer</strong> - pełny URL do pliku</li>
+                    </ul>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
