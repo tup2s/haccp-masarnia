@@ -165,7 +165,7 @@ model RawMaterialReception {
 
 model CuringBatch {
   id               Int                  @id @default(autoincrement())
-  batchNumber      String               @unique
+  batchNumber      String
   receptionId      Int
   quantity         Float
   unit             String               @default("kg")

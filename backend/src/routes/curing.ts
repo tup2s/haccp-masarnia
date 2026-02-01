@@ -149,24 +149,29 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
 
     // Generuj numer partii peklowania w formacie DD-MM
-    // Jeśli tego samego dnia jest więcej partii, dodaj sufiks -2, -3 itd.
+    // Sufiks -2, -3 tylko gdy ten SAM produkt peklowany kilka razy tego samego dnia
     const date = startDate ? new Date(startDate) : new Date();
     const dateStr = dayjs(date).format('DD-MM');
     
-    // Sprawdź ile partii już jest tego dnia (batchNumber zaczyna się od DD-MM)
-    const countToday = await req.prisma.curingBatch.count({
+    // Sprawdź ile partii TEGO SAMEGO PRODUKTU jest już tego dnia
+    const startOfDay = dayjs(date).startOf('day').toDate();
+    const endOfDay = dayjs(date).endOf('day').toDate();
+    
+    const countSameProductToday = await req.prisma.curingBatch.count({
       where: {
-        batchNumber: {
-          startsWith: dateStr,
+        productName: productName,
+        startDate: {
+          gte: startOfDay,
+          lt: endOfDay,
         },
       },
     });
     
-    // Pierwsza partia w dniu = sama data (DD-MM)
-    // Kolejne = data + sufiks (-2, -3 itd.)
-    const finalBatchNumber = countToday === 0 
+    // Pierwsza partia danego produktu w dniu = DD-MM
+    // Kolejne partie TEGO SAMEGO produktu = DD-MM-2, DD-MM-3 itd.
+    const finalBatchNumber = countSameProductToday === 0 
       ? dateStr 
-      : `${dateStr}-${countToday + 1}`;
+      : `${dateStr}-${countSameProductToday + 1}`;
 
     // Oblicz planowaną datę zakończenia
     const plannedEndDate = dayjs(date).add(plannedDays || 7, 'day').toDate();
