@@ -1,60 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { api, ProductionBatch, Product, RawMaterialReception, CuringBatch, MaterialReceipt } from '../services/api';
 import { PlusIcon, QueueListIcon, EyeIcon, CheckCircleIcon, FireIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { SelectModal, filterByTime, TimeFilter, TIME_FILTERS } from '../components/SelectModal';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import isBetween from 'dayjs/plugin/isBetween';
 
 dayjs.extend(utc);
-dayjs.extend(isBetween);
-
-// Typy filtrów czasowych
-type TimeFilter = 'all' | 'today' | 'yesterday' | 'this_week' | 'last_week' | 'this_month';
-
-const TIME_FILTERS: { value: TimeFilter; label: string }[] = [
-  { value: 'all', label: 'Wszystkie' },
-  { value: 'today', label: 'Dzisiaj' },
-  { value: 'yesterday', label: 'Wczoraj' },
-  { value: 'this_week', label: 'Ten tydzień' },
-  { value: 'last_week', label: 'Poprzedni tydzień' },
-  { value: 'this_month', label: 'Ten miesiąc' },
-];
-
-// Funkcja filtrowania po dacie - używa any dla elastyczności z różnymi typami
-const filterByTimeGeneric = (
-  items: any[],
-  filter: TimeFilter,
-  dateField: string = 'createdAt'
-): any[] => {
-  if (filter === 'all') return items;
-  
-  const now = dayjs();
-  const today = now.startOf('day');
-  const yesterday = today.subtract(1, 'day');
-  const thisWeekStart = now.startOf('week');
-  const lastWeekStart = thisWeekStart.subtract(1, 'week');
-  const lastWeekEnd = thisWeekStart.subtract(1, 'day');
-  const thisMonthStart = now.startOf('month');
-
-  return items.filter(item => {
-    const itemDate = dayjs(item[dateField]);
-    switch (filter) {
-      case 'today':
-        return itemDate.isSame(today, 'day');
-      case 'yesterday':
-        return itemDate.isSame(yesterday, 'day');
-      case 'this_week':
-        return itemDate.isAfter(thisWeekStart.subtract(1, 'day')) && itemDate.isBefore(now.add(1, 'day'));
-      case 'last_week':
-        return itemDate.isAfter(lastWeekStart.subtract(1, 'day')) && itemDate.isBefore(lastWeekEnd.add(1, 'day'));
-      case 'this_month':
-        return itemDate.isAfter(thisMonthStart.subtract(1, 'day')) && itemDate.isBefore(now.add(1, 'day'));
-      default:
-        return true;
-    }
-  });
-};
 
 interface CompletedCuringBatch extends CuringBatch {
   availableQuantity: number;
@@ -91,6 +43,9 @@ export default function Production() {
   } | null>(null);
   const [selectFilter, setSelectFilter] = useState<TimeFilter>('this_week');
   const [selectSearch, setSelectSearch] = useState('');
+
+  // Modal wyboru produktu
+  const [isProductSelectOpen, setIsProductSelectOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     productId: '',
@@ -148,7 +103,7 @@ export default function Production() {
 
   // Filtrowane listy dla modali wyboru
   const filteredReceptions = useMemo((): RawMaterialReception[] => {
-    let filtered = filterByTimeGeneric(receptions, selectFilter, 'receivedAt') as RawMaterialReception[];
+    let filtered = filterByTime(receptions, selectFilter, 'receivedAt') as RawMaterialReception[];
     if (selectSearch.trim()) {
       const search = selectSearch.toLowerCase();
       filtered = filtered.filter(r => 
@@ -161,7 +116,7 @@ export default function Production() {
   }, [receptions, selectFilter, selectSearch]);
 
   const filteredCuringBatches = useMemo((): CompletedCuringBatch[] => {
-    let filtered = filterByTimeGeneric(curingBatches, selectFilter, 'startDate') as CompletedCuringBatch[];
+    let filtered = filterByTime(curingBatches, selectFilter, 'startDate') as CompletedCuringBatch[];
     if (selectSearch.trim()) {
       const search = selectSearch.toLowerCase();
       filtered = filtered.filter(c => 
@@ -174,7 +129,7 @@ export default function Production() {
   }, [curingBatches, selectFilter, selectSearch]);
 
   const filteredMaterials = useMemo((): MaterialReceipt[] => {
-    let filtered = filterByTimeGeneric(availableMaterials, selectFilter, 'receivedAt') as MaterialReceipt[];
+    let filtered = filterByTime(availableMaterials, selectFilter, 'receivedAt') as MaterialReceipt[];
     if (selectSearch.trim()) {
       const search = selectSearch.toLowerCase();
       filtered = filtered.filter(m => 
@@ -600,18 +555,24 @@ export default function Production() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Produkt *</label>
-                    <select
-                      className="input"
-                      required
-                      value={formData.productId}
-                      onChange={(e) => handleProductChange(e.target.value)}
-                      disabled={!!editBatch}
-                    >
-                      <option value="">Wybierz produkt</option>
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
+                    {editBatch ? (
+                      <div className="input bg-gray-100 text-gray-700">
+                        {products.find(p => p.id === parseInt(formData.productId))?.name || 'Brak produktu'}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsProductSelectOpen(true)}
+                        className="input w-full text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
+                      >
+                        <span className={formData.productId ? 'text-gray-900' : 'text-gray-400'}>
+                          {formData.productId 
+                            ? `📦 ${products.find(p => p.id === parseInt(formData.productId))?.name}` 
+                            : 'Wybierz produkt...'}
+                        </span>
+                        <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                      </button>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Ilość *</label>
@@ -1192,6 +1153,34 @@ export default function Production() {
           </div>
         </div>
       )}
+
+      {/* Product Select Modal */}
+      <SelectModal<Product>
+        isOpen={isProductSelectOpen}
+        onClose={() => setIsProductSelectOpen(false)}
+        onSelect={(product) => {
+          handleProductChange(product.id.toString());
+          setIsProductSelectOpen(false);
+        }}
+        title="📦 Wybierz produkt"
+        items={products}
+        getItemId={(p) => p.id}
+        searchFields={['name', 'category', 'description'] as any}
+        showTimeFilters={false}
+        colorScheme="meat"
+        emptyMessage="Brak produktów"
+        renderItem={(p) => (
+          <div>
+            <p className="font-medium text-gray-900">{p.name}</p>
+            <p className="text-sm text-gray-500">
+              {p.category} • Termin: {p.shelfLife} dni • {p.unit}
+            </p>
+            {p.description && (
+              <p className="text-xs text-gray-400 mt-1">{p.description}</p>
+            )}
+          </div>
+        )}
+      />
     </div>
   );
 }

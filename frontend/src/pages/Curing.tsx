@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api, CuringBatch, RawMaterialReception } from '../services/api';
-import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon, PrinterIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { SelectModal } from '../components/SelectModal';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -19,6 +20,9 @@ export default function Curing() {
   const [completeNotes, setCompleteNotes] = useState('');
   const [completeEndDate, setCompleteEndDate] = useState('');
   const [completeEndTime, setCompleteEndTime] = useState('');
+  
+  // Modal wyboru surowca
+  const [isReceptionSelectOpen, setIsReceptionSelectOpen] = useState(false);
   
   const userRole = JSON.parse(localStorage.getItem('user') || '{}').role || 'EMPLOYEE';
   const isAdmin = userRole === 'ADMIN';
@@ -470,20 +474,27 @@ export default function Curing() {
                 {/* Wybór partii dostawy */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Partia dostawy (surowiec) *</label>
-                  <select
-                    className="input"
-                    required
-                    value={formData.receptionId}
-                    onChange={(e) => handleReceptionChange(e.target.value)}
-                    disabled={!!editBatch}
-                  >
-                    <option value="">Wybierz partię dostawy mięsa</option>
-                    {meatReceptions.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        📦 {r.batchNumber} | {r.rawMaterial?.name} | {r.quantity} {r.unit} | {r.supplier?.name} | {dayjs(r.receivedAt).format('DD.MM.YYYY')}
-                      </option>
-                    ))}
-                  </select>
+                  {editBatch ? (
+                    <div className="input bg-gray-100 text-gray-700">
+                      {meatReceptions.find(r => r.id === parseInt(formData.receptionId))?.rawMaterial?.name || 'Brak'} - {meatReceptions.find(r => r.id === parseInt(formData.receptionId))?.batchNumber}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsReceptionSelectOpen(true)}
+                      className="input w-full text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
+                    >
+                      <span className={formData.receptionId ? 'text-gray-900' : 'text-gray-400'}>
+                        {formData.receptionId 
+                          ? (() => {
+                              const r = meatReceptions.find(r => r.id === parseInt(formData.receptionId));
+                              return r ? `🥩 ${r.rawMaterial?.name} - ${r.batchNumber} (${r.quantity} ${r.unit})` : 'Wybierz...';
+                            })()
+                          : 'Wybierz partię dostawy mięsa...'}
+                      </span>
+                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                    </button>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">Wybierz konkretną partię dostawy z przyjęcia mięsa</p>
                 </div>
 
@@ -879,6 +890,35 @@ export default function Curing() {
           </div>
         </div>
       )}
+
+      {/* Reception Select Modal */}
+      <SelectModal<RawMaterialReception>
+        isOpen={isReceptionSelectOpen}
+        onClose={() => setIsReceptionSelectOpen(false)}
+        onSelect={(reception) => {
+          handleReceptionChange(reception.id.toString());
+          setIsReceptionSelectOpen(false);
+        }}
+        title="🥩 Wybierz partię dostawy mięsa"
+        items={meatReceptions}
+        getItemId={(r) => r.id}
+        searchFields={['batchNumber', 'rawMaterial.name', 'supplier.name'] as any}
+        dateField="receivedAt"
+        showTimeFilters={true}
+        colorScheme="meat"
+        emptyMessage="Brak dostaw mięsa w wybranym okresie"
+        renderItem={(r) => (
+          <div>
+            <p className="font-medium text-gray-900">🥩 {r.rawMaterial?.name}</p>
+            <p className="text-sm text-gray-500">
+              {r.batchNumber} • {r.quantity} {r.unit} • {r.supplier?.name}
+            </p>
+            <p className="text-xs text-gray-400">
+              {dayjs(r.receivedAt).format('DD.MM.YYYY')}
+            </p>
+          </div>
+        )}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api, RawMaterialReception, Supplier, RawMaterial } from '../services/api';
-import { PlusIcon, ClipboardDocumentListIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ClipboardDocumentListIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { SelectModal } from '../components/SelectModal';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -15,6 +16,10 @@ export default function Receptions() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editReception, setEditReception] = useState<RawMaterialReception | null>(null);
   const [deleteModal, setDeleteModal] = useState<RawMaterialReception | null>(null);
+  
+  // Modale wyboru
+  const [isSupplierSelectOpen, setIsSupplierSelectOpen] = useState(false);
+  const [isMaterialSelectOpen, setIsMaterialSelectOpen] = useState(false);
   
   const userRole = JSON.parse(localStorage.getItem('user') || '{}').role || 'EMPLOYEE';
   const isAdmin = userRole === 'ADMIN';
@@ -238,31 +243,33 @@ export default function Receptions() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Dostawca *</label>
-                    <select
-                      className="input"
-                      required
-                      value={formData.supplierId}
-                      onChange={(e) => setFormData({ ...formData, supplierId: e.target.value })}
+                    <button
+                      type="button"
+                      onClick={() => setIsSupplierSelectOpen(true)}
+                      className="input w-full text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
                     >
-                      <option value="">Wybierz dostawcę</option>
-                      {suppliers.map((s) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
+                      <span className={formData.supplierId ? 'text-gray-900' : 'text-gray-400'}>
+                        {formData.supplierId 
+                          ? `🏢 ${suppliers.find(s => s.id === parseInt(formData.supplierId))?.name}` 
+                          : 'Wybierz dostawcę...'}
+                      </span>
+                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                    </button>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Surowiec *</label>
-                    <select
-                      className="input"
-                      required
-                      value={formData.rawMaterialId}
-                      onChange={(e) => setFormData({ ...formData, rawMaterialId: e.target.value })}
+                    <button
+                      type="button"
+                      onClick={() => setIsMaterialSelectOpen(true)}
+                      className="input w-full text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
                     >
-                      <option value="">Wybierz surowiec</option>
-                      {materials.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                      ))}
-                    </select>
+                      <span className={formData.rawMaterialId ? 'text-gray-900' : 'text-gray-400'}>
+                        {formData.rawMaterialId 
+                          ? `🥩 ${materials.find(m => m.id === parseInt(formData.rawMaterialId))?.name}` 
+                          : 'Wybierz surowiec...'}
+                      </span>
+                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                    </button>
                   </div>
                 </div>
 
@@ -391,6 +398,61 @@ export default function Receptions() {
           </div>
         </div>
       )}
+
+      {/* Supplier Select Modal */}
+      <SelectModal<Supplier>
+        isOpen={isSupplierSelectOpen}
+        onClose={() => setIsSupplierSelectOpen(false)}
+        onSelect={(supplier) => {
+          setFormData({ ...formData, supplierId: supplier.id.toString() });
+          setIsSupplierSelectOpen(false);
+        }}
+        title="🏢 Wybierz dostawcę"
+        items={suppliers}
+        getItemId={(s) => s.id}
+        searchFields={['name', 'address', 'contact'] as any}
+        showTimeFilters={false}
+        colorScheme="blue"
+        emptyMessage="Brak dostawców"
+        renderItem={(s) => (
+          <div>
+            <p className="font-medium text-gray-900">🏢 {s.name}</p>
+            <p className="text-sm text-gray-500">
+              {s.address && `${s.address} • `}{s.phone || 'Brak kontaktu'}
+            </p>
+            {s.vetNumber && (
+              <p className="text-xs text-gray-400">Nr wet.: {s.vetNumber}</p>
+            )}
+          </div>
+        )}
+      />
+
+      {/* Material Select Modal */}
+      <SelectModal<RawMaterial>
+        isOpen={isMaterialSelectOpen}
+        onClose={() => setIsMaterialSelectOpen(false)}
+        onSelect={(material) => {
+          setFormData({ ...formData, rawMaterialId: material.id.toString(), unit: material.unit });
+          setIsMaterialSelectOpen(false);
+        }}
+        title="🥩 Wybierz surowiec"
+        items={materials}
+        getItemId={(m) => m.id}
+        searchFields={['name', 'category'] as any}
+        showTimeFilters={false}
+        colorScheme="meat"
+        emptyMessage="Brak surowców"
+        renderItem={(m) => (
+          <div>
+            <p className="font-medium text-gray-900">
+              {m.category === 'MEAT' ? '🥩' : '📦'} {m.name}
+            </p>
+            <p className="text-sm text-gray-500">
+              {m.category === 'MEAT' ? 'Mięso' : m.category === 'ADDITIVE' ? 'Dodatek' : 'Inne'} • {m.unit}
+            </p>
+          </div>
+        )}
+      />
     </div>
   );
 }
