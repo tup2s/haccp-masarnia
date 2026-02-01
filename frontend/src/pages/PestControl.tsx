@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { api, PestControlPoint, PestControlCheck } from '../services/api';
-import { PlusIcon, BugAntIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BugAntIcon, MapPinIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { useAuth } from '../context/AuthContext';
 
 dayjs.extend(utc);
 
 export default function PestControl() {
+  const { isAdmin } = useAuth();
   const [points, setPoints] = useState<PestControlPoint[]>([]);
   const [checks, setChecks] = useState<PestControlCheck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +44,18 @@ export default function PestControl() {
       toast.error('Błąd podczas ładowania danych');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteCheck = async (id: number) => {
+    if (!confirm('Czy na pewno chcesz usunąć tę kontrolę?')) return;
+    
+    try {
+      await api.deletePestControlCheck(id);
+      toast.success('Kontrola usunięta');
+      loadData();
+    } catch (error) {
+      toast.error('Błąd usuwania kontroli');
     }
   };
 
@@ -227,6 +241,7 @@ export default function PestControl() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kontrolujący</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ustalenia</th>
+                  {isAdmin && <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akcje</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
@@ -249,6 +264,17 @@ export default function PestControl() {
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {check.findings || '-'}
                     </td>
+                    {isAdmin && (
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleDeleteCheck(check.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                          title="Usuń"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { AuthRequest, authenticateToken } from '../middleware/auth';
+import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -102,8 +102,8 @@ router.post('/records', authenticateToken, async (req: AuthRequest, res: Respons
   }
 });
 
-// PUT /api/cleaning/records/:id
-router.put('/records/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+// PUT /api/cleaning/records/:id - Admin może edytować
+router.put('/records/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const { method, chemicals, isVerified, notes } = req.body;
     const record = await req.prisma.cleaningRecord.update({
@@ -117,6 +117,18 @@ router.put('/records/:id', authenticateToken, async (req: AuthRequest, res: Resp
     res.json(record);
   } catch (error) {
     res.status(500).json({ error: 'Błąd aktualizacji zapisu mycia' });
+  }
+});
+
+// DELETE /api/cleaning/records/:id - Admin może usuwać
+router.delete('/records/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    await req.prisma.cleaningRecord.delete({
+      where: { id: parseInt(req.params.id) },
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Błąd usuwania zapisu mycia' });
   }
 });
 

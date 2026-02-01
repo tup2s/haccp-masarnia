@@ -171,4 +171,34 @@ router.get('/trends', authenticateToken, async (req: AuthRequest, res: Response)
   }
 });
 
+// PUT /api/temperature/readings/:id - Admin może edytować odczyty
+router.put('/readings/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { temperature, notes, isCompliant } = req.body;
+    const reading = await req.prisma.temperatureReading.update({
+      where: { id: parseInt(req.params.id) },
+      data: { temperature, notes, isCompliant },
+      include: {
+        temperaturePoint: true,
+        user: { select: { name: true } },
+      },
+    });
+    res.json(reading);
+  } catch (error) {
+    res.status(500).json({ error: 'Błąd aktualizacji odczytu temperatury' });
+  }
+});
+
+// DELETE /api/temperature/readings/:id - Admin może usuwać odczyty
+router.delete('/readings/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    await req.prisma.temperatureReading.delete({
+      where: { id: parseInt(req.params.id) },
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Błąd usuwania odczytu temperatury' });
+  }
+});
+
 export default router;

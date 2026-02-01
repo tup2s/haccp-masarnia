@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { api, TrainingRecord, User } from '../services/api';
-import { PlusIcon, AcademicCapIcon, UserGroupIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, AcademicCapIcon, UserGroupIcon, CalendarIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
 export default function Trainings() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
   const [trainings, setTrainings] = useState<TrainingRecord[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,6 +83,17 @@ export default function Trainings() {
     }
   };
 
+  const handleDeleteTraining = async (id: number) => {
+    if (!confirm('Czy na pewno usunąć to szkolenie?')) return;
+    try {
+      await api.deleteTraining(id);
+      toast.success('Szkolenie usunięte');
+      loadData();
+    } catch (error) {
+      toast.error('Błąd podczas usuwania');
+    }
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center h-64">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-meat-600"></div>
@@ -121,12 +135,23 @@ export default function Trainings() {
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={() => setViewTraining(training)}
-                    className="text-sm text-meat-600 hover:text-meat-700"
-                  >
-                    Szczegóły
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setViewTraining(training)}
+                      className="text-sm text-meat-600 hover:text-meat-700"
+                    >
+                      Szczegóły
+                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDeleteTraining(training.id)}
+                        className="p-1 text-red-400 hover:text-red-600"
+                        title="Usuń szkolenie"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {training.description && (
                   <p className="mt-2 text-sm text-gray-600">{training.description}</p>

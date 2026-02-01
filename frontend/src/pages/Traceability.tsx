@@ -107,6 +107,8 @@ export default function Traceability() {
                     <div className={`absolute left-2 w-4 h-4 rounded-full border-2 border-white ${
                       event.type === 'RECEPTION' ? 'bg-blue-500' :
                       event.type === 'PRODUCTION' ? 'bg-green-500' :
+                      event.type === 'CURING' ? 'bg-purple-500' :
+                      event.type === 'MATERIAL' ? 'bg-orange-500' :
                       'bg-gray-500'
                     }`}></div>
                     <div className="flex-1 bg-gray-50 rounded-lg p-4">
@@ -120,9 +122,14 @@ export default function Traceability() {
                         <span className={`badge ${
                           event.type === 'RECEPTION' ? 'badge-info' :
                           event.type === 'PRODUCTION' ? 'badge-success' :
+                          event.type === 'CURING' ? 'bg-purple-100 text-purple-800' :
+                          event.type === 'MATERIAL' ? 'bg-orange-100 text-orange-800' :
                           'badge-warning'
                         }`}>
-                          {event.type === 'RECEPTION' ? 'Przyjęcie' : 'Produkcja'}
+                          {event.type === 'RECEPTION' ? 'Przyjęcie' : 
+                           event.type === 'PRODUCTION' ? 'Produkcja' :
+                           event.type === 'CURING' ? 'Peklowanie' :
+                           event.type === 'MATERIAL' ? 'Materiał' : event.type}
                         </span>
                       </div>
                       {event.details && (

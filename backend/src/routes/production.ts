@@ -356,6 +356,24 @@ router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequ
                 user: { select: { name: true } },
               },
             },
+            curingBatch: {
+              include: {
+                reception: {
+                  include: {
+                    rawMaterial: true,
+                    supplier: true,
+                  },
+                },
+                user: { select: { name: true } },
+              },
+            },
+            material: true,
+            materialReceipt: {
+              include: {
+                material: true,
+                supplier: true,
+              },
+            },
           },
         },
       },
@@ -368,19 +386,65 @@ router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequ
     // Build traceability timeline
     const timeline: any[] = [];
 
-    // Add material receptions
+    // Add material receptions (surowce)
     batch.materials.forEach((mat: any) => {
       if (mat.reception) {
         timeline.push({
           type: 'RECEPTION',
           date: mat.reception.receivedAt,
-          title: `Przyjęcie surowca: ${mat.rawMaterial.name}`,
+          title: `Przyjęcie surowca: ${mat.rawMaterial?.name || 'Nieznany'}`,
           details: {
-            supplier: mat.reception.supplier?.name,
-            batch: mat.reception.batchNumber,
-            quantity: `${mat.reception.quantity} ${mat.reception.unit}`,
-            temperature: mat.reception.temperature,
-            document: mat.reception.documentNumber,
+            Dostawca: mat.reception.supplier?.name || 'N/A',
+            'Nr partii': mat.reception.batchNumber,
+            Ilość: `${mat.reception.quantity} ${mat.reception.unit}`,
+            Temperatura: mat.reception.temperature ? `${mat.reception.temperature}°C` : 'N/A',
+            Dokument: mat.reception.documentNumber || 'N/A',
+          },
+        });
+      }
+      
+      // Add curing batches (partie peklowane)
+      if (mat.curingBatch) {
+        const curingBatch = mat.curingBatch;
+        timeline.push({
+          type: 'CURING',
+          date: curingBatch.startDate,
+          title: `Peklowanie: ${curingBatch.reception?.rawMaterial?.name || curingBatch.meatDescription || 'Mięso'}`,
+          details: {
+            'Nr partii pekl.': curingBatch.batchNumber,
+            Ilość: `${curingBatch.meatQuantity} kg`,
+            'Sól peklowa': `${curingBatch.saltPercentage}%`,
+            'Data start': dayjs(curingBatch.startDate).format('DD.MM.YYYY'),
+            'Data koniec': dayjs(curingBatch.endDate).format('DD.MM.YYYY'),
+            Status: curingBatch.status,
+          },
+        });
+        
+        // Also add original reception for the cured meat
+        if (curingBatch.reception) {
+          timeline.push({
+            type: 'RECEPTION',
+            date: curingBatch.reception.receivedAt,
+            title: `Przyjęcie do peklowania: ${curingBatch.reception.rawMaterial?.name || 'Surowiec'}`,
+            details: {
+              Dostawca: curingBatch.reception.supplier?.name || 'N/A',
+              'Nr partii': curingBatch.reception.batchNumber,
+              Ilość: `${curingBatch.reception.quantity} ${curingBatch.reception.unit}`,
+            },
+          });
+        }
+      }
+      
+      // Add materials/additives (materiały/dodatki)
+      if (mat.materialReceipt) {
+        timeline.push({
+          type: 'MATERIAL',
+          date: mat.materialReceipt.receivedAt,
+          title: `Materiał/dodatek: ${mat.material?.name || mat.materialReceipt.material?.name || 'Nieznany'}`,
+          details: {
+            'Nr partii': mat.materialReceipt.batchNumber,
+            Dostawca: mat.materialReceipt.supplier?.name || 'N/A',
+            'Użyta ilość': `${mat.quantity} ${mat.unit}`,
           },
         });
       }
@@ -392,10 +456,11 @@ router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequ
       date: batch.productionDate,
       title: `Produkcja: ${batch.product.name}`,
       details: {
-        batchNumber: batch.batchNumber,
-        quantity: `${batch.quantity} ${batch.unit}`,
-        operator: batch.user.name,
-        expiryDate: batch.expiryDate,
+        'Nr partii': batch.batchNumber,
+        Ilość: `${batch.quantity} ${batch.unit}`,
+        Operator: batch.user.name,
+        'Data ważności': dayjs(batch.expiryDate).format('DD.MM.YYYY'),
+        Status: batch.status,
       },
     });
 
@@ -407,6 +472,7 @@ router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequ
       timeline,
     });
   } catch (error) {
+    console.error('Traceability error:', error);
     res.status(500).json({ error: 'Błąd pobierania danych traceability' });
   }
 });

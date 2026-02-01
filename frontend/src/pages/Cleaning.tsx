@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { api, CleaningArea, CleaningRecord } from '../services/api';
-import { PlusIcon, SparklesIcon, ClockIcon, CheckBadgeIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, SparklesIcon, ClockIcon, CheckBadgeIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { useAuth } from '../context/AuthContext';
 
 dayjs.extend(utc);
 
 export default function Cleaning() {
+  const { isAdmin } = useAuth();
   const [areas, setAreas] = useState<CleaningArea[]>([]);
   const [records, setRecords] = useState<CleaningRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +47,28 @@ export default function Cleaning() {
       toast.error('Błąd podczas ładowania danych');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteRecord = async (id: number) => {
+    if (!confirm('Czy na pewno chcesz usunąć ten zapis mycia?')) return;
+    
+    try {
+      await api.deleteCleaningRecord(id);
+      toast.success('Zapis usunięty');
+      loadData();
+    } catch (error) {
+      toast.error('Błąd usuwania zapisu');
+    }
+  };
+
+  const handleVerifyRecord = async (record: CleaningRecord) => {
+    try {
+      await api.updateCleaningRecord(record.id, { isVerified: !record.isVerified });
+      toast.success(record.isVerified ? 'Weryfikacja cofnięta' : 'Zapis zweryfikowany');
+      loadData();
+    } catch (error) {
+      toast.error('Błąd aktualizacji');
     }
   };
 
@@ -239,7 +263,8 @@ export default function Cleaning() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Strefa</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Środki</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Wykonał</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Uwagi</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  {isAdmin && <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akcje</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
@@ -258,9 +283,31 @@ export default function Cleaning() {
                     <td className="px-4 py-3 text-sm text-gray-500">
                       {record.user?.name}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {record.notes || '-'}
+                    <td className="px-4 py-3">
+                      <span className={`badge ${record.isVerified ? 'badge-success' : 'badge-warning'}`}>
+                        {record.isVerified ? 'Zweryfikowano' : 'Do weryfikacji'}
+                      </span>
                     </td>
+                    {isAdmin && (
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleVerifyRecord(record)}
+                            className={`p-1.5 rounded ${record.isVerified ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
+                            title={record.isVerified ? 'Cofnij weryfikację' : 'Zweryfikuj'}
+                          >
+                            <CheckBadgeIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRecord(record.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                            title="Usuń"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

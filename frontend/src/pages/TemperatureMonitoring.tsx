@@ -73,6 +73,43 @@ export default function TemperatureMonitoring() {
     }
   };
 
+  const handleEditReading = async (reading: TemperatureReading) => {
+    const newTemp = prompt('Nowa temperatura (°C):', reading.temperature.toString());
+    if (newTemp === null) return;
+    
+    const temp = parseFloat(newTemp);
+    if (isNaN(temp)) {
+      toast.error('Nieprawidłowa temperatura');
+      return;
+    }
+
+    try {
+      const point = points.find(p => p.id === reading.temperaturePointId);
+      const isCompliant = point ? (temp >= point.minTemp && temp <= point.maxTemp) : reading.isCompliant;
+      
+      await api.updateTemperatureReading(reading.id, { 
+        temperature: temp,
+        isCompliant 
+      });
+      toast.success('Pomiar zaktualizowany');
+      loadData();
+    } catch (error) {
+      toast.error('Błąd aktualizacji pomiaru');
+    }
+  };
+
+  const handleDeleteReading = async (id: number) => {
+    if (!confirm('Czy na pewno chcesz usunąć ten pomiar?')) return;
+    
+    try {
+      await api.deleteTemperatureReading(id);
+      toast.success('Pomiar usunięty');
+      loadData();
+    } catch (error) {
+      toast.error('Błąd usuwania pomiaru');
+    }
+  };
+
   const handleSavePoint = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -307,6 +344,7 @@ export default function TemperatureMonitoring() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temperatura</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Operator</th>
+                {isAdmin && <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akcje</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -329,6 +367,26 @@ export default function TemperatureMonitoring() {
                   <td className="px-4 py-3 text-sm text-gray-500">
                     {reading.user?.name}
                   </td>
+                  {isAdmin && (
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleEditReading(reading)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                          title="Edytuj"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReading(reading.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                          title="Usuń"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

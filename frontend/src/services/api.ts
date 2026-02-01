@@ -639,6 +639,33 @@ export const api = {
   generateTraceabilityReport: (batchNumber: string) =>
     requestBlob(`/reports/traceability/${batchNumber}`),
   generateHACCPReport: () => requestBlob('/reports/haccp-plan'),
+  generateProductionReport: (startDate: string, endDate: string) =>
+    requestBlob(`/reports/production?startDate=${startDate}&endDate=${endDate}`),
+  generateCleaningReport: (startDate: string, endDate: string, areaId?: number) =>
+    requestBlob(`/reports/cleaning?startDate=${startDate}&endDate=${endDate}${areaId ? `&areaId=${areaId}` : ''}`),
+  generatePestControlReport: (startDate: string, endDate: string) =>
+    requestBlob(`/reports/pest-control?startDate=${startDate}&endDate=${endDate}`),
+  generateCuringReport: (startDate: string, endDate: string) =>
+    requestBlob(`/reports/curing?startDate=${startDate}&endDate=${endDate}`),
+  generateAuditsReport: (startDate: string, endDate: string) =>
+    requestBlob(`/reports/audits?startDate=${startDate}&endDate=${endDate}`),
+  generateTrainingsReport: (startDate: string, endDate: string) =>
+    requestBlob(`/reports/trainings?startDate=${startDate}&endDate=${endDate}`),
+
+  // Temperature Reading management (Admin)
+  updateTemperatureReading: (id: number, data: { temperature?: number; notes?: string; isCompliant?: boolean }) =>
+    request<TemperatureReading>(`/temperature/readings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTemperatureReading: (id: number) => request<void>(`/temperature/readings/${id}`, { method: 'DELETE' }),
+
+  // Cleaning Record management (Admin)
+  updateCleaningRecord: (id: number, data: any) =>
+    request<CleaningRecord>(`/cleaning/records/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCleaningRecord: (id: number) => request<void>(`/cleaning/records/${id}`, { method: 'DELETE' }),
+
+  // Pest Control Check management (Admin)
+  updatePestControlCheck: (id: number, data: any) =>
+    request<PestControlCheck>(`/pest-control/checks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deletePestControlCheck: (id: number) => request<void>(`/pest-control/checks/${id}`, { method: 'DELETE' }),
 
   // Materials (Materiały/Dodatki)
   getMaterials: () => request<any[]>('/materials'),

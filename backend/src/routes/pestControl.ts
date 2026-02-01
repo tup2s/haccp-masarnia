@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { AuthRequest, authenticateToken } from '../middleware/auth';
+import { AuthRequest, authenticateToken, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -114,6 +114,36 @@ router.post('/checks', authenticateToken, async (req: AuthRequest, res: Response
     res.status(201).json(check);
   } catch (error) {
     res.status(500).json({ error: 'Błąd tworzenia kontroli DDD' });
+  }
+});
+
+// PUT /api/pest-control/checks/:id - Admin może edytować
+router.put('/checks/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { status, findings, actionTaken } = req.body;
+    const check = await req.prisma.pestControlCheck.update({
+      where: { id: parseInt(req.params.id) },
+      data: { status, findings, actionTaken },
+      include: {
+        pestControlPoint: true,
+        user: { select: { name: true } },
+      },
+    });
+    res.json(check);
+  } catch (error) {
+    res.status(500).json({ error: 'Błąd aktualizacji kontroli DDD' });
+  }
+});
+
+// DELETE /api/pest-control/checks/:id - Admin może usuwać
+router.delete('/checks/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    await req.prisma.pestControlCheck.delete({
+      where: { id: parseInt(req.params.id) },
+    });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Błąd usuwania kontroli DDD' });
   }
 });
 
