@@ -118,18 +118,27 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
       return res.status(404).json({ error: 'Produkt nie znaleziony' });
     }
 
-    // Generate batch number
+    // Generate batch number - format YYYYMMDD (jedna partia dziennie na produkt)
+    // Jeśli ten sam produkt produkowany tego dnia więcej razy, dodaj sufiks -2, -3 itd.
     const date = productionDate ? new Date(productionDate) : new Date();
     const dateStr = dayjs(date).format('YYYYMMDD');
-    const count = await req.prisma.productionBatch.count({
+    
+    // Sprawdź ile partii tego produktu jest już tego dnia
+    const countSameProduct = await req.prisma.productionBatch.count({
       where: {
+        productId,
         productionDate: {
           gte: dayjs(date).startOf('day').toDate(),
           lt: dayjs(date).endOf('day').toDate(),
         },
       },
     });
-    const batchNumber = `${dateStr}-${String(count + 1).padStart(3, '0')}`;
+    
+    // Pierwsza partia danego produktu w dniu = sama data
+    // Kolejne = data + sufiks
+    const batchNumber = countSameProduct === 0 
+      ? dateStr 
+      : `${dateStr}-${countSameProduct + 1}`;
 
     // Calculate expiry date
     const expiryDate = dayjs(date).add(product.shelfLife, 'day').toDate();
