@@ -30,14 +30,18 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-// Sekcja: Produkcja i Logistyka
-const productionNavigation = [
-  { name: 'Dostawcy', href: '/dostawcy', icon: TruckIcon },
-  { name: 'Surowce', href: '/surowce', icon: CubeIcon },
-  { name: 'Materiały', href: '/materialy', icon: SwatchIcon },
-  { name: 'Przyjęcia', href: '/przyjecia', icon: ArchiveBoxIcon },
-  { name: 'Peklowanie', href: '/peklowanie', icon: BeakerIcon },
+// Sekcja: Dane podstawowe (słowniki)
+const masterDataNavigation = [
   { name: 'Produkty', href: '/produkty', icon: BuildingStorefrontIcon },
+  { name: 'Surowce', href: '/surowce', icon: CubeIcon },
+  { name: 'Dostawcy', href: '/dostawcy', icon: TruckIcon },
+  { name: 'Materiały', href: '/materialy', icon: SwatchIcon },
+];
+
+// Sekcja: Operacje
+const operationsNavigation = [
+  { name: 'Przyjęcia surowców', href: '/przyjecia', icon: ArchiveBoxIcon },
+  { name: 'Peklowanie', href: '/peklowanie', icon: BeakerIcon },
   { name: 'Produkcja', href: '/produkcja', icon: ClipboardDocumentListIcon },
 ];
 
@@ -46,12 +50,12 @@ const haccpNavigation = [
   { name: 'Temperatura', href: '/temperatura', icon: BeakerIcon },
   { name: 'Mycie i dezynfekcja', href: '/mycie', icon: SparklesIcon },
   { name: 'Kontrola DDD', href: '/ddd', icon: BugAntIcon },
+  { name: 'Audyty', href: '/audyty', icon: ClipboardDocumentCheckIcon },
   { name: 'Szkolenia', href: '/szkolenia', icon: AcademicCapIcon },
   { name: 'Działania korygujące', href: '/korekty', icon: ExclamationTriangleIcon },
-  { name: 'Audyty', href: '/audyty', icon: ClipboardDocumentCheckIcon },
 ];
 
-// Sekcja: Dokumentacja
+// Sekcja: Dokumentacja i Raporty
 const docsNavigation = [
   { name: 'Traceability', href: '/traceability', icon: QueueListIcon },
   { name: 'Plan HACCP', href: '/haccp', icon: ShieldCheckIcon },
@@ -74,7 +78,7 @@ export default function Layout({ children }: LayoutProps) {
     return location.pathname.startsWith(href);
   };
 
-  const renderNavSection = (items: typeof productionNavigation, title: string, closeSidebar = false) => (
+  const renderNavSection = (items: typeof masterDataNavigation, title: string, closeSidebar = false) => (
     <>
       <div className="mt-4 mb-2">
         <p className="px-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">{title}</p>
@@ -121,7 +125,8 @@ export default function Layout({ children }: LayoutProps) {
                 Dashboard
               </Link>
 
-              {renderNavSection(productionNavigation, 'Produkcja', true)}
+              {renderNavSection(masterDataNavigation, 'Dane podstawowe', true)}
+              {renderNavSection(operationsNavigation, 'Operacje', true)}
               {renderNavSection(haccpNavigation, 'HACCP & Kontrola', true)}
               {renderNavSection(docsNavigation, 'Dokumentacja', true)}
 
@@ -173,7 +178,8 @@ export default function Layout({ children }: LayoutProps) {
               Dashboard
             </Link>
 
-            {renderNavSection(productionNavigation, 'Produkcja')}
+            {renderNavSection(masterDataNavigation, 'Dane podstawowe')}
+            {renderNavSection(operationsNavigation, 'Operacje')}
             {renderNavSection(haccpNavigation, 'HACCP & Kontrola')}
             {renderNavSection(docsNavigation, 'Dokumentacja')}
 
