@@ -574,7 +574,7 @@ router.get('/curing', authenticateToken, async (req: AuthRequest, res: Response)
     doc.moveDown(2);
 
     // Summary
-    const totalMeat = batches.reduce((sum: number, b: any) => sum + b.meatQuantity, 0);
+    const totalMeat = batches.reduce((sum: number, b: any) => sum + (b.quantity || 0), 0);
     const byStatus = batches.reduce((acc: any, b: any) => {
       acc[b.status] = (acc[b.status] || 0) + 1;
       return acc;
@@ -584,7 +584,7 @@ router.get('/curing', authenticateToken, async (req: AuthRequest, res: Response)
     doc.font('Polish').fontSize(11);
     doc.text(`Liczba partii: ${batches.length}`);
     doc.text(`Całkowita ilość mięsa: ${totalMeat.toFixed(2)} kg`);
-    doc.text(`W peklowaniu: ${byStatus['CURING'] || 0}`);
+    doc.text(`W peklowaniu: ${byStatus['IN_PROGRESS'] || 0}`);
     doc.text(`Gotowe: ${byStatus['READY'] || 0}`);
     doc.text(`Zużyte: ${byStatus['USED'] || 0}`);
     doc.moveDown(2);
@@ -593,37 +593,54 @@ router.get('/curing', authenticateToken, async (req: AuthRequest, res: Response)
     doc.font('Polish-Bold').fontSize(14).text('Szczegóły partii', { underline: true });
     doc.moveDown();
 
-    doc.font('Polish').fontSize(8);
+    doc.font('Polish').fontSize(7);
     let y = doc.y;
     
-    doc.text('Nr partii', 50, y);
-    doc.text('Surowiec', 110, y);
-    doc.text('Ilość', 210, y);
-    doc.text('Start', 260, y);
-    doc.text('Koniec', 320, y);
-    doc.text('Sól %', 375, y);
-    doc.text('Status', 410, y);
-    doc.text('Operator', 470, y);
+    doc.text('Nr partii', 40, y);
+    doc.text('Surowiec/Produkt', 95, y);
+    doc.text('Ilość', 185, y);
+    doc.text('Metoda', 220, y);
+    doc.text('Solanka/Sól', 265, y);
+    doc.text('Start', 330, y);
+    doc.text('Koniec', 375, y);
+    doc.text('Status', 425, y);
+    doc.text('Operator', 480, y);
     
-    y += 15;
-    doc.moveTo(50, y).lineTo(550, y).stroke();
+    y += 12;
+    doc.moveTo(40, y).lineTo(560, y).stroke();
     y += 5;
 
     batches.forEach((batch: any) => {
       if (y > 750) {
         doc.addPage();
-        doc.font('Polish');
+        doc.font('Polish').fontSize(7);
         y = 50;
       }
-      doc.text(batch.batchNumber, 50, y);
-      doc.text((batch.reception?.rawMaterial?.name || batch.meatDescription || '-').substring(0, 18), 110, y);
-      doc.text(`${batch.meatQuantity} kg`, 210, y);
-      doc.text(dayjs(batch.startDate).format('DD.MM.YY'), 260, y);
-      doc.text(dayjs(batch.endDate).format('DD.MM.YY'), 320, y);
-      doc.text(`${batch.saltPercentage}%`, 375, y);
-      doc.text(batch.status, 410, y);
-      doc.text(batch.user.name.substring(0, 10), 470, y);
-      y += 15;
+      
+      // Oblicz stężenie solanki
+      let brineInfo = '-';
+      if (batch.curingMethod === 'BRINE' || batch.curingMethod === 'INJECTION') {
+        const totalBrine = (batch.brineWater || 0) + (batch.brineSalt || 0) + (batch.brineMaggi || 0) + (batch.brineSugar || 0);
+        const saltPercent = totalBrine > 0 ? ((batch.brineSalt || 0) / totalBrine * 100).toFixed(1) : '0';
+        brineInfo = `${saltPercent}% sól`;
+      } else if (batch.curingMethod === 'DRY') {
+        brineInfo = `${batch.curingSaltAmount || 0}kg sól`;
+      }
+      
+      const productInfo = batch.productName || batch.reception?.rawMaterial?.name || batch.meatDescription || '-';
+      const methodName = batch.curingMethod === 'DRY' ? 'Suche' : batch.curingMethod === 'BRINE' ? 'Mokre' : 'Nastrz.';
+      
+      doc.text(batch.batchNumber.substring(0, 12), 40, y);
+      doc.text(productInfo.substring(0, 16), 95, y);
+      doc.text(`${batch.quantity} ${batch.unit}`, 185, y);
+      doc.text(methodName, 220, y);
+      doc.text(brineInfo, 265, y);
+      doc.text(dayjs(batch.startDate).format('DD.MM.YY'), 330, y);
+      doc.text(batch.actualEndDate ? dayjs(batch.actualEndDate).format('DD.MM.YY') : dayjs(batch.plannedEndDate).format('DD.MM.YY'), 375, y);
+      const statusName = batch.status === 'IN_PROGRESS' ? 'Pekluje' : batch.status === 'READY' ? 'Gotowe' : 'Zużyte';
+      doc.text(statusName, 425, y);
+      doc.text((batch.user?.name || '-').substring(0, 10), 480, y);
+      y += 12;
     });
 
     doc.end();
