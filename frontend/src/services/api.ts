@@ -679,6 +679,9 @@ export const api = {
   getMaterialReceipts: () => request<any[]>('/materials/receipts/all'),
   createMaterialReceipt: (data: any) =>
     request<any>('/materials/receipts', { method: 'POST', body: JSON.stringify(data) }),
+  updateMaterialReceipt: (id: number, data: any) =>
+    request<any>(`/materials/receipts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteMaterialReceipt: (id: number) => request<void>(`/materials/receipts/${id}`, { method: 'DELETE' }),
 
   // Butchering (Rozbior)
   getButcherings: () => request<any[]>('/butchering'),

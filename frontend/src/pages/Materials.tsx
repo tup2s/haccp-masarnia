@@ -70,7 +70,9 @@ export default function Materials() {
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [editingReceipt, setEditingReceipt] = useState<MaterialReceipt | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [showDeleteReceiptConfirm, setShowDeleteReceiptConfirm] = useState<number | null>(null);
 
   // Form state
   const [form, setForm] = useState({
@@ -150,7 +152,7 @@ export default function Materials() {
   const handleSubmitReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.createMaterialReceipt({
+      const data = {
         materialId: parseInt(receiptForm.materialId),
         supplierId: receiptForm.supplierId ? parseInt(receiptForm.supplierId) : null,
         batchNumber: receiptForm.batchNumber,
@@ -160,15 +162,50 @@ export default function Materials() {
         pricePerUnit: receiptForm.pricePerUnit ? parseFloat(receiptForm.pricePerUnit) : null,
         documentNumber: receiptForm.documentNumber || null,
         notes: receiptForm.notes || null,
-      });
+      };
 
-      toast.success('Przyjęcie zarejestrowane');
+      if (editingReceipt) {
+        await api.updateMaterialReceipt(editingReceipt.id, data);
+        toast.success('Przyjęcie zaktualizowane');
+      } else {
+        await api.createMaterialReceipt(data);
+        toast.success('Przyjęcie zarejestrowane');
+      }
+
       setShowReceiptModal(false);
+      setEditingReceipt(null);
       resetReceiptForm();
       loadData();
     } catch (error) {
       toast.error('Błąd podczas zapisywania');
     }
+  };
+
+  const handleDeleteReceipt = async (id: number) => {
+    try {
+      await api.deleteMaterialReceipt(id);
+      toast.success('Przyjęcie usunięte');
+      setShowDeleteReceiptConfirm(null);
+      loadData();
+    } catch (error) {
+      toast.error('Błąd podczas usuwania');
+    }
+  };
+
+  const openEditReceiptModal = (receipt: MaterialReceipt) => {
+    setEditingReceipt(receipt);
+    setReceiptForm({
+      materialId: receipt.materialId.toString(),
+      supplierId: (receipt as any).supplierId?.toString() || '',
+      batchNumber: receipt.batchNumber,
+      quantity: receipt.quantity.toString(),
+      unit: receipt.unit,
+      expiryDate: receipt.expiryDate ? receipt.expiryDate.split('T')[0] : '',
+      pricePerUnit: (receipt as any).pricePerUnit?.toString() || '',
+      documentNumber: (receipt as any).documentNumber || '',
+      notes: (receipt as any).notes || '',
+    });
+    setShowReceiptModal(true);
   };
 
   const handleDelete = async (id: number) => {
@@ -210,6 +247,7 @@ export default function Materials() {
   };
 
   const resetReceiptForm = () => {
+    setEditingReceipt(null);
     setReceiptForm({
       materialId: '',
       supplierId: '',
@@ -410,6 +448,7 @@ export default function Materials() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ilość</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dostawca</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ważność</th>
+                {isAdmin && <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Akcje</th>}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -435,6 +474,26 @@ export default function Materials() {
                       ? new Date(receipt.expiryDate).toLocaleDateString('pl-PL')
                       : '-'}
                   </td>
+                  {isAdmin && (
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => openEditReceiptModal(receipt)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                          title="Edytuj"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteReceiptConfirm(receipt.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+                          title="Usuń"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -566,7 +625,9 @@ export default function Materials() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Przyjęcie materiału</h2>
+              <h2 className="text-xl font-bold mb-4">
+                {editingReceipt ? 'Edytuj przyjęcie materiału' : 'Przyjęcie materiału'}
+              </h2>
               <form onSubmit={handleSubmitReceipt} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Materiał *</label>
@@ -582,6 +643,7 @@ export default function Materials() {
                       });
                     }}
                     required
+                    disabled={!!editingReceipt}
                   >
                     <option value="">-- wybierz --</option>
                     {materials.map((m) => (
@@ -657,7 +719,7 @@ export default function Materials() {
                     Anuluj
                   </button>
                   <button type="submit" className="btn-primary flex-1">
-                    Przyjmij
+                    {editingReceipt ? 'Zapisz' : 'Przyjmij'}
                   </button>
                 </div>
               </form>
@@ -681,6 +743,30 @@ export default function Materials() {
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex-1"
+              >
+                Usuń
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Receipt Confirm Modal */}
+      {showDeleteReceiptConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="text-lg font-bold mb-2">Potwierdź usunięcie</h3>
+            <p className="text-gray-600 mb-4">Czy na pewno chcesz usunąć to przyjęcie? Stan magazynowy zostanie skorygowany.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteReceiptConfirm(null)}
+                className="btn-secondary flex-1"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={() => handleDeleteReceipt(showDeleteReceiptConfirm)}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex-1"
               >
                 Usuń

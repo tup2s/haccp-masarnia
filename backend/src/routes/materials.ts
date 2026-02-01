@@ -82,6 +82,97 @@ router.post('/receipts', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+// PUT /api/materials/receipts/:id - edycja przyjęcia
+router.put('/receipts/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { batchNumber, quantity, unit, expiryDate, pricePerUnit, documentNumber, notes } = req.body;
+    const receiptId = parseInt(req.params.id);
+
+    // Pobierz obecne przyjęcie żeby zaktualizować stan magazynowy
+    const currentReceipt = await prisma.materialReceipt.findUnique({
+      where: { id: receiptId },
+    });
+
+    if (!currentReceipt) {
+      return res.status(404).json({ error: 'Przyjęcie nie znalezione' });
+    }
+
+    // Oblicz różnicę w ilości
+    const quantityDiff = quantity - currentReceipt.quantity;
+
+    // Zaktualizuj przyjęcie
+    const receipt = await prisma.materialReceipt.update({
+      where: { id: receiptId },
+      data: {
+        batchNumber,
+        quantity,
+        unit,
+        expiryDate: expiryDate ? new Date(expiryDate) : null,
+        pricePerUnit: pricePerUnit || null,
+        documentNumber: documentNumber || null,
+        notes: notes || null,
+      },
+      include: {
+        material: true,
+        supplier: true,
+      },
+    });
+
+    // Zaktualizuj stan magazynowy o różnicę
+    if (quantityDiff !== 0) {
+      await prisma.material.update({
+        where: { id: currentReceipt.materialId },
+        data: {
+          currentStock: {
+            increment: quantityDiff,
+          },
+        },
+      });
+    }
+
+    res.json(receipt);
+  } catch (error) {
+    console.error('Błąd edycji przyjęcia:', error);
+    res.status(500).json({ error: 'Błąd serwera' });
+  }
+});
+
+// DELETE /api/materials/receipts/:id - usunięcie przyjęcia
+router.delete('/receipts/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const receiptId = parseInt(req.params.id);
+
+    // Pobierz przyjęcie żeby odjąć od stanu magazynowego
+    const receipt = await prisma.materialReceipt.findUnique({
+      where: { id: receiptId },
+    });
+
+    if (!receipt) {
+      return res.status(404).json({ error: 'Przyjęcie nie znalezione' });
+    }
+
+    // Usuń przyjęcie
+    await prisma.materialReceipt.delete({
+      where: { id: receiptId },
+    });
+
+    // Odejmij ilość od stanu magazynowego
+    await prisma.material.update({
+      where: { id: receipt.materialId },
+      data: {
+        currentStock: {
+          decrement: receipt.quantity,
+        },
+      },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Błąd usuwania przyjęcia:', error);
+    res.status(500).json({ error: 'Błąd serwera' });
+  }
+});
+
 // GET /api/materials/:id
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
