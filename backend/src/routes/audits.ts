@@ -114,12 +114,23 @@ router.get('/records', authenticateToken, async (req: AuthRequest, res: Response
 // POST /api/audits/records
 router.post('/records', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { checklistId, auditor, results, findings, recommendations } = req.body;
+    const { checklistId, auditor, results, findings, recommendations, score: frontendScore } = req.body;
     
-    // Calculate score
-    const resultsArray = Object.values(results) as boolean[];
-    const passed = resultsArray.filter(r => r === true).length;
-    const score = resultsArray.length > 0 ? (passed / resultsArray.length) * 100 : 0;
+    // Calculate score - obsługa różnych formatów results
+    let score = 0;
+    if (typeof frontendScore === 'number') {
+      // Jeśli frontend wysyła score, użyj go
+      score = frontendScore;
+    } else if (Array.isArray(results)) {
+      // Results jako tablica obiektów {item, passed, notes}
+      const passed = results.filter((r: any) => r.passed === true).length;
+      score = results.length > 0 ? (passed / results.length) * 100 : 0;
+    } else if (typeof results === 'object') {
+      // Results jako obiekt z wartościami boolean
+      const resultsArray = Object.values(results) as boolean[];
+      const passed = resultsArray.filter(r => r === true).length;
+      score = resultsArray.length > 0 ? (passed / resultsArray.length) * 100 : 0;
+    }
 
     const record = await req.prisma.auditRecord.create({
       data: {
@@ -158,6 +169,7 @@ router.post('/records', authenticateToken, async (req: AuthRequest, res: Respons
       },
     });
   } catch (error) {
+    console.error('Error creating audit record:', error);
     res.status(500).json({ error: 'Błąd tworzenia zapisu audytu' });
   }
 });

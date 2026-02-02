@@ -357,7 +357,7 @@ model AuditRecord {
   id              Int            @id @default(autoincrement())
   checklistId     Int
   auditDate       DateTime       @default(now())
-  auditor         String
+  auditor         String?
   results         String
   score           Float?
   findings        String?
