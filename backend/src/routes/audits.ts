@@ -202,4 +202,64 @@ router.get('/records/:id', authenticateToken, async (req: AuthRequest, res: Resp
   }
 });
 
+// PUT /api/audits/records/:id - Edycja audytu
+router.put('/records/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { results, findings, recommendations, score: frontendScore } = req.body;
+    
+    // Calculate score if not provided
+    let score = frontendScore;
+    if (typeof score !== 'number' && results) {
+      if (Array.isArray(results)) {
+        const passed = results.filter((r: any) => r.passed === true).length;
+        score = results.length > 0 ? (passed / results.length) * 100 : 0;
+      } else if (typeof results === 'object') {
+        const resultsArray = Object.values(results) as boolean[];
+        const passed = resultsArray.filter(r => r === true).length;
+        score = resultsArray.length > 0 ? (passed / resultsArray.length) * 100 : 0;
+      }
+    }
+
+    const updateData: any = {};
+    if (results !== undefined) updateData.results = JSON.stringify(results);
+    if (score !== undefined) updateData.score = score;
+    if (findings !== undefined) updateData.findings = findings;
+    if (recommendations !== undefined) updateData.recommendations = recommendations;
+
+    const record = await req.prisma.auditRecord.update({
+      where: { id: parseInt(req.params.id) },
+      data: updateData,
+      include: {
+        checklist: true,
+        user: { select: { name: true } },
+      },
+    });
+
+    res.json({
+      ...record,
+      results: JSON.parse(record.results),
+      checklist: {
+        ...record.checklist,
+        items: JSON.parse(record.checklist.items),
+      },
+    });
+  } catch (error) {
+    console.error('Error updating audit record:', error);
+    res.status(500).json({ error: 'Błąd aktualizacji zapisu audytu' });
+  }
+});
+
+// DELETE /api/audits/records/:id - Usunięcie audytu
+router.delete('/records/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    await req.prisma.auditRecord.delete({
+      where: { id: parseInt(req.params.id) },
+    });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting audit record:', error);
+    res.status(500).json({ error: 'Błąd usuwania zapisu audytu' });
+  }
+});
+
 export default router;

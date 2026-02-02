@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrukcja peklowania</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .page-break { page-break-after: always; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .doc-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0;
+            background-color: #e0e0e0;
+            padding: 10px;
+            text-align: center;
+        }
+        .doc-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 14px;
+            background-color: #f0f0f0;
+            padding: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #333;
+        }
+        h3 {
+            font-size: 12px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .section {
+            margin: 15px 0;
+        }
+        .numbered-list {
+            margin-left: 20px;
+        }
+        .numbered-list li {
+            margin: 8px 0;
+        }
+        .important-box {
+            background-color: #fff3cd;
+            border: 2px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .important-box strong {
+            color: #d84315;
+        }
+        .recipe-box {
+            background-color: #e8f5e9;
+            border: 2px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 11px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 40px;
+            border-top: 2px solid #000;
+            padding-top: 20px;
+        }
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">NAZWA ZAKŁADU / MASARNI</div>
+        <div>Adres zakładu</div>
+        <div>NIP: _____________ | Weterynaryjny nr rej.: _____________</div>
+    </div>
+
+    <div class="doc-title">INSTRUKCJA PEKLOWANIA MIĘSA</div>
+    
+    <div class="doc-info">
+        <span>Kod dokumentu: INS-002</span>
+        <span>Wersja: 1.0</span>
+        <span>Data wydania: ____________</span>
+        <span>Zatwierdzono: ____________</span>
+    </div>
+
+    <h2>1. CEL I ZAKRES</h2>
+    <div class="section">
+        <p><strong>Cel:</strong> Zapewnienie prawidłowego procesu peklowania mięsa zgodnie z wymaganiami technologicznymi i bezpieczeństwa żywności.</p>
+        <p><strong>Zakres:</strong> Instrukcja dotyczy mokrego i suchego peklowania mięsa wieprzowego, wołowego oraz drobiowego.</p>
+        <p><strong>Odpowiedzialność:</strong> Operator produkcji, kierownik produkcji, osoba odpowiedzialna za HACCP.</p>
+    </div>
+
+    <h2>2. DEFINICJE</h2>
+    <div class="section">
+        <ul class="numbered-list">
+            <li><strong>Peklowanie</strong> - proces konserwowania i aromatyzowania mięsa przy użyciu soli peklującej (sól + azotyn sodu)</li>
+            <li><strong>Peklowanie mokre (iniekcja)</strong> - wprowadzenie solanki bezpośrednio do mięsa za pomocą iniektor</li>
+            <li><strong>Peklowanie suche</strong> - natarcie mięsa mieszanką peklującą i przechowywanie w chłodni</li>
+            <li><strong>Solanka</strong> - roztwór wody, soli peklującej i przypraw</li>
+        </ul>
+    </div>
+
+    <h2>3. SUROWCE I MATERIAŁY</h2>
+    
+    <h3>3.1. Surowiec mięsny</h3>
+    <ul class="numbered-list">
+        <li>Mięso musi być świeże, schłodzone do temp. 0-4°C</li>
+        <li>Pochodzenie potwierdzone świadectwem weterynaryjnym</li>
+        <li>Bez śladów zepsucia, obcych zapachów</li>
+        <li>Sprawdź datę przyjęcia - użyj zgodnie z zasadą FIFO</li>
+    </ul>
+
+    <h3>3.2. Składniki peklujące</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Składnik</th>
+                <th>Wymagania</th>
+                <th>Maksymalna dawka</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Sól peklująca (z azotanem)</td>
+                <td>Zatwierdzona do stosowania w żywności, z aktualna datą ważności</td>
+                <td>Według przepisu producenta</td>
+            </tr>
+            <tr>
+                <td>Azotyn sodu (E250)</td>
+                <td>Certyfikat spożywczy</td>
+                <td><strong>Max 150 mg/kg produktu gotowego</strong></td>
+            </tr>
+            <tr>
+                <td>Cukier</td>
+                <td>Spożywczy</td>
+                <td>Według receptury</td>
+            </tr>
+            <tr>
+                <td>Przyprawy</td>
+                <td>Zatwierdzone do stosowania w żywności</td>
+                <td>Według receptury</td>
+            </tr>
+            <tr>
+                <td>Woda</td>
+                <td>Pitna, sprawdzona bakteriologicznie</td>
+                <td>Do 20% masy mięsa</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="important-box">
+        <strong>⚠️ UWAGA - AZOTYN SODU:</strong><br>
+        • Jest to substancja TOKSYCZNA w dużych dawkach!<br>
+        • Dozowanie WYŁĄCZNIE wagą elektroniczną z dokładnością do 0,1g<br>
+        • NIGDY nie przekraczać dawki 150 mg/kg<br>
+        • Przechowywać w zamkniętym pojemniku, w miejscu niedostępnym<br>
+        • W przypadku wątpliwości - zapytać przełożonego<br>
+        <br>
+        <strong>Przekroczenie dawki = zagrożenie zdrowia konsumentów!</strong>
+    </div>
+
+    <h2>4. RECEPTURA PODSTAWOWA SOLANKI (na 10 litrów wody)</h2>
+    
+    <div class="recipe-box">
+        <h3 style="margin-top: 0;">Solanka do iniekcji - receptura standardowa</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Składnik</th>
+                    <th>Ilość</th>
+                    <th>Uwagi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Woda pitna</td>
+                    <td>10 litrów</td>
+                    <td>Temperatura 4-8°C</td>
+                </tr>
+                <tr>
+                    <td>Sól peklująca</td>
+                    <td>800-1000 g</td>
+                    <td>Wg producenta</td>
+                </tr>
+                <tr>
+                    <td>Cukier</td>
+                    <td>100-150 g</td>
+                    <td>Opcjonalnie</td>
+                </tr>
+                <tr>
+                    <td>Przyprawa peklarska</td>
+                    <td>50-100 g</td>
+                    <td>Według preferencji</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Uwaga:</strong> Dokładne proporcje według konkretnej receptury produktu!</p>
+    </div>
+
+    <h2>5. PROCEDURA PEKLOWANIA MOKREGO (INIEKCJA)</h2>
+
+    <h3>5.1. Przygotowanie solanki</h3>
+    <ol class="numbered-list">
+        <li>Sprawdź czystość zbiornika na solankę - musi być czysty i zdezynfekowany</li>
+        <li>Odważ precyzyjnie wszystkie składniki na elektronicznej wadze</li>
+        <li>Zalej składniki zimną wodą pitną (4-8°C)</li>
+        <li>Mieszaj do całkowitego rozpuszczenia soli (ok. 10-15 minut)</li>
+        <li>Sprawdź temperaturę solanki - <strong>nie może przekraczać 10°C</strong></li>
+        <li>Przepuść solankę przez filtr lub sito (usunięcie zanieczyszczeń)</li>
+        <li>Zapisz w dzienniku produkcji: datę, rodzaj solanki, ilość, recepturę</li>
+    </ol>
+
+    <h3>5.2. Przygotowanie mięsa</h3>
+    <ol class="numbered-list">
+        <li>Sprawdź temperaturę mięsa - <strong>musi być 0-4°C</strong></li>
+        <li>Usuń nadmierne tłuszcze, ścięgna, uszkodzone fragmenty</li>
+        <li>Zważ partie do peklowania</li>
+        <li>Przygotuj czystą pojemniki/wózki do przechowywania</li>
+    </ol>
+
+    <h3>5.3. Iniekcja solanki</h3>
+    <ol class="numbered-list">
+        <li>Sprawdź czystość injektora - igły muszą być czyste i sprawne</li>
+        <li>Ustaw ciśnienie injektora wg instrukcji producenta (zazwyczaj 1,5-2 bar)</li>
+        <li>Wprowadź solankę równomiernie w całą masę mięsa:
+            <ul>
+                <li>Wkłucia co 3-5 cm</li>
+                <li>Igłę wprowadzać pod różnymi kątami</li>
+                <li>Dozowanie: <strong>15-20% wagi mięsa</strong> (np. 100 kg mięsa = 15-20 litrów solanki)</li>
+            </ul>
+        </li>
+        <li>Unikaj nadmiernego iniekcjowania (pękanie mięsa, nierównomierność)</li>
+        <li>Po iniekcji masuj mięso ręcznie lub w bębnie (10-15 minut) dla równomiernego rozprowadzenia</li>
+    </ol>
+
+    <h3>5.4. Przechowywanie mięsa peklowanego</h3>
+    <ol class="numbered-list">
+        <li>Ułóż mięso w czystych pojemnikach/na wózkach</li>
+        <li>Oznacz etykietą:
+            <ul>
+                <li>Data peklowania</li>
+                <li>Rodzaj mięsa</li>
+                <li>Numer partii</li>
+                <li>Operator (inicjały)</li>
+            </ul>
+        </li>
+        <li>Umieść w komorze peklowania o temperaturze <strong>0-6°C</strong></li>
+        <li>Czas peklowania: <strong>minimum 48 godzin, maksymalnie 14 dni</strong></li>
+        <li>Kontroluj temperaturę komory 2 razy dziennie - zapisuj w formularzu</li>
+    </ol>
+
+    <div class="important-box">
+        <strong>⚠️ PUNKT KRYTYCZNY CCP:</strong><br>
+        • Temperatura komory peklowania: <strong>0-6°C</strong><br>
+        • Przekroczenie temperatury powyżej 6°C przez ponad 2 godziny = ODRZUCENIE PARTII<br>
+        • Minimalny czas peklowania: 48 godzin<br>
+        • W przypadku awarii chłodzenia - natychmiast powiadom osobę odpowiedzialną za HACCP
+    </div>
+
+    <h2>6. PROCEDURA PEKLOWANIA SUCHEGO</h2>
+
+    <h3>6.1. Przygotowanie mieszanki peklującej</h3>
+    <ol class="numbered-list">
+        <li>Odważ składniki według receptury (sól peklująca + przyprawy)</li>
+        <li>Wymieszaj dokładnie w czystym pojemniku</li>
+        <li>Ilość mieszanki: około 3-4% wagi mięsa (np. 100 kg mięsa = 3-4 kg mieszanki)</li>
+    </ol>
+
+    <h3>6.2. Natarcie mięsa</h3>
+    <ol class="numbered-list">
+        <li>Natrzyj mięso mieszanką peklującą ze wszystkich stron</li>
+        <li>Zwróć szczególną uwagę na grubsze partie i zagłębienia</li>
+        <li>Ułóż mięso warstwami w pojemniku</li>
+        <li>Pomiędzy warstwy posyp dodatkową solą</li>
+        <li>Przykryj i umieść w chłodni 0-4°C</li>
+        <li>Czas peklowania: <strong>7-14 dni</strong> (zależnie od grubości)</li>
+        <li>Co 2-3 dni przekładaj i ponownie nacieraj solą</li>
+    </ol>
+
+    <h2>7. HIGIENA I CZYSZCZENIE</h2>
+    <ol class="numbered-list">
+        <li>Przed peklowaniem: umyj ręce, załóż czystą odzież roboczą, fartuch, rękawiczki</li>
+        <li>Po peklowaniu: dokładnie umyj i zdezynfekuj:
+            <ul>
+                <li>Injektor i igły</li>
+                <li>Zbiornik na solankę</li>
+                <li>Pojemniki, wózki</li>
+                <li>Powierzchnie robocze</li>
+            </ul>
+        </li>
+        <li>Pozostałości solanki <strong>NIE WOLNO</strong> wykorzystywać ponownie - wylać</li>
+        <li>Sprzęt musi być suchy przed kolejnym użyciem</li>
+    </ol>
+
+    <h2>8. DOKUMENTACJA</h2>
+    <p>Dla każdej partii peklowanej mięsa wypełnij dokumentację:</p>
+    <ol class="numbered-list">
+        <li><strong>Karta peklowania</strong> - zapisz:
+            <ul>
+                <li>Data i godzina rozpoczęcia peklowania</li>
+                <li>Rodzaj i waga mięsa</li>
+                <li>Użyta receptura solanki</li>
+                <li>Ilość zużytej solanki</li>
+                <li>Numer partii surowca</li>
+                <li>Temperatura mięsa przed peklowaniem</li>
+                <li>Przewidywana data zakończenia peklowania</li>
+                <li>Podpis operatora</li>
+            </ul>
+        </li>
+        <li><strong>Formularz kontroli temperatury</strong> - zapisuj codziennie temperaturę komory peklowania</li>
+    </ol>
+
+    <h2>9. BEZPIECZEŃSTWO</h2>
+    <ul class="numbered-list">
+        <li>Azotyn sodu jest TOKSYCZNY - przechowywać poza zasięgiem osób nieupoważnionych</li>
+        <li>W przypadku przedozowania azotynu - natychmiast powiadomić przełożonego, partię ODRZUCIĆ</li>
+        <li>Nie dotykać oczu po kontakcie z solą peklującą - może powodować podrażnienia</li>
+        <li>Używać rękawiczek ochronnych</li>
+        <li>W przypadku kontaktu z oczami - płukać obficie wodą, skonsultować z lekarzem</li>
+    </ul>
+
+    <div class="footer">
+        <div class="signature-section">
+            <div class="signature-box">
+                <div>Opracował:</div>
+                <div class="signature-line">
+                    Imię i nazwisko / Data / Podpis
+                </div>
+            </div>
+            <div class="signature-box">
+                <div>Zatwierdził (Osoba odpowiedzialna za HACCP):</div>
+                <div class="signature-line">
+                    Imię i nazwisko / Data / Podpis
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 10px; color: #666;">
+            <strong>Historia zmian:</strong><br>
+            <table style="margin-top: 10px;">
+                <thead>
+                    <tr>
+                        <th>Wersja</th>
+                        <th>Data</th>
+                        <th>Opis zmiany</th>
+                        <th>Autor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1.0</td>
+                        <td></td>
+                        <td>Pierwsze wydanie</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

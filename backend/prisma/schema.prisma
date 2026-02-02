@@ -189,6 +189,8 @@ model CuringBatch {
   batchMaterials   BatchMaterial[]
   reception        RawMaterialReception @relation(fields: [receptionId], references: [id])
   user             User                 @relation(fields: [userId], references: [id])
+
+  @@unique([batchNumber, productName])
 }
 
 model Product {

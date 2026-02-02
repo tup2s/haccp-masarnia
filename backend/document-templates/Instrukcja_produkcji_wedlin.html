@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrukcja Produkcji Wędlin</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header .subtitle { font-size: 14px; margin-top: 5px; color: #5a67d8; }
+        h2 {
+            background: #5a67d8;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-size: 13px;
+        }
+        h3 {
+            color: #5a67d8;
+            border-bottom: 2px solid #5a67d8;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th { background: #c3dafe; font-weight: bold; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .warning {
+            background: #fed7d7;
+            border: 2px solid #c53030;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .info {
+            background: #e9d8fd;
+            border: 1px solid #805ad5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .tip {
+            background: #c6f6d5;
+            border: 1px solid #38a169;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .step {
+            background: #ebf8ff;
+            border-left: 4px solid #5a67d8;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #5a67d8;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .print-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #5a67d8;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+
+    <div class="header">
+        <h1>MASARNIA MLO</h1>
+        <div class="subtitle">INSTRUKCJA PRODUKCJI WĘDLIN</div>
+        <div style="margin-top: 10px;">Nr: PROD-001 | Wersja: 1.0 | Data: 02.02.2026</div>
+    </div>
+
+    <h2>1. CEL INSTRUKCJI</h2>
+    <p>Instrukcja określa ogólne zasady produkcji wyrobów wędliniarskich w zakładzie, z uwzględnieniem wymagań bezpieczeństwa żywności i jakości.</p>
+
+    <h2>2. ZAKRES STOSOWANIA</h2>
+    <p>Instrukcja obejmuje produkcję:</p>
+    <ul>
+        <li>Kiełbas surowych i parzonych</li>
+        <li>Wędzonek</li>
+        <li>Wędlin podrobowych</li>
+        <li>Wyrobów blokowych</li>
+    </ul>
+
+    <h2>3. WYMAGANIA WSTĘPNE</h2>
+
+    <h3>3.1 Przygotowanie stanowiska</h3>
+    <ul>
+        <li>Sprawdź czystość maszyn i urządzeń</li>
+        <li>Upewnij się, że sprzęt jest zdezynfekowany</li>
+        <li>Przygotuj niezbędne narzędzia (noże, sterylizator)</li>
+        <li>Sprawdź dostępność surowców i przypraw</li>
+        <li>Upewnij się, że termometry są sprawne</li>
+    </ul>
+
+    <h3>3.2 Higiena osobista</h3>
+    <ul>
+        <li>Czysta odzież robocza (fartuch, czepek, rękawice)</li>
+        <li>Umyte i zdezynfekowane ręce</li>
+        <li>Brak biżuterii i zegarków</li>
+        <li>Brak ran i chorób skórnych</li>
+    </ul>
+
+    <h2>4. ETAPY PRODUKCJI</h2>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>PRZYGOTOWANIE SUROWCÓW</strong>
+        <ul>
+            <li>Pobierz surowce z chłodni (sprawdź nr partii, datę)</li>
+            <li>Zweryfikuj temperaturę surowca (max 4°C)</li>
+            <li>Usuń kości, chrząstki, tłuszcz zewnętrzny wg receptury</li>
+            <li>Pokrój mięso na kawałki odpowiednie do maszyny</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>ROZDRABNIANIE (WILK)</strong>
+        <ul>
+            <li>Ustaw odpowiednią siatkę wg receptury</li>
+            <li>Kontroluj temperaturę masy (max 4°C w trakcie)</li>
+            <li>Rozdrabniane mięso od razu przekazuj do kutra lub mieszania</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <strong>KUTROWANIE / MIESZANIE</strong>
+        <ul>
+            <li>Dodaj składniki wg receptury (kolejność ma znaczenie!)</li>
+            <li>Kontroluj temperaturę (max 12°C dla emulsji)</li>
+            <li>Mieszaj do uzyskania odpowiedniej konsystencji</li>
+            <li>Sprawdź smak i doprawienie</li>
+        </ul>
+    </div>
+
+    <div class="tip">
+        <strong>💡 WSKAZÓWKA:</strong> Kolejność dodawania składników w kutrze:
+        1. Mięso chude + sól + azotyn
+        2. Woda/lód (50%)
+        3. Fosforan (jeśli stosowany)
+        4. Pozostała woda/lód
+        5. Tłuszcz
+        6. Przyprawy
+    </div>
+
+    <div class="step">
+        <span class="step-number">4</span>
+        <strong>NAPEŁNIANIE OSŁONEK</strong>
+        <ul>
+            <li>Przygotuj osłonki (namocz naturalne, nawilż sztuczne)</li>
+            <li>Ustaw nadziewarkę wg produktu</li>
+            <li>Napełniaj równomiernie, bez pęcherzy powietrza</li>
+            <li>Formuj batony odpowiedniej długości</li>
+            <li>Przekłuwaj pęcherze powietrza</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">5</span>
+        <strong>OSADZANIE (opcjonalnie)</strong>
+        <ul>
+            <li>Zawieś produkty na wózkach wędzarniczych</li>
+            <li>Temperatura pomieszczenia: 12-18°C</li>
+            <li>Czas osadzania: wg receptury (1-24h)</li>
+            <li>Zapewnij cyrkulację powietrza</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">6</span>
+        <strong>WĘDZENIE</strong>
+        <ul>
+            <li>Wprowadź wózek do komory wędzarniczej</li>
+            <li>Ustaw program wg produktu</li>
+            <li>Kontroluj parametry (temp., wilgotność, czas)</li>
+            <li>Sprawdź kolor po wędzeniu</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">7</span>
+        <strong>OBRÓBKA TERMICZNA (CCP)</strong>
+        <ul>
+            <li>Parzenie/gotowanie wg receptury</li>
+            <li><strong>KRYTYCZNE: Temperatura wewnętrzna min. 72°C przez 2 min</strong></li>
+            <li>Zapisz temperaturę końcową każdej partii</li>
+            <li>Użyj termometru szpilkowego w najgrubszym miejscu</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <strong>⚠️ PUNKT KRYTYCZNY (CCP2)!</strong><br>
+        Temperatura wewnętrzna produktu musi osiągnąć minimum <strong>72°C</strong> i utrzymać przez minimum <strong>2 minuty</strong>. 
+        Każdą partię należy zmierzyć i zapisać wynik!
+    </div>
+
+    <div class="step">
+        <span class="step-number">8</span>
+        <strong>CHŁODZENIE (CCP)</strong>
+        <ul>
+            <li>Natychmiast po obróbce termicznej rozpocznij chłodzenie</li>
+            <li>Schłodź do 10°C w ciągu 2 godzin</li>
+            <li>Schłodź do 4°C w ciągu 4 godzin</li>
+            <li>Zapisz czas i temperaturę chłodzenia</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <strong>⚠️ PUNKT KRYTYCZNY (CCP3)!</strong><br>
+        Produkt musi być schłodzony do <strong>≤4°C</strong> w ciągu maksymalnie <strong>4 godzin</strong>!
+        Zbyt wolne chłodzenie sprzyja namnażaniu bakterii.
+    </div>
+
+    <div class="step">
+        <span class="step-number">9</span>
+        <strong>PAKOWANIE</strong>
+        <ul>
+            <li>Przenieś produkty do pakowania</li>
+            <li>Sprawdź temperaturę produktu (max 4°C)</li>
+            <li>Pakuj zgodnie ze specyfikacją (vacuum, MAP, luz)</li>
+            <li>Etykietuj (nr partii, data produkcji, termin)</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">10</span>
+        <strong>MAGAZYNOWANIE</strong>
+        <ul>
+            <li>Przenieś do chłodni wyrobów gotowych</li>
+            <li>Temperatura magazynowania: 0-4°C</li>
+            <li>Stosuj zasadę FIFO</li>
+            <li>Nie przekraczaj pojemności chłodni</li>
+        </ul>
+    </div>
+
+    <h2>5. KONTROLA JAKOŚCI W TRAKCIE PRODUKCJI</h2>
+    <table>
+        <tr>
+            <th>Etap</th>
+            <th>Parametr kontrolny</th>
+            <th>Wymaganie</th>
+            <th>Częstotliwość</th>
+        </tr>
+        <tr>
+            <td>Surowce</td>
+            <td>Temperatura</td>
+            <td>≤ 4°C</td>
+            <td>Każda partia</td>
+        </tr>
+        <tr>
+            <td>Rozdrabnianie</td>
+            <td>Temperatura masy</td>
+            <td>≤ 4°C</td>
+            <td>W trakcie</td>
+        </tr>
+        <tr>
+            <td>Kutrowanie</td>
+            <td>Temperatura emulsji</td>
+            <td>≤ 12°C</td>
+            <td>Koniec procesu</td>
+        </tr>
+        <tr>
+            <td>Obróbka termiczna</td>
+            <td>Temp. wewnętrzna</td>
+            <td>≥ 72°C / 2 min</td>
+            <td>Każda partia</td>
+        </tr>
+        <tr>
+            <td>Chłodzenie</td>
+            <td>Temperatura / czas</td>
+            <td>≤ 4°C / 4h</td>
+            <td>Każda partia</td>
+        </tr>
+        <tr>
+            <td>Wyrób gotowy</td>
+            <td>Ocena organoleptyczna</td>
+            <td>Zgodna ze wzorcem</td>
+            <td>Każda partia</td>
+        </tr>
+    </table>
+
+    <h2>6. IDENTYFIKOWALNOŚĆ</h2>
+    <p>Każda partia produkcyjna musi być oznakowana unikalnym numerem zawierającym:</p>
+    <ul>
+        <li>Kod produktu</li>
+        <li>Datę produkcji</li>
+        <li>Numer zmiany/partii</li>
+    </ul>
+
+    <div class="info">
+        <strong>📋 Przykład numeru partii:</strong> KS-20260202-01<br>
+        Gdzie: KS = kiełbasa surowa, 20260202 = data, 01 = pierwsza partia dnia
+    </div>
+
+    <h2>7. CZYSZCZENIE PO PRODUKCJI</h2>
+    <ol>
+        <li>Usuń resztki produktu z maszyn</li>
+        <li>Rozbierz maszyny (części zdejmowane)</li>
+        <li>Umyj części w ciepłej wodzie z detergentem</li>
+        <li>Spłucz dokładnie</li>
+        <li>Zdezynfekuj</li>
+        <li>Pozostaw do wyschnięcia</li>
+        <li>Złóż maszynę przed następną zmianą</li>
+    </ol>
+
+    <h2>8. DOKUMENTACJA PRODUKCJI</h2>
+    <p>W systemie HACCP rejestrowane są:</p>
+    <ul>
+        <li>Nr partii produkcyjnej</li>
+        <li>Użyte surowce (nr partii, ilości)</li>
+        <li>Parametry obróbki termicznej</li>
+        <li>Parametry chłodzenia</li>
+        <li>Wyniki kontroli jakości</li>
+        <li>Operator odpowiedzialny</li>
+    </ul>
+
+    <div style="margin-top: 40px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
+        MASARNIA MLO | Instrukcja PROD-001 | Wydanie 1 | Data: 02.02.2026
+    </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, AuditChecklist, AuditRecord } from '../services/api';
-import { ClipboardDocumentCheckIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentCheckIcon, CheckIcon, XMarkIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -13,6 +13,8 @@ export default function Audits() {
   const [selectedChecklist, setSelectedChecklist] = useState<AuditChecklist | null>(null);
   const [auditResults, setAuditResults] = useState<{ [key: string]: { passed: boolean; notes: string } }>({});
   const [viewRecord, setViewRecord] = useState<AuditRecord | null>(null);
+  const [editRecord, setEditRecord] = useState<AuditRecord | null>(null);
+  const [deleteModal, setDeleteModal] = useState<AuditRecord | null>(null);
 
   useEffect(() => {
     loadData();
@@ -73,6 +75,56 @@ export default function Audits() {
       loadData();
     } catch (error) {
       toast.error('Błąd podczas zapisywania audytu');
+    }
+  };
+
+  const startEditAudit = (record: AuditRecord) => {
+    setEditRecord(record);
+    const results = record.results as any[];
+    const initialResults: { [key: string]: { passed: boolean; notes: string } } = {};
+    results.forEach((r, index) => {
+      initialResults[index.toString()] = { passed: r.passed, notes: r.notes || '' };
+    });
+    setAuditResults(initialResults);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editRecord) return;
+
+    const results = (editRecord.results as any[]).map((item, index) => ({
+      item: item.item,
+      passed: auditResults[index.toString()]?.passed ?? true,
+      notes: auditResults[index.toString()]?.notes || null,
+    }));
+
+    const passedCount = results.filter(r => r.passed).length;
+    const score = Math.round((passedCount / results.length) * 100);
+
+    try {
+      await api.updateAuditRecord(editRecord.id, {
+        results: results as any,
+        score,
+      });
+      toast.success('Audyt zaktualizowany');
+      setEditRecord(null);
+      setViewRecord(null);
+      loadData();
+    } catch (error) {
+      toast.error('Błąd podczas aktualizacji audytu');
+    }
+  };
+
+  const handleDeleteAudit = async () => {
+    if (!deleteModal) return;
+    try {
+      await api.deleteAuditRecord(deleteModal.id);
+      toast.success('Audyt usunięty');
+      setDeleteModal(null);
+      setViewRecord(null);
+      loadData();
+    } catch (error) {
+      toast.error('Błąd podczas usuwania audytu');
     }
   };
 
@@ -318,9 +370,109 @@ export default function Audits() {
                 ))}
               </div>
 
-              <div className="mt-6">
-                <button onClick={() => setViewRecord(null)} className="w-full btn-secondary">
+              <div className="mt-6 flex gap-3">
+                <button onClick={() => setViewRecord(null)} className="flex-1 btn-secondary">
                   Zamknij
+                </button>
+                <button 
+                  onClick={() => startEditAudit(viewRecord)} 
+                  className="flex-1 btn-primary flex items-center justify-center gap-2"
+                >
+                  <PencilIcon className="w-4 h-4" />
+                  Edytuj
+                </button>
+                <button 
+                  onClick={() => setDeleteModal(viewRecord)} 
+                  className="btn-danger flex items-center justify-center gap-2 px-4"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Audit Modal */}
+      {editRecord && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setEditRecord(null)}></div>
+            <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Edytuj audyt</h2>
+              <p className="text-gray-500 mb-6">{editRecord.checklist?.name}</p>
+
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                {(editRecord.results as any[]).map((item, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setAuditResults(prev => ({
+                          ...prev,
+                          [index.toString()]: { ...prev[index.toString()], passed: !prev[index.toString()]?.passed }
+                        }))}
+                        className={`mt-0.5 w-6 h-6 rounded flex items-center justify-center flex-shrink-0 ${
+                          auditResults[index.toString()]?.passed 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-red-500 text-white'
+                        }`}
+                      >
+                        {auditResults[index.toString()]?.passed ? (
+                          <CheckIcon className="w-4 h-4" />
+                        ) : (
+                          <XMarkIcon className="w-4 h-4" />
+                        )}
+                      </button>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{item.item}</p>
+                        {!auditResults[index.toString()]?.passed && (
+                          <input
+                            type="text"
+                            placeholder="Uwagi (opcjonalnie)"
+                            value={auditResults[index.toString()]?.notes || ''}
+                            onChange={(e) => setAuditResults(prev => ({
+                              ...prev,
+                              [index.toString()]: { ...prev[index.toString()], notes: e.target.value }
+                            }))}
+                            className="mt-2 w-full input text-sm"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex gap-3 pt-4">
+                  <button type="button" onClick={() => setEditRecord(null)} className="flex-1 btn-secondary">
+                    Anuluj
+                  </button>
+                  <button type="submit" className="flex-1 btn-primary">
+                    Zapisz zmiany
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setDeleteModal(null)}></div>
+            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Usuń audyt</h2>
+              <p className="text-gray-600 mb-6">
+                Czy na pewno chcesz usunąć ten audyt? Tej operacji nie można cofnąć.
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteModal(null)} className="flex-1 btn-secondary">
+                  Anuluj
+                </button>
+                <button onClick={handleDeleteAudit} className="flex-1 btn-danger">
+                  Usuń
                 </button>
               </div>
             </div>

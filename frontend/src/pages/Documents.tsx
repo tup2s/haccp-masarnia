@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, Document } from '../services/api';
-import { PlusIcon, DocumentTextIcon, FolderIcon, PencilIcon, TrashIcon, ArrowTopRightOnSquareIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, DocumentTextIcon, FolderIcon, PencilIcon, TrashIcon, ArrowTopRightOnSquareIcon, LinkIcon, XMarkIcon, EyeIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -13,12 +13,35 @@ const CATEGORIES = [
   { value: 'OTHER', label: 'Inne', color: 'bg-gray-100 text-gray-800' },
 ];
 
+// Funkcja do uzyskania pełnego URL dokumentu
+const getDocumentUrl = (filePath: string, token?: string) => {
+  if (!filePath) return '';
+  if (filePath.startsWith('http')) return filePath;
+  // Dla lokalnych ścieżek użyj backendu
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    : `http://${window.location.hostname}:3001`;
+  
+  // Dla ścieżek API dodaj token
+  if (filePath.startsWith('/api/') && token) {
+    return `${backendUrl}${filePath}${filePath.includes('?') ? '&' : '?'}token=${token}`;
+  }
+  return `${backendUrl}${filePath}`;
+};
+
+// Sprawdź czy dokument ma podgląd
+const hasPreview = (filePath: string) => {
+  if (!filePath) return false;
+  return filePath.endsWith('.html') || filePath.startsWith('/api/document-reports/') || filePath.startsWith('/haccp-docs/');
+};
+
 export default function Documents() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<Document | null>(null);
   const [filter, setFilter] = useState<string>('all');
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     category: 'PROCEDURE',
@@ -106,6 +129,10 @@ export default function Documents() {
   };
 
   const getCategoryInfo = (value: string) => CATEGORIES.find(c => c.value === value) || CATEGORIES[5];
+
+  const openPreview = (doc: Document) => {
+    setPreviewDoc(doc);
+  };
 
   const filteredDocs = filter === 'all' 
     ? documents 
@@ -201,6 +228,14 @@ export default function Documents() {
                           <LinkIcon className="w-4 h-4" />
                           {doc.fileName || 'Otwórz'}
                         </a>
+                      ) : hasPreview(doc.filePath) ? (
+                        <button
+                          onClick={() => openPreview(doc)}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <EyeIcon className="w-4 h-4" />
+                          Podgląd
+                        </button>
                       ) : (
                         doc.fileName || '-'
                       )}
@@ -218,6 +253,15 @@ export default function Documents() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
+                        {hasPreview(doc.filePath) && (
+                          <button
+                            onClick={() => openPreview(doc)}
+                            className="p-1 text-blue-500 hover:text-blue-700"
+                            title="Podgląd dokumentu"
+                          >
+                            <EyeIcon className="w-5 h-5" />
+                          </button>
+                        )}
                         {doc.filePath && doc.filePath.startsWith('http') && (
                           <a
                             href={doc.filePath}
@@ -381,6 +425,53 @@ export default function Documents() {
           </div>
         </div>
       )}
+
+      {/* Preview Modal dla HTML */}
+      {previewDoc && (() => {
+        const token = localStorage.getItem('token') || '';
+        const docUrl = getDocumentUrl(previewDoc.filePath, token);
+        return (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setPreviewDoc(null)}></div>
+            <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">{previewDoc.title}</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {getCategoryInfo(previewDoc.category).label} • Wersja {previewDoc.version}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={docUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary flex items-center gap-2"
+                  >
+                    <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+                    Otwórz w nowej karcie
+                  </a>
+                  <button
+                    onClick={() => setPreviewDoc(null)}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <iframe
+                  src={docUrl}
+                  className="w-full h-full border-0"
+                  title={previewDoc.title}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        );
+      })()}
     </div>
   );
 }

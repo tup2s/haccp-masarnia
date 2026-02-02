@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedura Kontroli Szkodników</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .no-print { display: none !important; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header .subtitle { font-size: 14px; margin-top: 5px; color: #744210; }
+        h2 {
+            background: #744210;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-size: 13px;
+        }
+        h3 {
+            color: #744210;
+            border-bottom: 2px solid #744210;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th { background: #faf089; font-weight: bold; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .warning {
+            background: #fed7d7;
+            border: 2px solid #c53030;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .info {
+            background: #fefcbf;
+            border: 1px solid #d69e2e;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .print-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #744210;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+
+    <div class="header">
+        <h1>MASARNIA MLO</h1>
+        <div class="subtitle">PROCEDURA KONTROLI SZKODNIKÓW (DDD)</div>
+        <div style="margin-top: 10px;">Nr: HACCP-003 | Wersja: 1.0 | Data: 02.02.2026</div>
+    </div>
+
+    <h2>1. CEL PROCEDURY</h2>
+    <p>Celem procedury jest zapobieganie obecności szkodników (gryzonie, owady, ptaki) w zakładzie oraz szybkie reagowanie w przypadku ich wykrycia, w celu ochrony produktów przed zanieczyszczeniem.</p>
+
+    <h2>2. ZAKRES STOSOWANIA</h2>
+    <ul>
+        <li>Teren zewnętrzny zakładu</li>
+        <li>Pomieszczenia produkcyjne</li>
+        <li>Magazyny (surowców, opakowań, wyrobów)</li>
+        <li>Pomieszczenia socjalne</li>
+        <li>Pomieszczenia techniczne</li>
+    </ul>
+
+    <h2>3. ODPOWIEDZIALNOŚCI</h2>
+    <table>
+        <tr>
+            <th>Osoba/Podmiot</th>
+            <th>Odpowiedzialności</th>
+        </tr>
+        <tr>
+            <td><strong>Firma DDD (zewnętrzna)</strong></td>
+            <td>
+                • Opracowanie planu DDD<br>
+                • Rozmieszczenie i obsługa urządzeń<br>
+                • Regularne przeglądy (min. raz w miesiącu)<br>
+                • Interwencje w nagłych przypadkach<br>
+                • Dokumentacja zabiegów
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Kierownik zakładu</strong></td>
+            <td>
+                • Nadzór nad umową z firmą DDD<br>
+                • Przegląd raportów<br>
+                • Decyzje o działaniach korygujących
+            </td>
+        </tr>
+        <tr>
+            <td><strong>Pracownicy</strong></td>
+            <td>
+                • Codzienna obserwacja<br>
+                • Natychmiastowe zgłaszanie obecności szkodników<br>
+                • Utrzymanie porządku
+            </td>
+        </tr>
+    </table>
+
+    <h2>4. DZIAŁANIA PREWENCYJNE</h2>
+
+    <h3>4.1 Zabezpieczenia budynku</h3>
+    <ul>
+        <li>Szczelne drzwi zewnętrzne z samozamykaczami</li>
+        <li>Uszczelki progowe na wszystkich drzwiach</li>
+        <li>Siatki w oknach i wentylacji (oczko max. 1,5 mm)</li>
+        <li>Zamknięte kratki ściekowe</li>
+        <li>Uszczelnienie przepustów kablowych i rurowych</li>
+        <li>Kurtyny powietrzne/plastikowe przy wejściach</li>
+    </ul>
+
+    <h3>4.2 Utrzymanie porządku</h3>
+    <ul>
+        <li>Regularne sprzątanie wszystkich pomieszczeń</li>
+        <li>Usuwanie odpadów w zamkniętych pojemnikach</li>
+        <li>Przechowywanie surowców na paletach (min. 15 cm od ściany)</li>
+        <li>Brak przechowywania zbędnych materiałów</li>
+        <li>Utrzymanie czystości terenu zewnętrznego</li>
+    </ul>
+
+    <h2>5. SYSTEM MONITORINGU SZKODNIKÓW</h2>
+
+    <h3>5.1 Rozmieszczenie urządzeń</h3>
+    <table>
+        <tr>
+            <th>Typ urządzenia</th>
+            <th>Lokalizacja</th>
+            <th>Ilość</th>
+            <th>Kontrola</th>
+        </tr>
+        <tr>
+            <td>Stacje deratyzacyjne zewnętrzne</td>
+            <td>Wokół budynku co 10-15m</td>
+            <td>wg planu</td>
+            <td>Co 2 tygodnie</td>
+        </tr>
+        <tr>
+            <td>Stacje deratyzacyjne wewnętrzne</td>
+            <td>Przy drzwiach, w magazynach</td>
+            <td>wg planu</td>
+            <td>Co 2 tygodnie</td>
+        </tr>
+        <tr>
+            <td>Pułapki mechaniczne na gryzonie</td>
+            <td>Wewnątrz pomieszczeń produkcyjnych</td>
+            <td>wg planu</td>
+            <td>Codziennie</td>
+        </tr>
+        <tr>
+            <td>Lampy owadobójcze UV</td>
+            <td>Przy wejściach, hala produkcyjna</td>
+            <td>wg planu</td>
+            <td>Co tydzień</td>
+        </tr>
+        <tr>
+            <td>Pułapki lepowe na owady</td>
+            <td>Magazyny, pomieszczenia socjalne</td>
+            <td>wg planu</td>
+            <td>Co 2 tygodnie</td>
+        </tr>
+    </table>
+
+    <div class="info">
+        <strong>📍 MAPA ROZMIESZCZENIA:</strong> Aktualna mapa z lokalizacją wszystkich urządzeń znajduje się w biurze kierownika i jest dostępna w systemie HACCP.
+    </div>
+
+    <h3>5.2 Rodzaje szkodników monitorowanych</h3>
+    <table>
+        <tr>
+            <th>Grupa</th>
+            <th>Gatunki</th>
+            <th>Ślady obecności</th>
+        </tr>
+        <tr>
+            <td><strong>Gryzonie</strong></td>
+            <td>Szczur wędrowny, mysz domowa</td>
+            <td>Odchody, ślady zębów, nory, ścieżki, zapachy</td>
+        </tr>
+        <tr>
+            <td><strong>Owady latające</strong></td>
+            <td>Muchy, osy, mole</td>
+            <td>Osobniki żywe/martwe, larwy</td>
+        </tr>
+        <tr>
+            <td><strong>Owady biegające</strong></td>
+            <td>Karaluchy, prusaki, mrówki</td>
+            <td>Osobniki, odchody, złuszczone pancerze</td>
+        </tr>
+        <tr>
+            <td><strong>Ptaki</strong></td>
+            <td>Gołębie, wróble</td>
+            <td>Odchody, pióra, gniazda</td>
+        </tr>
+    </table>
+
+    <h2>6. CZĘSTOTLIWOŚĆ KONTROLI</h2>
+    <table>
+        <tr>
+            <th>Czynność</th>
+            <th>Częstotliwość</th>
+            <th>Wykonawca</th>
+        </tr>
+        <tr>
+            <td>Obserwacja codzienna przez pracowników</td>
+            <td>Codziennie</td>
+            <td>Wszyscy pracownicy</td>
+        </tr>
+        <tr>
+            <td>Kontrola pułapek mechanicznych</td>
+            <td>Codziennie</td>
+            <td>Wyznaczony pracownik</td>
+        </tr>
+        <tr>
+            <td>Kontrola lamp UV (wymiana wkładów)</td>
+            <td>Co tydzień</td>
+            <td>Wyznaczony pracownik</td>
+        </tr>
+        <tr>
+            <td>Przegląd stacji i pułapek</td>
+            <td>Co 2 tygodnie</td>
+            <td>Firma DDD</td>
+        </tr>
+        <tr>
+            <td>Pełna inspekcja zakładu</td>
+            <td>Co miesiąc</td>
+            <td>Firma DDD</td>
+        </tr>
+        <tr>
+            <td>Wymiana lamp UV</td>
+            <td>Co rok</td>
+            <td>Firma DDD</td>
+        </tr>
+    </table>
+
+    <h2>7. DZIAŁANIA W PRZYPADKU WYKRYCIA SZKODNIKÓW</h2>
+
+    <div class="warning">
+        <strong>⚠️ NATYCHMIASTOWE DZIAŁANIA:</strong>
+        <ol>
+            <li>Natychmiast zgłoś wykrycie kierownikowi</li>
+            <li>Zabezpiecz produkty w zagrożonym obszarze</li>
+            <li>Nie dotykaj szkodnika ani urządzeń DDD</li>
+            <li>Skontaktuj się z firmą DDD (interwencja)</li>
+        </ol>
+    </div>
+
+    <h3>7.1 Procedura postępowania</h3>
+    <table>
+        <tr>
+            <th>Sytuacja</th>
+            <th>Działanie</th>
+            <th>Odpowiedzialny</th>
+        </tr>
+        <tr>
+            <td>Pojedynczy owad (mucha)</td>
+            <td>Usunięcie, zwiększona obserwacja</td>
+            <td>Pracownik</td>
+        </tr>
+        <tr>
+            <td>Wielokrotne owady</td>
+            <td>Zgłoszenie, kontrola źródła, interwencja DDD</td>
+            <td>Kierownik + Firma DDD</td>
+        </tr>
+        <tr>
+            <td>Ślady gryzoni</td>
+            <td>Natychmiastowe wezwanie firmy DDD, kwarantanna produktów</td>
+            <td>Kierownik + Firma DDD</td>
+        </tr>
+        <tr>
+            <td>Gryzoń żywy/martwy</td>
+            <td>Wstrzymanie produkcji w strefie, interwencja DDD, dezynfekcja</td>
+            <td>Kierownik + Firma DDD</td>
+        </tr>
+    </table>
+
+    <h2>8. DOKUMENTACJA</h2>
+    <ul>
+        <li>Umowa z firmą DDD</li>
+        <li>Plan rozmieszczenia urządzeń (mapa)</li>
+        <li>Karty charakterystyki preparatów</li>
+        <li>Raporty z przeglądów firmy DDD</li>
+        <li>Rejestr zgłoszeń i interwencji</li>
+        <li>Protokoły zabiegów DDD</li>
+    </ul>
+
+    <h2>9. WERYFIKACJA SKUTECZNOŚCI</h2>
+    <ul>
+        <li>Analiza trendów (liczba złapanych szkodników)</li>
+        <li>Brak skarg i reklamacji związanych ze szkodnikami</li>
+        <li>Wyniki audytów wewnętrznych</li>
+        <li>Ocena stanu zabezpieczeń budynku</li>
+    </ul>
+
+    <h2>10. KONTAKT Z FIRMĄ DDD</h2>
+    <div class="info">
+        <strong>Firma:</strong> ________________________<br>
+        <strong>Telefon:</strong> ________________________<br>
+        <strong>Telefon interwencyjny (24h):</strong> ________________________<br>
+        <strong>E-mail:</strong> ________________________<br>
+        <strong>Opiekun:</strong> ________________________
+    </div>
+
+    <div style="margin-top: 40px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
+        MASARNIA MLO | Procedura HACCP-003 | Wydanie 1 | Data: 02.02.2026
+    </div>
+</body>
+</html>

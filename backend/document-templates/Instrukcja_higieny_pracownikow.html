@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrukcja Higieny Pracowników</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .no-print { display: none !important; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header .subtitle { font-size: 14px; margin-top: 5px; color: #319795; }
+        h2 {
+            background: #319795;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-size: 13px;
+        }
+        h3 {
+            color: #319795;
+            border-bottom: 2px solid #319795;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th { background: #b2f5ea; font-weight: bold; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .warning {
+            background: #fed7d7;
+            border: 2px solid #c53030;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .important {
+            background: #fefcbf;
+            border: 2px solid #d69e2e;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .good {
+            background: #c6f6d5;
+            border: 1px solid #38a169;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .forbidden {
+            background: #fed7d7;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .allowed {
+            background: #c6f6d5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .print-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #319795;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .hand-wash-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 15px 0;
+        }
+        .wash-step {
+            width: 120px;
+            text-align: center;
+            padding: 10px;
+            margin: 5px;
+            background: #e6fffa;
+            border: 1px solid #319795;
+            border-radius: 5px;
+        }
+        .wash-step .number {
+            display: block;
+            font-size: 24px;
+            font-weight: bold;
+            color: #319795;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+
+    <div class="header">
+        <h1>MASARNIA MLO</h1>
+        <div class="subtitle">INSTRUKCJA HIGIENY PRACOWNIKÓW</div>
+        <div style="margin-top: 10px;">Nr: HACCP-005 | Wersja: 1.0 | Data: 02.02.2026</div>
+    </div>
+
+    <h2>1. CEL INSTRUKCJI</h2>
+    <p>Instrukcja określa zasady higieny osobistej obowiązujące wszystkich pracowników zakładu mających kontakt z żywnością, w celu zapobiegania zanieczyszczeniu produktów.</p>
+
+    <h2>2. ZAKRES STOSOWANIA</h2>
+    <p>Instrukcja obowiązuje:</p>
+    <ul>
+        <li>Wszystkich pracowników produkcji</li>
+        <li>Pracowników magazynu</li>
+        <li>Kierowców/ekspedycję</li>
+        <li>Personel sprzątający</li>
+        <li>Osoby wizytujące zakład</li>
+        <li>Podwykonawców i serwisantów</li>
+    </ul>
+
+    <h2>3. ODZIEŻ ROBOCZA</h2>
+
+    <h3>3.1 Wymagana odzież</h3>
+    <table>
+        <tr>
+            <th>Element</th>
+            <th>Wymagania</th>
+            <th>Uwagi</th>
+        </tr>
+        <tr>
+            <td>Fartuch/kombinezon</td>
+            <td>Biały lub jasny, czysty, bez kieszeni zewnętrznych</td>
+            <td>Codzienna zmiana</td>
+        </tr>
+        <tr>
+            <td>Czepek/siatka na włosy</td>
+            <td>Zakrywający całość włosów</td>
+            <td>Obowiązkowy</td>
+        </tr>
+        <tr>
+            <td>Obuwie robocze</td>
+            <td>Białe, antypoślizgowe, łatwe do mycia</td>
+            <td>Tylko na terenie produkcji</td>
+        </tr>
+        <tr>
+            <td>Rękawice</td>
+            <td>Jednorazowe, niebieskie lub białe</td>
+            <td>Wymiana przy zmianie czynności</td>
+        </tr>
+        <tr>
+            <td>Maska (opcjonalnie)</td>
+            <td>Zakrywająca nos i usta</td>
+            <td>Przy chorobie dróg oddechowych</td>
+        </tr>
+    </table>
+
+    <div class="forbidden">
+        <strong>❌ ZABRONIONE:</strong>
+        <ul>
+            <li>Noszenie odzieży osobistej pod odzieżą roboczą</li>
+            <li>Wychodzenie w odzieży roboczej poza zakład</li>
+            <li>Noszenie brudnej lub uszkodzonej odzieży</li>
+            <li>Noszenie odzieży z kieszeniami zewnętrznymi</li>
+        </ul>
+    </div>
+
+    <h3>3.2 Przebieranie</h3>
+    <ol>
+        <li>Pozostaw odzież osobistą w szatni czystej</li>
+        <li>Załóż odzież roboczą</li>
+        <li>Zdejmij biżuterię i zegarek</li>
+        <li>Umyj i zdezynfekuj ręce przed wejściem na produkcję</li>
+    </ol>
+
+    <h2>4. MYCIE RĄK</h2>
+
+    <div class="important">
+        <strong>🖐️ KIEDY MYJESZ RĘCE?</strong>
+        <ul>
+            <li>Przed rozpoczęciem pracy</li>
+            <li>Po wyjściu z toalety</li>
+            <li>Po przerwie</li>
+            <li>Po kichaniu, kaszlu, dotykaniu twarzy</li>
+            <li>Po dotknięciu surowców surowych</li>
+            <li>Po dotknięciu odpadów</li>
+            <li>Przy zmianie czynności</li>
+            <li>Po dotknięciu zanieczyszczonych powierzchni</li>
+        </ul>
+    </div>
+
+    <h3>4.1 Technika mycia rąk (min. 30 sekund)</h3>
+    
+    <div class="hand-wash-steps">
+        <div class="wash-step">
+            <span class="number">1</span>
+            Zwilż ręce ciepłą wodą
+        </div>
+        <div class="wash-step">
+            <span class="number">2</span>
+            Nałóż mydło
+        </div>
+        <div class="wash-step">
+            <span class="number">3</span>
+            Namydl dłoń o dłoń
+        </div>
+        <div class="wash-step">
+            <span class="number">4</span>
+            Namydl grzbiety dłoni
+        </div>
+        <div class="wash-step">
+            <span class="number">5</span>
+            Namydl między palcami
+        </div>
+        <div class="wash-step">
+            <span class="number">6</span>
+            Namydl kciuki okrężnie
+        </div>
+        <div class="wash-step">
+            <span class="number">7</span>
+            Namydl opuszki i paznokcie
+        </div>
+        <div class="wash-step">
+            <span class="number">8</span>
+            Spłucz dokładnie
+        </div>
+        <div class="wash-step">
+            <span class="number">9</span>
+            Osusz jednorazowym ręcznikiem
+        </div>
+        <div class="wash-step">
+            <span class="number">10</span>
+            Ręcznikiem zamknij kran
+        </div>
+    </div>
+
+    <h3>4.2 Dezynfekcja rąk</h3>
+    <p>Po umyciu rąk zastosuj środek do dezynfekcji:</p>
+    <ul>
+        <li>Nałóż 3-5 ml preparatu na suche dłonie</li>
+        <li>Wcieraj przez 30 sekund</li>
+        <li>Pozwól wyschnąć - nie wycieraj!</li>
+    </ul>
+
+    <h2>5. ZACHOWANIA ZAKAZANE</h2>
+
+    <div class="warning">
+        <strong>🚫 NA TERENIE PRODUKCJI ZABRANIA SIĘ:</strong>
+        <ul>
+            <li><strong>Jedzenia i picia</strong> (tylko w wyznaczonych miejscach)</li>
+            <li><strong>Palenia tytoniu</strong> (tylko palarnia)</li>
+            <li><strong>Żucia gumy</strong></li>
+            <li><strong>Noszenia biżuterii</strong> (pierścionki, kolczyki, zegarki, bransoletki)</li>
+            <li><strong>Malowania paznokci</strong> i sztucznych paznokci</li>
+            <li><strong>Używania silnych perfum</strong></li>
+            <li><strong>Dotykania włosów, twarzy, nosa</strong></li>
+            <li><strong>Plucia</strong></li>
+            <li><strong>Kichania/kaszlenia</strong> w kierunku produktu</li>
+            <li><strong>Wnoszenia telefonów komórkowych</strong> (bez osłony)</li>
+        </ul>
+    </div>
+
+    <h2>6. STAN ZDROWIA</h2>
+
+    <h3>6.1 Obowiązek zgłoszenia</h3>
+    <p>Pracownik ma obowiązek zgłosić kierownikowi:</p>
+    <table>
+        <tr>
+            <th>Objawy/Choroby</th>
+            <th>Działanie</th>
+        </tr>
+        <tr>
+            <td>Biegunka, wymioty</td>
+            <td>Natychmiastowe odsunięcie od pracy z żywnością</td>
+        </tr>
+        <tr>
+            <td>Żółtaczka</td>
+            <td>Odsunięcie, badania lekarskie</td>
+        </tr>
+        <tr>
+            <td>Gorączka</td>
+            <td>Odsunięcie, wizyta lekarska</td>
+        </tr>
+        <tr>
+            <td>Ropne zmiany skórne, rany</td>
+            <td>Zakrycie wodoodpornym opatrunkiem + rękawica LUB odsunięcie</td>
+        </tr>
+        <tr>
+            <td>Infekcje dróg oddechowych</td>
+            <td>Maska lub odsunięcie w ciężkich przypadkach</td>
+        </tr>
+        <tr>
+            <td>Nosicielstwo (Salmonella itp.)</td>
+            <td>Odsunięcie do czasu wyleczenia</td>
+        </tr>
+    </table>
+
+    <h3>6.2 Badania lekarskie</h3>
+    <ul>
+        <li>Badanie wstępne przed rozpoczęciem pracy</li>
+        <li>Badania okresowe zgodnie z przepisami</li>
+        <li>Badania kontrolne po chorobie</li>
+        <li>Książeczka zdrowia do celów sanitarno-epidemiologicznych</li>
+    </ul>
+
+    <h2>7. RANY I SKALECZENIA</h2>
+
+    <div class="good">
+        <strong>✓ POSTĘPOWANIE:</strong>
+        <ol>
+            <li>Natychmiast poinformuj przełożonego</li>
+            <li>Oczyść i zdezynfekuj ranę</li>
+            <li>Załóż wodoodporny opatrunek (niebieski - widoczny)</li>
+            <li>Załóż rękawicę ochronną</li>
+            <li>Przy ranach dużych lub ropnych - odsunięcie od pracy z żywnością</li>
+        </ol>
+    </div>
+
+    <h2>8. GOŚCIE I OSOBY WIZYTUJĄCE</h2>
+    <p>Każda osoba wchodząca na teren produkcji musi:</p>
+    <ul>
+        <li>Zgłosić się w recepcji/biurze</li>
+        <li>Otrzymać odzież ochronną (fartuch, czepek, ochraniacze na buty)</li>
+        <li>Umyć i zdezynfekować ręce</li>
+        <li>Być pod opieką pracownika zakładu</li>
+        <li>Przestrzegać wszystkich zasad higieny</li>
+    </ul>
+
+    <h2>9. SZKOLENIA</h2>
+    <table>
+        <tr>
+            <th>Rodzaj szkolenia</th>
+            <th>Częstotliwość</th>
+            <th>Uczestnicy</th>
+        </tr>
+        <tr>
+            <td>Szkolenie wstępne z higieny</td>
+            <td>Przed rozpoczęciem pracy</td>
+            <td>Nowi pracownicy</td>
+        </tr>
+        <tr>
+            <td>Szkolenie okresowe</td>
+            <td>Raz w roku</td>
+            <td>Wszyscy pracownicy</td>
+        </tr>
+        <tr>
+            <td>Szkolenie przypominające</td>
+            <td>Po incydentach, zmianach</td>
+            <td>Wskazani pracownicy</td>
+        </tr>
+    </table>
+
+    <h2>10. ODPOWIEDZIALNOŚCI</h2>
+    <table>
+        <tr>
+            <th>Osoba</th>
+            <th>Odpowiedzialność</th>
+        </tr>
+        <tr>
+            <td>Pracownik</td>
+            <td>Przestrzeganie zasad higieny, zgłaszanie chorób</td>
+        </tr>
+        <tr>
+            <td>Kierownik zmiany</td>
+            <td>Kontrola higieny pracowników, reagowanie na naruszenia</td>
+        </tr>
+        <tr>
+            <td>Kierownik ds. jakości</td>
+            <td>Szkolenia, weryfikacja, działania korygujące</td>
+        </tr>
+    </table>
+
+    <h2>11. SANKCJE</h2>
+    <p>Nieprzestrzeganie zasad higieny skutkuje:</p>
+    <ol>
+        <li>Upomnienie ustne</li>
+        <li>Upomnienie pisemne</li>
+        <li>Szkolenie dodatkowe</li>
+        <li>Konsekwencje służbowe</li>
+    </ol>
+
+    <div style="margin-top: 40px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
+        MASARNIA MLO | Instrukcja HACCP-005 | Wydanie 1 | Data: 02.02.2026
+    </div>
+</body>
+</html>

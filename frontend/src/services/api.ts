@@ -504,7 +504,7 @@ export const api = {
   deleteProductionBatch: (id: number) => request<void>(`/production/batches/${id}`, { method: 'DELETE' }),
   completeProductionBatch: (id: number, data: { finalTemperature: number; notes?: string; endDateTime?: string }) =>
     request<ProductionBatch>(`/production/batches/${id}/complete`, { method: 'POST', body: JSON.stringify(data) }),
-  getTraceability: (batchNumber: string) => request<{ batch: ProductionBatch; timeline: any[] }>(`/production/traceability/${batchNumber}`),
+  getTraceability: (batchId: number) => request<{ batch: ProductionBatch; timeline: any[] }>(`/production/traceability/${batchId}`),
   getAvailableMaterials: () => request<MaterialReceipt[]>(`/production/available-materials`),
 
   // Curing (Peklowanie)
@@ -609,6 +609,9 @@ export const api = {
   createAuditRecord: (data: { checklistId: number; results: any; score?: number; notes?: string | null }) =>
     request<AuditRecord>('/audits/records', { method: 'POST', body: JSON.stringify(data) }),
   getAuditRecord: (id: number) => request<AuditRecord>(`/audits/records/${id}`),
+  updateAuditRecord: (id: number, data: { results?: any; score?: number; findings?: string; recommendations?: string }) =>
+    request<AuditRecord>(`/audits/records/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAuditRecord: (id: number) => request<void>(`/audits/records/${id}`, { method: 'DELETE' }),
 
   // Documents
   getDocuments: (category?: string) =>

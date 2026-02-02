@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 
 // Import routes
@@ -25,6 +26,7 @@ import settingsRoutes from './routes/settings';
 import materialsRoutes from './routes/materials';
 import butcheringRoutes from './routes/butchering';
 import labelsRoutes from './routes/labels';
+import documentReportsRoutes from './routes/documentReports';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -33,6 +35,9 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serwuj pliki statyczne dokumentów HACCP
+app.use('/haccp-docs', express.static(path.join(__dirname, '../document-templates')));
 
 // Attach prisma to request
 app.use((req: any, res, next) => {
@@ -63,6 +68,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/materials', materialsRoutes);
 app.use('/api/butchering', butcheringRoutes);
 app.use('/api/labels', labelsRoutes);
+app.use('/api/document-reports', documentReportsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrukcja Mycia i Dezynfekcji</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header .subtitle { font-size: 14px; margin-top: 5px; color: #2f855a; }
+        h2 {
+            background: #276749;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-size: 13px;
+        }
+        h3 {
+            color: #276749;
+            border-bottom: 2px solid #276749;
+            padding-bottom: 5px;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th { background: #c6f6d5; font-weight: bold; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .warning {
+            background: #fed7d7;
+            border: 2px solid #c53030;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .info {
+            background: #bee3f8;
+            border: 1px solid #3182ce;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .step-box {
+            background: #f0fff4;
+            border: 1px solid #48bb78;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #276749;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .checklist {
+            list-style: none;
+            padding-left: 10px;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            font-size: 14px;
+        }
+        .print-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #276749;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+
+    <div class="header">
+        <h1>MASARNIA MLO</h1>
+        <div class="subtitle">INSTRUKCJA MYCIA I DEZYNFEKCJI</div>
+        <div style="margin-top: 10px;">Nr: HACCP-002 | Wersja: 1.0 | Data: 02.02.2026</div>
+    </div>
+
+    <h2>1. CEL INSTRUKCJI</h2>
+    <p>Instrukcja określa sposób prowadzenia procesów mycia i dezynfekcji w zakładzie w celu zapewnienia higienicznych warunków produkcji oraz bezpieczeństwa wyrobów.</p>
+
+    <h2>2. ZAKRES STOSOWANIA</h2>
+    <ul>
+        <li>Hala produkcyjna</li>
+        <li>Pomieszczenia magazynowe (chłodnie, mroźnie)</li>
+        <li>Pomieszczenia socjalne</li>
+        <li>Urządzenia i sprzęt produkcyjny</li>
+        <li>Pojemniki i narzędzia</li>
+        <li>Środki transportu wewnętrznego</li>
+    </ul>
+
+    <h2>3. ŚRODKI CHEMICZNE</h2>
+    <table>
+        <tr>
+            <th>Nazwa środka</th>
+            <th>Typ</th>
+            <th>Stężenie robocze</th>
+            <th>Czas działania</th>
+            <th>Zastosowanie</th>
+        </tr>
+        <tr>
+            <td>Środek myjący alkaliczny</td>
+            <td>Mycie</td>
+            <td>2-3%</td>
+            <td>10-15 min</td>
+            <td>Usuwanie tłuszczu, białka</td>
+        </tr>
+        <tr>
+            <td>Środek myjący kwaśny</td>
+            <td>Mycie</td>
+            <td>1-2%</td>
+            <td>10 min</td>
+            <td>Usuwanie kamienia, rdzy</td>
+        </tr>
+        <tr>
+            <td>Preparat dezynfekujący (chlorowy)</td>
+            <td>Dezynfekcja</td>
+            <td>200 ppm Cl</td>
+            <td>15 min</td>
+            <td>Powierzchnie produkcyjne</td>
+        </tr>
+        <tr>
+            <td>Preparat dezynfekujący (QAV)</td>
+            <td>Dezynfekcja</td>
+            <td>0,5%</td>
+            <td>10 min</td>
+            <td>Urządzenia, drobny sprzęt</td>
+        </tr>
+        <tr>
+            <td>Mydło antybakteryjne</td>
+            <td>Higiena rąk</td>
+            <td>Gotowe</td>
+            <td>30 sek</td>
+            <td>Mycie rąk</td>
+        </tr>
+        <tr>
+            <td>Żel/płyn do dezynfekcji rąk</td>
+            <td>Dezynfekcja</td>
+            <td>Gotowe (70% alk.)</td>
+            <td>30 sek</td>
+            <td>Dezynfekcja rąk</td>
+        </tr>
+    </table>
+
+    <div class="warning">
+        <strong>⚠️ BEZPIECZEŃSTWO!</strong><br>
+        • Zawsze używaj środków ochrony osobistej (rękawice, okulary)<br>
+        • Nigdy nie mieszaj środków chemicznych<br>
+        • Przechowuj środki w oryginalnych opakowaniach<br>
+        • W razie kontaktu ze skórą/oczami - płukać dużą ilością wody
+    </div>
+
+    <h2>4. PROCEDURA MYCIA I DEZYNFEKCJI</h2>
+
+    <h3>4.1 Etapy procesu</h3>
+    
+    <div class="step-box">
+        <span class="step-number">1</span>
+        <strong>USUNIĘCIE ZANIECZYSZCZEŃ MECHANICZNYCH</strong>
+        <ul>
+            <li>Usunąć resztki produktu, odpady</li>
+            <li>Zamieść/zeskrobać zanieczyszczenia stałe</li>
+            <li>Przepłukać powierzchnie zimną wodą</li>
+        </ul>
+    </div>
+
+    <div class="step-box">
+        <span class="step-number">2</span>
+        <strong>MYCIE WSTĘPNE</strong>
+        <ul>
+            <li>Przepłukać ciepłą wodą (40-50°C)</li>
+            <li>Usunąć luźne zanieczyszczenia</li>
+            <li>Zwilżyć wszystkie powierzchnie</li>
+        </ul>
+    </div>
+
+    <div class="step-box">
+        <span class="step-number">3</span>
+        <strong>MYCIE ZASADNICZE</strong>
+        <ul>
+            <li>Nałożyć roztwór środka myjącego</li>
+            <li>Czyścić szczotką/gąbką lub pianą aktywną</li>
+            <li>Czas działania: min. 10-15 minut</li>
+            <li>Temperatura roztworu: 45-55°C</li>
+        </ul>
+    </div>
+
+    <div class="step-box">
+        <span class="step-number">4</span>
+        <strong>PŁUKANIE</strong>
+        <ul>
+            <li>Dokładnie spłukać środek myjący czystą wodą</li>
+            <li>Kontrolować brak pozostałości piany</li>
+            <li>Używać wody pitnej</li>
+        </ul>
+    </div>
+
+    <div class="step-box">
+        <span class="step-number">5</span>
+        <strong>DEZYNFEKCJA</strong>
+        <ul>
+            <li>Nałożyć preparat dezynfekujący</li>
+            <li>Zapewnić kontakt z całą powierzchnią</li>
+            <li>Czas działania: min. 15 minut</li>
+            <li>Nie płukać (chyba że wymaga instrukcja środka)</li>
+        </ul>
+    </div>
+
+    <div class="step-box">
+        <span class="step-number">6</span>
+        <strong>OSUSZENIE</strong>
+        <ul>
+            <li>Pozostawić do wyschnięcia lub</li>
+            <li>Osuszyć jednorazowymi ręcznikami</li>
+            <li>Nie wycierać wielorazowymi szmatkami!</li>
+        </ul>
+    </div>
+
+    <h2>5. HARMONOGRAM MYCIA I DEZYNFEKCJI</h2>
+    <table>
+        <tr>
+            <th>Obszar/Element</th>
+            <th>Częstotliwość</th>
+            <th>Metoda</th>
+            <th>Odpowiedzialny</th>
+        </tr>
+        <tr>
+            <td>Podłogi hali produkcyjnej</td>
+            <td>Po każdej zmianie</td>
+            <td>Mycie + dezynfekcja</td>
+            <td>Pracownik zmiany</td>
+        </tr>
+        <tr>
+            <td>Stoły robocze, blaty</td>
+            <td>Po każdej operacji / min. co 4h</td>
+            <td>Mycie + dezynfekcja</td>
+            <td>Pracownik stanowiska</td>
+        </tr>
+        <tr>
+            <td>Noże, drobny sprzęt</td>
+            <td>Po każdym użyciu</td>
+            <td>Mycie + dezynfekcja w sterylizatorze</td>
+            <td>Pracownik</td>
+        </tr>
+        <tr>
+            <td>Maszyny (wilk, kuter, nadziewarka)</td>
+            <td>Po każdym użyciu / dziennie</td>
+            <td>Rozkładanie + mycie + dezynfekcja</td>
+            <td>Operator maszyny</td>
+        </tr>
+        <tr>
+            <td>Chłodnie, mroźnie</td>
+            <td>Raz w tygodniu</td>
+            <td>Mycie + dezynfekcja</td>
+            <td>Wyznaczony pracownik</td>
+        </tr>
+        <tr>
+            <td>Ściany, sufity</td>
+            <td>Raz w miesiącu</td>
+            <td>Mycie + dezynfekcja</td>
+            <td>Zespół sprzątający</td>
+        </tr>
+        <tr>
+            <td>Kratki ściekowe</td>
+            <td>Codziennie</td>
+            <td>Czyszczenie + dezynfekcja</td>
+            <td>Pracownik zmiany</td>
+        </tr>
+        <tr>
+            <td>Wózki transportowe</td>
+            <td>Codziennie</td>
+            <td>Mycie + dezynfekcja</td>
+            <td>Magazynier</td>
+        </tr>
+        <tr>
+            <td>Pomieszczenia socjalne</td>
+            <td>Codziennie</td>
+            <td>Mycie + dezynfekcja</td>
+            <td>Personel sprzątający</td>
+        </tr>
+    </table>
+
+    <h2>6. MYCIE I DEZYNFEKCJA RĄK</h2>
+    
+    <div class="info">
+        <strong>🖐️ Kiedy myć ręce?</strong><br>
+        • Przed rozpoczęciem pracy<br>
+        • Po wyjściu z toalety<br>
+        • Po dotknięciu zanieczyszczonych powierzchni<br>
+        • Po kichaniu, kaszlu, dotykaniu twarzy<br>
+        • Przy zmianie czynności (np. surowe mięso → gotowe)<br>
+        • Po przerwie, jedzeniu, piciu<br>
+        • Po dotknięciu odpadów
+    </div>
+
+    <h3>6.1 Technika mycia rąk (min. 30 sekund)</h3>
+    <ol>
+        <li>Zmoczyć ręce ciepłą wodą</li>
+        <li>Nałożyć mydło antybakteryjne</li>
+        <li>Namydlić dłonie, nadgarstki, między palcami</li>
+        <li>Namydlić kciuki okrężnymi ruchami</li>
+        <li>Namydlić opuszki palców i paznokcie</li>
+        <li>Spłukać dokładnie bieżącą wodą</li>
+        <li>Osuszyć jednorazowym ręcznikiem</li>
+        <li>Ręcznikiem zamknąć kran</li>
+        <li>Nałożyć środek do dezynfekcji rąk</li>
+    </ol>
+
+    <h2>7. WERYFIKACJA SKUTECZNOŚCI</h2>
+    <table>
+        <tr>
+            <th>Metoda weryfikacji</th>
+            <th>Częstotliwość</th>
+            <th>Akceptowalne wyniki</th>
+        </tr>
+        <tr>
+            <td>Ocena wizualna</td>
+            <td>Po każdym myciu</td>
+            <td>Brak widocznych zanieczyszczeń, piany</td>
+        </tr>
+        <tr>
+            <td>Wymazy mikrobiologiczne</td>
+            <td>Raz w miesiącu</td>
+            <td>OLB &lt; 100 jtk/cm², brak Salmonella, Listeria</td>
+        </tr>
+        <tr>
+            <td>Test ATP (bioluminescencja)</td>
+            <td>Raz w tygodniu</td>
+            <td>&lt; 50 RLU</td>
+        </tr>
+        <tr>
+            <td>Kontrola stężenia środków</td>
+            <td>Codziennie</td>
+            <td>Zgodne z zaleceniem producenta</td>
+        </tr>
+    </table>
+
+    <h2>8. DOKUMENTACJA</h2>
+    <ul class="checklist">
+        <li>Rejestr mycia i dezynfekcji (system HACCP)</li>
+        <li>Protokoły weryfikacji (wymazy, ATP)</li>
+        <li>Karty charakterystyki środków chemicznych</li>
+        <li>Harmonogram mycia i dezynfekcji</li>
+    </ul>
+
+    <h2>9. DZIAŁANIA KORYGUJĄCE</h2>
+    <p>W przypadku stwierdzenia nieskuteczności mycia/dezynfekcji:</p>
+    <ol>
+        <li>Natychmiast powtórzyć proces</li>
+        <li>Sprawdzić stężenie środków chemicznych</li>
+        <li>Zweryfikować czas działania</li>
+        <li>Zgłosić do przełożonego</li>
+        <li>Zarejestrować działanie korygujące w systemie</li>
+    </ol>
+
+    <div style="margin-top: 40px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
+        MASARNIA MLO | Instrukcja HACCP-002 | Wydanie 1 | Data: 02.02.2026
+    </div>
+</body>
+</html>

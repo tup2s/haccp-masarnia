@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formularz przyjęcia surowca</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .page-break { page-break-after: always; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .doc-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+        }
+        .doc-info {
+            font-size: 11px;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .info-section {
+            margin: 20px 0;
+        }
+        .info-row {
+            margin: 10px 0;
+            display: flex;
+        }
+        .info-label {
+            font-weight: bold;
+            width: 150px;
+        }
+        .info-value {
+            flex: 1;
+            border-bottom: 1px solid #000;
+            min-height: 20px;
+        }
+        .checkbox-group {
+            margin: 10px 0;
+        }
+        .checkbox-item {
+            margin: 5px 0;
+        }
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+            text-align: center;
+            font-size: 11px;
+        }
+        .criteria-list {
+            font-size: 12px;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">NAZWA ZAKŁADU / MASARNI</div>
+        <div>Adres zakładu</div>
+        <div>NIP: _____________ | Weterynaryjny nr rej.: _____________</div>
+    </div>
+
+    <div class="doc-title">FORMULARZ PRZYJĘCIA SUROWCA MIĘSNEGO</div>
+    <div class="doc-info">Wersja: 1.0 | Data obowiązywania: ____________</div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Data przyjęcia:</span>
+            <span class="info-value"></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Godzina przyjęcia:</span>
+            <span class="info-value"></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Dostawca:</span>
+            <span class="info-value"></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Rodzaj surowca:</span>
+            <span class="info-value"></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Ilość (kg):</span>
+            <span class="info-value"></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Numer partii/świadectwa:</span>
+            <span class="info-value"></span>
+        </div>
+    </div>
+
+    <h3>1. KONTROLA TRANSPORTU</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Kryterium</th>
+                <th>Zgodne (✓)</th>
+                <th>Niezgodne (✗)</th>
+                <th>Uwagi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Czystość środka transportu</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Temperatura w transporcie (≤ 7°C dla mięsa schłodzonego)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Zabezpieczenie przed zanieczyszczeniem</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Stan opakowań</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2. KONTROLA ORGANOLEPTYCZNA SUROWCA</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Kryterium</th>
+                <th>Zgodne (✓)</th>
+                <th>Niezgodne (✗)</th>
+                <th>Uwagi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Wygląd (kolor, powierzchnia)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Zapach (charakterystyczny, bez obcych zapachów)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Konsystencja (jędrna, sprężysta)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Brak śluzu, pleśni, zabrudzeń</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>3. KONTROLA DOKUMENTACJI</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Dokument</th>
+                <th>Obecny (✓)</th>
+                <th>Brak (✗)</th>
+                <th>Numer dokumentu</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Świadectwo weterynaryjne</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Dokument przewozowy</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Certyfikaty/atesty (jeśli wymagane)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>4. POMIAR TEMPERATURY</h3>
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Temperatura surowca:</span>
+            <span class="info-value">__________ °C</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Miejsce pomiaru:</span>
+            <span class="info-value"></span>
+        </div>
+    </div>
+
+    <h3>5. DECYZJA</h3>
+    <div class="checkbox-group">
+        <div class="checkbox-item">
+            <input type="checkbox" id="accepted"> 
+            <label for="accepted"><strong>SUROWIEC PRZYJĘTY</strong> - spełnia wszystkie wymagania</label>
+        </div>
+        <div class="checkbox-item">
+            <input type="checkbox" id="conditional"> 
+            <label for="conditional"><strong>PRZYJĘTY WARUNKOWO</strong> - wymaga dodatkowej kontroli/obróbki</label>
+        </div>
+        <div class="checkbox-item">
+            <input type="checkbox" id="rejected"> 
+            <label for="rejected"><strong>ODRZUCONY</strong> - nie spełnia wymagań</label>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Uwagi/Działania:</span>
+            <span class="info-value" style="min-height: 60px;"></span>
+        </div>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line">
+                Data i podpis przyjmującego
+            </div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">
+                Podpis osoby odpowiedzialnej za HACCP
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; font-size: 10px; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
+        <strong>Instrukcja:</strong> Formularz wypełniać przy każdej dostawie surowca. Kontrolę przeprowadzać przed przyjęciem surowca do magazynu. 
+        W przypadku niezgodności natychmiast powiadomić osobę odpowiedzialną za HACCP. Wypełniony formularz przechowywać min. 2 lata.
+    </div>
+</body>
+</html>

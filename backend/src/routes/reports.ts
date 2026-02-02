@@ -105,7 +105,7 @@ router.get('/temperature', authenticateToken, async (req: AuthRequest, res: Resp
 // GET /api/reports/traceability/:batchNumber
 router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const batch = await req.prisma.productionBatch.findUnique({
+    const batch = await req.prisma.productionBatch.findFirst({
       where: { batchNumber: req.params.batchNumber },
       include: {
         product: true,

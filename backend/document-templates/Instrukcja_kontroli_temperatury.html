@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrukcja Kontroli Temperatury</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .no-print { display: none !important; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header .subtitle { font-size: 14px; margin-top: 5px; color: #c53030; }
+        h2 {
+            background: #c53030;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-size: 13px;
+        }
+        h3 {
+            color: #c53030;
+            border-bottom: 2px solid #c53030;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th { background: #fed7d7; font-weight: bold; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .critical {
+            background: #c53030;
+            color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .warning {
+            background: #fefcbf;
+            border: 2px solid #d69e2e;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .info {
+            background: #bee3f8;
+            border: 1px solid #3182ce;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .temp-box {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .temp-cold { background: #bee3f8; color: #2b6cb0; }
+        .temp-freeze { background: #9ae6b4; color: #276749; }
+        .temp-hot { background: #fed7d7; color: #c53030; }
+        .print-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #c53030;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+
+    <div class="header">
+        <h1>MASARNIA MLO</h1>
+        <div class="subtitle">INSTRUKCJA KONTROLI TEMPERATURY - CCP</div>
+        <div style="margin-top: 10px;">Nr: HACCP-CCP-001 | Wersja: 1.0 | Data: 02.02.2026</div>
+    </div>
+
+    <div class="critical">
+        ⚠️ DOKUMENT KRYTYCZNY - KONTROLA TEMPERATURY JEST KRYTYCZNYM PUNKTEM KONTROLI (CCP)!
+    </div>
+
+    <h2>1. CEL INSTRUKCJI</h2>
+    <p>Instrukcja określa zasady monitorowania temperatury w Krytycznych Punktach Kontroli (CCP) oraz w magazynach chłodniczych w celu zapewnienia bezpieczeństwa żywności.</p>
+
+    <h2>2. WYMAGANE TEMPERATURY</h2>
+
+    <h3>2.1 Magazyny i chłodnie</h3>
+    <div style="text-align: center; margin: 20px 0;">
+        <div class="temp-box temp-cold">
+            <div>CHŁODNIA SUROWCÓW</div>
+            <div style="font-size: 24px;">0°C do 4°C</div>
+        </div>
+        <div class="temp-box temp-cold">
+            <div>CHŁODNIA WYROBÓW</div>
+            <div style="font-size: 24px;">0°C do 4°C</div>
+        </div>
+        <div class="temp-box temp-freeze">
+            <div>MROŹNIA</div>
+            <div style="font-size: 24px;">-18°C lub niżej</div>
+        </div>
+        <div class="temp-box temp-cold">
+            <div>PEKLOWNIA</div>
+            <div style="font-size: 24px;">2°C do 6°C</div>
+        </div>
+    </div>
+
+    <h3>2.2 Limity krytyczne - CCP</h3>
+    <table>
+        <tr>
+            <th>CCP</th>
+            <th>Etap</th>
+            <th>Limit krytyczny</th>
+            <th>Tolerancja</th>
+        </tr>
+        <tr>
+            <td style="background: #c53030; color: white;"><strong>CCP1</strong></td>
+            <td>Przyjęcie surowców mięsnych</td>
+            <td><strong>≤ 4°C</strong> (mięso świeże)<br><strong>≤ -18°C</strong> (mięso mrożone)</td>
+            <td>Brak tolerancji</td>
+        </tr>
+        <tr>
+            <td style="background: #c53030; color: white;"><strong>CCP2</strong></td>
+            <td>Obróbka termiczna</td>
+            <td><strong>≥ 72°C</strong> w środku geometrycznym przez min. 2 min</td>
+            <td>Brak tolerancji</td>
+        </tr>
+        <tr>
+            <td style="background: #c53030; color: white;"><strong>CCP3</strong></td>
+            <td>Chłodzenie po obróbce</td>
+            <td>Schłodzenie do <strong>≤ 10°C</strong> w ciągu <strong>2h</strong><br>
+                Schłodzenie do <strong>≤ 4°C</strong> w ciągu <strong>4h</strong></td>
+            <td>Brak tolerancji</td>
+        </tr>
+    </table>
+
+    <h2>3. CZĘSTOTLIWOŚĆ POMIARÓW</h2>
+    <table>
+        <tr>
+            <th>Punkt pomiarowy</th>
+            <th>Częstotliwość</th>
+            <th>Metoda</th>
+            <th>Odpowiedzialny</th>
+        </tr>
+        <tr>
+            <td>Chłodnia surowców</td>
+            <td>Min. 2x dziennie (rano i po południu)</td>
+            <td>Termometr elektroniczny / rejestrator</td>
+            <td>Magazynier</td>
+        </tr>
+        <tr>
+            <td>Chłodnia wyrobów</td>
+            <td>Min. 2x dziennie</td>
+            <td>Termometr elektroniczny / rejestrator</td>
+            <td>Magazynier</td>
+        </tr>
+        <tr>
+            <td>Mroźnia</td>
+            <td>Min. 1x dziennie</td>
+            <td>Termometr elektroniczny / rejestrator</td>
+            <td>Magazynier</td>
+        </tr>
+        <tr>
+            <td>Peklownia</td>
+            <td>Min. 2x dziennie</td>
+            <td>Termometr elektroniczny</td>
+            <td>Mistrz produkcji</td>
+        </tr>
+        <tr>
+            <td>Przyjęcie surowców (CCP1)</td>
+            <td>Każda dostawa</td>
+            <td>Termometr szpilkowy</td>
+            <td>Przyjmujący dostawę</td>
+        </tr>
+        <tr>
+            <td>Obróbka termiczna (CCP2)</td>
+            <td>Każda partia</td>
+            <td>Termometr szpilkowy</td>
+            <td>Operator wędzarni</td>
+        </tr>
+        <tr>
+            <td>Chłodzenie (CCP3)</td>
+            <td>Każda partia (co 30 min)</td>
+            <td>Termometr szpilkowy</td>
+            <td>Operator wędzarni</td>
+        </tr>
+    </table>
+
+    <h2>4. PROCEDURA POMIARU TEMPERATURY</h2>
+
+    <h3>4.1 Pomiar termometrem szpilkowym</h3>
+    <ol>
+        <li>Sprawdź czy termometr jest czysty i zdezynfekowany</li>
+        <li>Włóż sondę w centrum geometryczne produktu (najzimniejszy punkt)</li>
+        <li>Poczekaj na stabilizację odczytu (min. 15-30 sekund)</li>
+        <li>Odczytaj i zapisz temperaturę</li>
+        <li>Wyczyść i zdezynfekuj termometr</li>
+    </ol>
+
+    <h3>4.2 Pomiar w chłodniach/mroźniach</h3>
+    <ol>
+        <li>Odczytaj temperaturę z wyświetlacza lub termometru</li>
+        <li>Sprawdź czy drzwi są szczelnie zamknięte</li>
+        <li>Zapisz odczyt w systemie HACCP</li>
+        <li>W przypadku odchyleń - sprawdź zapasowy termometr</li>
+    </ol>
+
+    <div class="warning">
+        <strong>⚠️ UWAGA!</strong> Termometry muszą być kalibrowane zgodnie z harmonogramem (min. raz w roku). Data następnej kalibracji musi być widoczna na urządzeniu.
+    </div>
+
+    <h2>5. DZIAŁANIA KORYGUJĄCE</h2>
+
+    <h3>5.1 Przekroczenie temperatury w chłodni/mroźni</h3>
+    <table>
+        <tr>
+            <th>Odchylenie</th>
+            <th>Działanie natychmiastowe</th>
+            <th>Ocena produktu</th>
+        </tr>
+        <tr>
+            <td>Wzrost o 1-2°C przez &lt;2h</td>
+            <td>Sprawdź drzwi, ustawienia, zgłoś serwis</td>
+            <td>Produkt OK - zwiększ monitoring</td>
+        </tr>
+        <tr>
+            <td>Wzrost o &gt;3°C lub &gt;2h</td>
+            <td>Przenieś produkt do sprawnej chłodni, zgłoś serwis</td>
+            <td>Ocena organoleptyczna, skrócenie terminu</td>
+        </tr>
+        <tr>
+            <td>Awaria całkowita</td>
+            <td>Natychmiast przenieś produkt, wezwij serwis</td>
+            <td>Kwarantanna, ocena, możliwa utylizacja</td>
+        </tr>
+    </table>
+
+    <h3>5.2 Przekroczenie w CCP1 (przyjęcie)</h3>
+    <div class="critical">
+        Temperatura surowca > 4°C → <strong>ODMOWA PRZYJĘCIA!</strong><br>
+        Nie ma możliwości "naprawy" - partia musi być zwrócona dostawcy.
+    </div>
+
+    <h3>5.3 Przekroczenie w CCP2 (obróbka termiczna)</h3>
+    <p>Jeśli nie osiągnięto 72°C w centrum:</p>
+    <ol>
+        <li>Kontynuuj obróbkę termiczną do osiągnięcia wymaganej temperatury</li>
+        <li>Zapisz rzeczywisty czas i temperaturę</li>
+        <li>Oceń wpływ na jakość produktu</li>
+        <li>W przypadku znacznego przedłużenia - ocena przez kierownika</li>
+    </ol>
+
+    <h3>5.4 Przekroczenie w CCP3 (chłodzenie)</h3>
+    <p>Jeśli chłodzenie trwa dłużej niż 4h:</p>
+    <ol>
+        <li>Przyspiesz chłodzenie (mniejsze porcje, blast chiller)</li>
+        <li>Oceń ryzyko mikrobiologiczne</li>
+        <li>Decyzja kierownika: dopuszczenie lub utylizacja</li>
+        <li>Zapisz działanie korygujące</li>
+    </ol>
+
+    <h2>6. DOKUMENTACJA</h2>
+    <div class="info">
+        <strong>📋 Wszystkie pomiary rejestrowane w systemie HACCP:</strong>
+        <ul>
+            <li>Data i godzina pomiaru</li>
+            <li>Punkt pomiarowy</li>
+            <li>Odczytana temperatura</li>
+            <li>Osoba wykonująca pomiar</li>
+            <li>Działania korygujące (jeśli dotyczy)</li>
+        </ul>
+    </div>
+
+    <h2>7. KALIBRACJA TERMOMETRÓW</h2>
+    <table>
+        <tr>
+            <th>Metoda</th>
+            <th>Częstotliwość</th>
+            <th>Wykonanie</th>
+        </tr>
+        <tr>
+            <td>Weryfikacja w wodzie z lodem (0°C)</td>
+            <td>Codziennie przed użyciem</td>
+            <td>Pracownik</td>
+        </tr>
+        <tr>
+            <td>Weryfikacja w wodzie wrzącej (100°C)</td>
+            <td>Raz w tygodniu</td>
+            <td>Kierownik zmiany</td>
+        </tr>
+        <tr>
+            <td>Pełna kalibracja w laboratorium</td>
+            <td>Raz w roku</td>
+            <td>Akredytowane laboratorium</td>
+        </tr>
+    </table>
+
+    <p><strong>Dopuszczalne odchylenie:</strong> ±0,5°C dla termometrów szpilkowych</p>
+
+    <div style="margin-top: 40px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
+        MASARNIA MLO | Instrukcja HACCP-CCP-001 | Wydanie 1 | Data: 02.02.2026
+    </div>
+</body>
+</html>

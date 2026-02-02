@@ -78,7 +78,7 @@ router.get('/batches/:id', authenticateToken, async (req: AuthRequest, res: Resp
 // GET /api/production/batches/number/:batchNumber
 router.get('/batches/number/:batchNumber', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const batch = await req.prisma.productionBatch.findUnique({
+    const batch = await req.prisma.productionBatch.findFirst({
       where: { batchNumber: req.params.batchNumber },
       include: {
         product: true,
@@ -350,11 +350,11 @@ router.delete('/batches/:id', authenticateToken, async (req: AuthRequest, res: R
   }
 });
 
-// GET /api/production/traceability/:batchNumber
-router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequest, res: Response) => {
+// GET /api/production/traceability/:id
+router.get('/traceability/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const batch = await req.prisma.productionBatch.findUnique({
-      where: { batchNumber: req.params.batchNumber },
+      where: { id: parseInt(req.params.id) },
       include: {
         product: true,
         user: { select: { name: true } },
@@ -420,14 +420,16 @@ router.get('/traceability/:batchNumber', authenticateToken, async (req: AuthRequ
         timeline.push({
           type: 'CURING',
           date: curingBatch.startDate,
-          title: `Peklowanie: ${curingBatch.reception?.rawMaterial?.name || curingBatch.meatDescription || 'Mięso'}`,
+          title: `Peklowanie: ${curingBatch.productName || curingBatch.meatDescription || 'Produkt peklowany'}`,
           details: {
             'Nr partii pekl.': curingBatch.batchNumber,
-            Ilość: `${curingBatch.meatQuantity} kg`,
-            'Sól peklowa': `${curingBatch.saltPercentage}%`,
+            'Surowiec': curingBatch.reception?.rawMaterial?.name || 'N/A',
+            'Dostawca surowca': curingBatch.reception?.supplier?.name || 'N/A',
+            Ilość: `${curingBatch.quantity} ${curingBatch.unit}`,
+            Metoda: curingBatch.curingMethod === 'DRY' ? 'Suche' : curingBatch.curingMethod === 'INJECTION' ? 'Nastrzykowe' : curingBatch.curingMethod,
             'Data start': dayjs(curingBatch.startDate).format('DD.MM.YYYY'),
-            'Data koniec': dayjs(curingBatch.endDate).format('DD.MM.YYYY'),
-            Status: curingBatch.status,
+            'Data koniec': curingBatch.actualEndDate ? dayjs(curingBatch.actualEndDate).format('DD.MM.YYYY') : 'W trakcie',
+            Status: curingBatch.status === 'COMPLETED' ? 'Zakończone' : curingBatch.status === 'IN_PROGRESS' ? 'W trakcie' : curingBatch.status,
           },
         });
         

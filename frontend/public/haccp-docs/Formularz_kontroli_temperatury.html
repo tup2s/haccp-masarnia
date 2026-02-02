@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formularz kontroli temperatury</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 297mm;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .doc-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+        }
+        .doc-info {
+            font-size: 11px;
+            color: #666;
+        }
+        .month-year {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: center;
+            font-size: 10px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .location-header {
+            background-color: #d0d0d0;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px;
+        }
+        .day-cell {
+            font-weight: bold;
+            background-color: #f8f8f8;
+        }
+        .temp-cell {
+            min-width: 35px;
+        }
+        .notes-section {
+            margin-top: 30px;
+        }
+        .info-box {
+            background-color: #f9f9f9;
+            border: 1px solid #000;
+            padding: 10px;
+            margin: 20px 0;
+            font-size: 11px;
+        }
+        .signature-section {
+            margin-top: 30px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">NAZWA ZAKŁADU / MASARNI</div>
+        <div>Adres zakładu</div>
+        <div>NIP: _____________ | Weterynaryjny nr rej.: _____________</div>
+    </div>
+
+    <div class="doc-title">FORMULARZ KONTROLI TEMPERATURY - MIESIĄC</div>
+    <div class="doc-info">Wersja: 1.0 | CCP-1 (Punkt Krytyczny)</div>
+
+    <div class="month-year">
+        Miesiąc: _________________ | Rok: _________
+    </div>
+
+    <div class="info-box">
+        <strong>NORMY TEMPERATUROWE:</strong><br>
+        • Chłodnia surowca: 0°C do +4°C<br>
+        • Chłodnia produktów: 0°C do +4°C<br>
+        • Komora peklowania: 0°C do +6°C<br>
+        • Zamrażarka: poniżej -18°C<br>
+        <strong>Pomiary wykonywać 2 razy dziennie (rano i popołudniu)</strong>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">Dzień</th>
+                <th colspan="2">Chłodnia surowca</th>
+                <th colspan="2">Chłodnia produktów</th>
+                <th colspan="2">Komora peklowania</th>
+                <th colspan="2">Zamrażarka</th>
+                <th rowspan="2">Podpis</th>
+                <th rowspan="2">Uwagi / Działania korygujące</th>
+            </tr>
+            <tr>
+                <th>Rano</th>
+                <th>Popoł.</th>
+                <th>Rano</th>
+                <th>Popoł.</th>
+                <th>Rano</th>
+                <th>Popoł.</th>
+                <th>Rano</th>
+                <th>Popoł.</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="day-cell">1</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">2</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">3</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">4</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">5</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">6</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">7</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <!-- Dni 8-31 - powtórz strukturę -->
+            <tr>
+                <td class="day-cell">8</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">9</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="day-cell">10</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <!-- Kontynuuj do dnia 31 -->
+            <tr>
+                <td class="day-cell">...</td>
+                <td colspan="10" style="text-align: center; color: #999;">Pozostałe dni miesiąca</td>
+            </tr>
+            <tr>
+                <td class="day-cell">31</td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td class="temp-cell"></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="info-box">
+        <strong>DZIAŁANIA KORYGUJĄCE w przypadku przekroczenia norm:</strong><br>
+        1. Sprawdzić poprawność wskazań termometru<br>
+        2. Sprawdzić szczelność drzwi chłodni<br>
+        3. Sprawdzić ustawienia termostatu<br>
+        4. Powiadomić serwis urządzenia chłodniczego<br>
+        5. Przenieść produkty do zapasowej chłodni<br>
+        6. Ocenić bezpieczeństwo produktów - jeśli temp >7°C przez >2h - ODRZUCIĆ<br>
+        7. Wszystkie działania odnotować w kolumnie "Uwagi"
+    </div>
+
+    <div class="signature-section">
+        <p><strong>Osoby odpowiedzialne za kontrolę temperatury w miesiącu:</strong></p>
+        <p>1. Imię i nazwisko: _________________________ Podpis: _________________________</p>
+        <p>2. Imię i nazwisko: _________________________ Podpis: _________________________</p>
+        <p style="margin-top: 30px;"><strong>Weryfikacja miesięczna przez osobę odpowiedzialną za HACCP:</strong></p>
+        <p>Data: _____________ Podpis: _________________________ Uwagi: _________________________</p>
+    </div>
+
+    <div style="margin-top: 30px; font-size: 10px; color: #666; border-top: 1px solid #ccc; padding-top: 10px;">
+        <strong>Instrukcja:</strong> Pomiary wykonywać termometrem sprawdzonym i skalibrowanym. Zapisywać rzeczywiste odczyty (np. +3°C, -20°C). 
+        W przypadku przekroczenia norm natychmiast podjąć działania korygujące i odnotować w uwagach. Formularz przechowywać min. 2 lata.
+    </div>
+</body>
+</html>

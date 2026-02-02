@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedura HACCP - Ogólna</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .no-print { display: none !important; }
+            h2 { page-break-before: always; }
+            h2:first-of-type { page-break-before: avoid; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header .subtitle { font-size: 14px; margin-top: 5px; }
+        .doc-info {
+            display: flex;
+            justify-content: space-between;
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 10px;
+        }
+        h2 {
+            background: #2c5282;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-size: 13px;
+        }
+        h3 {
+            color: #2c5282;
+            border-bottom: 2px solid #2c5282;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th {
+            background: #e2e8f0;
+            font-weight: bold;
+        }
+        .ccp-table th { background: #c53030; color: white; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .important {
+            background: #fed7d7;
+            border: 2px solid #c53030;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .note {
+            background: #fefcbf;
+            border: 1px solid #d69e2e;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 10px;
+        }
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 30%;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 10px;
+        }
+        .print-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #2c5282;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+
+    <div class="header">
+        <h1>MASARNIA MLO</h1>
+        <div class="subtitle">PROCEDURA SYSTEMU HACCP</div>
+        <div style="margin-top: 10px;">Wersja: 1.0 | Data: 02.02.2026</div>
+    </div>
+
+    <div class="doc-info">
+        <div>
+            <strong>Nr procedury:</strong> HACCP-001<br>
+            <strong>Wydanie:</strong> 1
+        </div>
+        <div>
+            <strong>Data wdrożenia:</strong> 02.02.2026<br>
+            <strong>Opracował:</strong> Zespół HACCP
+        </div>
+        <div>
+            <strong>Zatwierdził:</strong> ________________<br>
+            <strong>Data przeglądu:</strong> 02.02.2027
+        </div>
+    </div>
+
+    <h2>1. CEL PROCEDURY</h2>
+    <p>Celem procedury jest ustanowienie, wdrożenie i utrzymanie systemu zarządzania bezpieczeństwem żywności w oparciu o zasady HACCP (Hazard Analysis and Critical Control Points - Analiza Zagrożeń i Krytyczne Punkty Kontroli) w Masarni MLO.</p>
+
+    <h2>2. ZAKRES STOSOWANIA</h2>
+    <p>Procedura dotyczy:</p>
+    <ul>
+        <li>Przyjęcia surowców mięsnych i innych materiałów</li>
+        <li>Przechowywania surowców w warunkach chłodniczych</li>
+        <li>Peklowania mięsa</li>
+        <li>Produkcji wyrobów wędliniarskich</li>
+        <li>Przechowywania wyrobów gotowych</li>
+        <li>Wydania do dystrybucji</li>
+    </ul>
+
+    <h2>3. DEFINICJE</h2>
+    <table>
+        <tr>
+            <th width="25%">Termin</th>
+            <th>Definicja</th>
+        </tr>
+        <tr>
+            <td><strong>HACCP</strong></td>
+            <td>System identyfikacji, oceny i kontroli zagrożeń istotnych dla bezpieczeństwa żywności</td>
+        </tr>
+        <tr>
+            <td><strong>CCP</strong></td>
+            <td>Krytyczny Punkt Kontroli - etap, w którym można zastosować kontrolę i jest ona niezbędna do zapobieżenia lub eliminacji zagrożenia bezpieczeństwa żywności lub do obniżenia go do akceptowalnego poziomu</td>
+        </tr>
+        <tr>
+            <td><strong>Limit krytyczny</strong></td>
+            <td>Wartość graniczna oddzielająca akceptowalność od nieakceptowalności</td>
+        </tr>
+        <tr>
+            <td><strong>Monitoring</strong></td>
+            <td>Planowe prowadzenie sekwencji obserwacji lub pomiarów parametrów kontrolnych</td>
+        </tr>
+        <tr>
+            <td><strong>Działania korygujące</strong></td>
+            <td>Czynności podejmowane po stwierdzeniu przekroczenia limitów krytycznych</td>
+        </tr>
+    </table>
+
+    <h2>4. ZESPÓŁ HACCP</h2>
+    <p>W zakładzie powołany został wielodyscyplinarny zespół HACCP odpowiedzialny za opracowanie, wdrożenie i utrzymanie systemu:</p>
+    <table>
+        <tr>
+            <th>Funkcja w zespole</th>
+            <th>Stanowisko</th>
+            <th>Odpowiedzialności</th>
+        </tr>
+        <tr>
+            <td><strong>Lider zespołu</strong></td>
+            <td>Kierownik ds. jakości</td>
+            <td>Koordynacja prac zespołu, nadzór nad dokumentacją</td>
+        </tr>
+        <tr>
+            <td><strong>Członek</strong></td>
+            <td>Kierownik produkcji</td>
+            <td>Nadzór nad procesami produkcyjnymi</td>
+        </tr>
+        <tr>
+            <td><strong>Członek</strong></td>
+            <td>Mistrz produkcji</td>
+            <td>Monitoring CCP na produkcji</td>
+        </tr>
+        <tr>
+            <td><strong>Członek</strong></td>
+            <td>Magazynier</td>
+            <td>Kontrola przyjęć, magazynowanie</td>
+        </tr>
+    </table>
+
+    <h2>5. OPIS PRODUKTU</h2>
+    <h3>5.1 Wyroby gotowe</h3>
+    <table>
+        <tr>
+            <th>Parametr</th>
+            <th>Opis</th>
+        </tr>
+        <tr>
+            <td>Nazwa produktu</td>
+            <td>Wyroby wędliniarskie (kiełbasy, wędliny, wędzonki)</td>
+        </tr>
+        <tr>
+            <td>Skład</td>
+            <td>Mięso wieprzowe/wołowe, przyprawy, sól peklująca, osłonki</td>
+        </tr>
+        <tr>
+            <td>Sposób utrwalania</td>
+            <td>Peklowanie, wędzenie, obróbka termiczna</td>
+        </tr>
+        <tr>
+            <td>Warunki przechowywania</td>
+            <td>Temperatura 0-4°C</td>
+        </tr>
+        <tr>
+            <td>Trwałość</td>
+            <td>14-30 dni w zależności od produktu</td>
+        </tr>
+        <tr>
+            <td>Przeznaczenie</td>
+            <td>Spożycie bezpośrednie po obróbce kulinarnej lub bez</td>
+        </tr>
+        <tr>
+            <td>Grupa docelowa</td>
+            <td>Ogólna populacja konsumentów</td>
+        </tr>
+    </table>
+
+    <h2>6. DIAGRAM PROCESU TECHNOLOGICZNEGO</h2>
+    <table style="text-align: center;">
+        <tr><td style="background: #bee3f8;"><strong>1. PRZYJĘCIE SUROWCÓW</strong> (CCP1)</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #e2e8f0;">2. MAGAZYNOWANIE CHŁODNICZE</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #e2e8f0;">3. PEKLOWANIE</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #e2e8f0;">4. FORMOWANIE/NAPEŁNIANIE</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #fed7d7;"><strong>5. OBRÓBKA TERMICZNA</strong> (CCP2)</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #c6f6d5;"><strong>6. CHŁODZENIE</strong> (CCP3)</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #e2e8f0;">7. PAKOWANIE</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #e2e8f0;">8. MAGAZYNOWANIE WYROBÓW</td></tr>
+        <tr><td>↓</td></tr>
+        <tr><td style="background: #e2e8f0;">9. DYSTRYBUCJA</td></tr>
+    </table>
+
+    <h2>7. KRYTYCZNE PUNKTY KONTROLI (CCP)</h2>
+    
+    <div class="important">
+        <strong>⚠️ UWAGA!</strong> Poniższe punkty są krytyczne dla bezpieczeństwa żywności. Przekroczenie limitów wymaga natychmiastowych działań korygujących!
+    </div>
+
+    <table class="ccp-table">
+        <tr>
+            <th>CCP</th>
+            <th>Etap procesu</th>
+            <th>Zagrożenie</th>
+            <th>Limit krytyczny</th>
+            <th>Monitoring</th>
+            <th>Działania korygujące</th>
+        </tr>
+        <tr>
+            <td><strong>CCP1</strong></td>
+            <td>Przyjęcie surowców</td>
+            <td>Biologiczne (Salmonella, Listeria)</td>
+            <td>Temperatura ≤ 4°C<br>Atest weterynaryjny</td>
+            <td>Pomiar temp. każdej dostawy<br>Kontrola dokumentów</td>
+            <td>Odmowa przyjęcia partii niespełniającej wymagań</td>
+        </tr>
+        <tr>
+            <td><strong>CCP2</strong></td>
+            <td>Obróbka termiczna</td>
+            <td>Biologiczne (przeżycie drobnoustrojów)</td>
+            <td>Temperatura wewnętrzna ≥ 72°C przez min. 2 min</td>
+            <td>Pomiar temp. wewnętrznej każdej partii</td>
+            <td>Przedłużenie obróbki lub odrzucenie partii</td>
+        </tr>
+        <tr>
+            <td><strong>CCP3</strong></td>
+            <td>Chłodzenie</td>
+            <td>Biologiczne (namnażanie drobnoustrojów)</td>
+            <td>Schłodzenie do ≤ 4°C w czasie ≤ 4h</td>
+            <td>Pomiar temp. i czasu chłodzenia</td>
+            <td>Przyspieszenie chłodzenia lub odrzucenie partii</td>
+        </tr>
+    </table>
+
+    <h2>8. PROGRAMY WSPARCIA (PRP)</h2>
+    <p>System HACCP jest wspierany przez następujące programy:</p>
+    <table>
+        <tr>
+            <th>Program</th>
+            <th>Nr procedury</th>
+            <th>Odpowiedzialny</th>
+        </tr>
+        <tr>
+            <td>Mycie i dezynfekcja</td>
+            <td>HACCP-002</td>
+            <td>Kierownik produkcji</td>
+        </tr>
+        <tr>
+            <td>Kontrola szkodników (DDD)</td>
+            <td>HACCP-003</td>
+            <td>Firma zewnętrzna + Kierownik</td>
+        </tr>
+        <tr>
+            <td>Higiena pracowników</td>
+            <td>HACCP-004</td>
+            <td>Kierownik produkcji</td>
+        </tr>
+        <tr>
+            <td>Szkolenia</td>
+            <td>HACCP-005</td>
+            <td>Kierownik ds. jakości</td>
+        </tr>
+        <tr>
+            <td>Identyfikowalność</td>
+            <td>HACCP-006</td>
+            <td>Kierownik ds. jakości</td>
+        </tr>
+        <tr>
+            <td>Nadzór nad urządzeniami</td>
+            <td>HACCP-007</td>
+            <td>Serwis techniczny</td>
+        </tr>
+    </table>
+
+    <h2>9. WERYFIKACJA SYSTEMU</h2>
+    <p>System HACCP podlega regularnej weryfikacji:</p>
+    <ul>
+        <li><strong>Audyty wewnętrzne</strong> - minimum raz na kwartał</li>
+        <li><strong>Przegląd zarządzania</strong> - minimum raz w roku</li>
+        <li><strong>Badania laboratoryjne</strong> - według harmonogramu</li>
+        <li><strong>Kalibracja przyrządów</strong> - według harmonogramu</li>
+        <li><strong>Analiza reklamacji</strong> - na bieżąco</li>
+    </ul>
+
+    <h2>10. DOKUMENTACJA</h2>
+    <p>System HACCP dokumentowany jest poprzez:</p>
+    <ul>
+        <li>Rejestr przyjęć surowców</li>
+        <li>Rejestr kontroli temperatury</li>
+        <li>Rejestr produkcji</li>
+        <li>Rejestr peklowania</li>
+        <li>Rejestr mycia i dezynfekcji</li>
+        <li>Rejestr działań korygujących</li>
+        <li>Protokoły audytów</li>
+    </ul>
+
+    <div class="note">
+        <strong>📋 UWAGA:</strong> Wszystkie zapisy są prowadzone elektronicznie w systemie HACCP i archiwizowane przez minimum 3 lata.
+    </div>
+
+    <h2>11. PRZEGLĄD I AKTUALIZACJA</h2>
+    <p>Procedura podlega przeglądowi i aktualizacji w przypadku:</p>
+    <ul>
+        <li>Zmian w procesie produkcyjnym</li>
+        <li>Wprowadzenia nowych produktów</li>
+        <li>Zmian w przepisach prawnych</li>
+        <li>Wyników audytów i reklamacji</li>
+        <li>Minimum raz w roku podczas przeglądu zarządzania</li>
+    </ul>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line">Opracował</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Sprawdził</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Zatwierdził</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; font-size: 9px; color: #666; text-align: center;">
+        MASARNIA MLO | Procedura HACCP-001 | Wydanie 1 | Strona 1 z 1
+    </div>
+</body>
+</html>

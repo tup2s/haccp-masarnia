@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedura Działań Korygujących</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 15mm; }
+            .no-print { display: none !important; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 18px; }
+        .header .subtitle { font-size: 14px; margin-top: 5px; color: #9c4221; }
+        h2 {
+            background: #9c4221;
+            color: white;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            font-size: 13px;
+        }
+        h3 {
+            color: #9c4221;
+            border-bottom: 2px solid #9c4221;
+            padding-bottom: 5px;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 10px;
+        }
+        th { background: #fbd38d; font-weight: bold; }
+        ul, ol { margin: 10px 0; padding-left: 25px; }
+        li { margin: 5px 0; }
+        .critical {
+            background: #c53030;
+            color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .warning {
+            background: #fefcbf;
+            border: 2px solid #d69e2e;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .info {
+            background: #e9d8fd;
+            border: 1px solid #805ad5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .flow-chart {
+            background: #f7fafc;
+            border: 1px solid #cbd5e0;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .flow-box {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border: 2px solid #9c4221;
+            border-radius: 5px;
+            background: white;
+        }
+        .flow-arrow {
+            display: block;
+            font-size: 20px;
+            color: #9c4221;
+        }
+        .print-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background: #9c4221;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+
+    <div class="header">
+        <h1>MASARNIA MLO</h1>
+        <div class="subtitle">PROCEDURA DZIAŁAŃ KORYGUJĄCYCH I ZAPOBIEGAWCZYCH</div>
+        <div style="margin-top: 10px;">Nr: HACCP-004 | Wersja: 1.0 | Data: 02.02.2026</div>
+    </div>
+
+    <h2>1. CEL PROCEDURY</h2>
+    <p>Procedura określa zasady postępowania w przypadku wystąpienia niezgodności w systemie HACCP, w szczególności:</p>
+    <ul>
+        <li>Przekroczenia limitów krytycznych w CCP</li>
+        <li>Odchyleń od procedur i instrukcji</li>
+        <li>Wyników niezgodnych audytów</li>
+        <li>Reklamacji klientów</li>
+        <li>Wyników badań laboratoryjnych poza normą</li>
+    </ul>
+
+    <h2>2. DEFINICJE</h2>
+    <table>
+        <tr>
+            <th width="25%">Termin</th>
+            <th>Definicja</th>
+        </tr>
+        <tr>
+            <td><strong>Niezgodność</strong></td>
+            <td>Niespełnienie wymagania określonego w dokumentacji HACCP, przepisach lub umowach</td>
+        </tr>
+        <tr>
+            <td><strong>Działanie korygujące</strong></td>
+            <td>Działanie podjęte w celu wyeliminowania przyczyny wykrytej niezgodności</td>
+        </tr>
+        <tr>
+            <td><strong>Działanie zapobiegawcze</strong></td>
+            <td>Działanie podjęte w celu wyeliminowania przyczyny potencjalnej niezgodności</td>
+        </tr>
+        <tr>
+            <td><strong>Korekcja</strong></td>
+            <td>Natychmiastowe działanie w celu usunięcia skutków niezgodności</td>
+        </tr>
+        <tr>
+            <td><strong>Analiza przyczyn</strong></td>
+            <td>Proces identyfikacji głównej przyczyny niezgodności</td>
+        </tr>
+    </table>
+
+    <h2>3. SCHEMAT POSTĘPOWANIA</h2>
+
+    <div class="flow-chart">
+        <div class="flow-box" style="background: #fed7d7;"><strong>WYKRYCIE NIEZGODNOŚCI</strong></div>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-box"><strong>KOREKCJA</strong><br>(natychmiastowe działanie)</div>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-box"><strong>REJESTRACJA</strong><br>(w systemie HACCP)</div>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-box"><strong>ANALIZA PRZYCZYN</strong><br>(dlaczego wystąpiła?)</div>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-box"><strong>DZIAŁANIE KORYGUJĄCE</strong><br>(eliminacja przyczyny)</div>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-box"><strong>WDROŻENIE</strong><br>(realizacja działania)</div>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-box"><strong>WERYFIKACJA</strong><br>(czy skuteczne?)</div>
+        <span class="flow-arrow">↓</span>
+        <div class="flow-box" style="background: #c6f6d5;"><strong>ZAMKNIĘCIE</strong></div>
+    </div>
+
+    <h2>4. DZIAŁANIA W PRZYPADKU PRZEKROCZENIA CCP</h2>
+
+    <div class="critical">
+        ⚠️ PRZEKROCZENIE LIMITU KRYTYCZNEGO WYMAGA NATYCHMIASTOWEGO DZIAŁANIA!
+    </div>
+
+    <table>
+        <tr>
+            <th>CCP</th>
+            <th>Korekcja (natychmiast)</th>
+            <th>Działanie korygujące</th>
+        </tr>
+        <tr>
+            <td><strong>CCP1</strong><br>Przyjęcie surowców<br>(temp. > 4°C)</td>
+            <td>
+                • Odmowa przyjęcia partii<br>
+                • Zwrot do dostawcy<br>
+                • Dokumentacja odmowy
+            </td>
+            <td>
+                • Powiadomienie dostawcy<br>
+                • Ocena dostawcy<br>
+                • Ewentualna zmiana dostawcy
+            </td>
+        </tr>
+        <tr>
+            <td><strong>CCP2</strong><br>Obróbka termiczna<br>(temp. < 72°C)</td>
+            <td>
+                • Kontynuacja obróbki<br>
+                • Jeśli niemożliwe - kwarantanna partii<br>
+                • Ocena przez kierownika
+            </td>
+            <td>
+                • Sprawdzenie urządzenia<br>
+                • Kalibracja termometrów<br>
+                • Przeszkolenie operatora
+            </td>
+        </tr>
+        <tr>
+            <td><strong>CCP3</strong><br>Chłodzenie<br>(czas > 4h)</td>
+            <td>
+                • Przyspieszenie chłodzenia<br>
+                • Kwarantanna partii<br>
+                • Ocena ryzyka
+            </td>
+            <td>
+                • Sprawdzenie chłodni<br>
+                • Zmiana procedury chłodzenia<br>
+                • Mniejsze partie
+            </td>
+        </tr>
+    </table>
+
+    <h2>5. POSTĘPOWANIE Z PRODUKTEM NIEZGODNYM</h2>
+
+    <h3>5.1 Oznakowanie</h3>
+    <p>Produkt niezgodny musi być natychmiast:</p>
+    <ul>
+        <li>Oznaczony etykietą <strong style="color: red;">"WSTRZYMANE - NIE WYDAWAĆ"</strong></li>
+        <li>Fizycznie oddzielony od produktów zgodnych</li>
+        <li>Umieszczony w wyznaczonej strefie kwarantanny</li>
+    </ul>
+
+    <h3>5.2 Decyzje dotyczące produktu</h3>
+    <table>
+        <tr>
+            <th>Decyzja</th>
+            <th>Warunki</th>
+            <th>Uprawnienia</th>
+        </tr>
+        <tr>
+            <td><strong>Dopuszczenie</strong></td>
+            <td>Po analizie brak zagrożenia dla bezpieczeństwa</td>
+            <td>Kierownik ds. jakości</td>
+        </tr>
+        <tr>
+            <td><strong>Przerobienie</strong></td>
+            <td>Możliwość ponownej obróbki bez ryzyka</td>
+            <td>Kierownik produkcji</td>
+        </tr>
+        <tr>
+            <td><strong>Zmiana przeznaczenia</strong></td>
+            <td>Użycie do innego celu (np. karmy dla zwierząt)</td>
+            <td>Kierownik ds. jakości</td>
+        </tr>
+        <tr>
+            <td><strong>Utylizacja</strong></td>
+            <td>Zagrożenie dla zdrowia konsumenta</td>
+            <td>Kierownik zakładu</td>
+        </tr>
+    </table>
+
+    <h2>6. ANALIZA PRZYCZYN (METODA 5 × DLACZEGO)</h2>
+
+    <div class="info">
+        <strong>📋 Przykład analizy:</strong><br><br>
+        <strong>Problem:</strong> Przekroczenie temperatury w chłodni (8°C zamiast 4°C)<br><br>
+        1. <strong>Dlaczego</strong> temperatura wzrosła? → Sprężarka nie chłodziła<br>
+        2. <strong>Dlaczego</strong> sprężarka nie chłodziła? → Brak czynnika chłodniczego<br>
+        3. <strong>Dlaczego</strong> brak czynnika? → Nieszczelność układu<br>
+        4. <strong>Dlaczego</strong> nieszczelność? → Uszkodzona uszczelka<br>
+        5. <strong>Dlaczego</strong> uszkodzona? → Brak regularnych przeglądów<br><br>
+        <strong>Działanie korygujące:</strong> Wprowadzenie harmonogramu przeglądów prewencyjnych
+    </div>
+
+    <h2>7. REJESTRACJA DZIAŁAŃ KORYGUJĄCYCH</h2>
+
+    <p>Każde działanie korygujące musi zawierać:</p>
+    <table>
+        <tr>
+            <th>Element</th>
+            <th>Opis</th>
+        </tr>
+        <tr>
+            <td>Numer działania</td>
+            <td>Unikalny identyfikator (np. DK-2026-001)</td>
+        </tr>
+        <tr>
+            <td>Data wykrycia</td>
+            <td>Kiedy wykryto niezgodność</td>
+        </tr>
+        <tr>
+            <td>Opis niezgodności</td>
+            <td>Co się stało, gdzie, kiedy</td>
+        </tr>
+        <tr>
+            <td>Korekcja</td>
+            <td>Co zrobiono natychmiast</td>
+        </tr>
+        <tr>
+            <td>Analiza przyczyn</td>
+            <td>Dlaczego wystąpiła niezgodność</td>
+        </tr>
+        <tr>
+            <td>Działanie korygujące</td>
+            <td>Co zostanie zrobione aby zapobiec powtórzeniu</td>
+        </tr>
+        <tr>
+            <td>Odpowiedzialny</td>
+            <td>Kto odpowiada za wdrożenie</td>
+        </tr>
+        <tr>
+            <td>Termin realizacji</td>
+            <td>Do kiedy działanie ma być wdrożone</td>
+        </tr>
+        <tr>
+            <td>Weryfikacja</td>
+            <td>Sprawdzenie skuteczności po wdrożeniu</td>
+        </tr>
+        <tr>
+            <td>Status</td>
+            <td>Otwarte / W realizacji / Zamknięte</td>
+        </tr>
+    </table>
+
+    <h2>8. TERMINY REALIZACJI</h2>
+    <table>
+        <tr>
+            <th>Priorytet</th>
+            <th>Typ niezgodności</th>
+            <th>Termin korekcji</th>
+            <th>Termin działania korygującego</th>
+        </tr>
+        <tr>
+            <td style="background: #c53030; color: white;"><strong>KRYTYCZNY</strong></td>
+            <td>Przekroczenie CCP, zagrożenie zdrowia</td>
+            <td>Natychmiast</td>
+            <td>24-48 godzin</td>
+        </tr>
+        <tr>
+            <td style="background: #ed8936; color: white;"><strong>WYSOKI</strong></td>
+            <td>Poważne odchylenie od procedury</td>
+            <td>Do końca zmiany</td>
+            <td>7 dni</td>
+        </tr>
+        <tr>
+            <td style="background: #ecc94b;"><strong>ŚREDNI</strong></td>
+            <td>Drobne odchylenia, uwagi z audytu</td>
+            <td>Do 24 godzin</td>
+            <td>14 dni</td>
+        </tr>
+        <tr>
+            <td style="background: #48bb78; color: white;"><strong>NISKI</strong></td>
+            <td>Sugestie doskonalące</td>
+            <td>Wg możliwości</td>
+            <td>30 dni</td>
+        </tr>
+    </table>
+
+    <h2>9. WERYFIKACJA SKUTECZNOŚCI</h2>
+    <p>Po wdrożeniu działania korygującego należy zweryfikować jego skuteczność poprzez:</p>
+    <ul>
+        <li>Obserwację procesu przez określony czas</li>
+        <li>Sprawdzenie czy niezgodność się nie powtarza</li>
+        <li>Analizę zapisów i danych</li>
+        <li>Audyt sprawdzający</li>
+    </ul>
+
+    <div class="warning">
+        <strong>⚠️ UWAGA:</strong> Działanie korygujące może być zamknięte dopiero po potwierdzeniu jego skuteczności!
+    </div>
+
+    <h2>10. ODPOWIEDZIALNOŚCI</h2>
+    <table>
+        <tr>
+            <th>Rola</th>
+            <th>Odpowiedzialność</th>
+        </tr>
+        <tr>
+            <td>Pracownik</td>
+            <td>Wykrywanie i zgłaszanie niezgodności, korekcja natychmiastowa</td>
+        </tr>
+        <tr>
+            <td>Kierownik zmiany</td>
+            <td>Nadzór nad korekcją, rejestracja, wstępna analiza</td>
+        </tr>
+        <tr>
+            <td>Kierownik ds. jakości</td>
+            <td>Analiza przyczyn, zatwierdzanie działań, weryfikacja</td>
+        </tr>
+        <tr>
+            <td>Kierownik zakładu</td>
+            <td>Decyzje dotyczące produktu, zasoby na działania korygujące</td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 40px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 10px;">
+        MASARNIA MLO | Procedura HACCP-004 | Wydanie 1 | Data: 02.02.2026
+    </div>
+</body>
+</html>

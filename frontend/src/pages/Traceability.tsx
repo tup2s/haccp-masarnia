@@ -54,7 +54,7 @@ export default function Traceability() {
   const showTraceability = async (batch: ProductionBatch) => {
     setIsSearching(true);
     try {
-      const data = await api.getTraceability(batch.batchNumber);
+      const data = await api.getTraceability(batch.id);
       setResult(data);
     } catch (error) {
       toast.error('Błąd pobierania danych traceability');
@@ -316,7 +316,7 @@ export default function Traceability() {
                               {mat.reception?.batchNumber || mat.curingBatch?.batchNumber || mat.materialReceipt?.batchNumber || '-'}
                             </td>
                             <td className="px-3 py-2 text-gray-500">
-                              {mat.reception?.supplier?.name || mat.materialReceipt?.supplier?.name || '-'}
+                              {mat.reception?.supplier?.name || mat.curingBatch?.reception?.supplier?.name || mat.materialReceipt?.supplier?.name || '-'}
                             </td>
                           </tr>
                         ))}
