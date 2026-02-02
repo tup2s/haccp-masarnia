@@ -126,7 +126,7 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
     const date = productionDate ? new Date(productionDate) : new Date();
     const dateStr = dayjs(date).format('YYYYMMDD');
     
-    // Sprawdź ile partii tego produktu jest już tego dnia
+    // Sprawdź ile partii TEGO PRODUKTU jest już tego dnia
     const countSameProduct = await req.prisma.productionBatch.count({
       where: {
         productId,
@@ -137,8 +137,7 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
       },
     });
     
-    // Pierwsza partia danego produktu w dniu = sama data
-    // Kolejne = data + sufiks
+    // Pierwsza partia danego produktu w dniu = sama data, kolejne = data + sufiks
     const batchNumber = countSameProduct === 0 
       ? dateStr 
       : `${dateStr}-${countSameProduct + 1}`;
