@@ -56,6 +56,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       isCompliant = true, 
       notes, 
       documentNumber,
+      hdiNumber,
+      receivedDate,
       receivedTime,
       vehicleClean,
       vehicleTemperature,
@@ -75,6 +77,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         isCompliant,
         notes,
         documentNumber,
+        hdiNumber,
+        receivedAt: receivedDate ? new Date(receivedDate) : new Date(),
         receivedTime,
         vehicleClean,
         vehicleTemperature,
@@ -121,6 +125,8 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       isCompliant, 
       notes, 
       documentNumber,
+      hdiNumber,
+      receivedDate,
       receivedTime,
       vehicleClean,
       vehicleTemperature,
@@ -128,25 +134,32 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       documentsComplete
     } = req.body;
 
+    const updateData: any = {
+      rawMaterialId,
+      supplierId,
+      batchNumber,
+      quantity,
+      unit,
+      expiryDate: expiryDate ? new Date(expiryDate) : null,
+      temperature,
+      isCompliant,
+      notes,
+      documentNumber,
+      hdiNumber,
+      receivedTime,
+      vehicleClean,
+      vehicleTemperature,
+      packagingIntact,
+      documentsComplete,
+    };
+
+    if (receivedDate) {
+      updateData.receivedAt = new Date(receivedDate);
+    }
+
     const reception = await req.prisma.rawMaterialReception.update({
       where: { id: parseInt(req.params.id) },
-      data: {
-        rawMaterialId,
-        supplierId,
-        batchNumber,
-        quantity,
-        unit,
-        expiryDate: expiryDate ? new Date(expiryDate) : null,
-        temperature,
-        isCompliant,
-        notes,
-        documentNumber,
-        receivedTime,
-        vehicleClean,
-        vehicleTemperature,
-        packagingIntact,
-        documentsComplete,
-      },
+      data: updateData,
       include: {
         rawMaterial: true,
         supplier: true,
