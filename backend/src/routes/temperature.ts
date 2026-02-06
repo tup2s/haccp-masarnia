@@ -86,7 +86,7 @@ router.get('/readings', authenticateToken, async (req: AuthRequest, res: Respons
 // POST /api/temperature/readings
 router.post('/readings', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { temperaturePointId, temperature, notes, userId: selectedUserId } = req.body;
+    const { temperaturePointId, temperature, notes, userId: selectedUserId, readAt } = req.body;
     
     // Admin może wybrać innego operatora
     const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
@@ -108,6 +108,7 @@ router.post('/readings', authenticateToken, async (req: AuthRequest, res: Respon
         isCompliant,
         notes,
         userId: effectiveUserId,
+        readAt: readAt ? new Date(readAt) : undefined,
       },
       include: {
         temperaturePoint: true,

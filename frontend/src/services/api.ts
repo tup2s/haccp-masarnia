@@ -60,7 +60,7 @@ async function requestBlob(endpoint: string): Promise<Blob> {
 
 export interface User {
   id: number;
-  email: string;
+  login: string;
   name: string;
   role: string;
   isActive?: boolean;
@@ -398,13 +398,13 @@ export const api = {
   },
 
   // Auth
-  login: (email: string, password: string) =>
+  login: (login: string, password: string) =>
     request<LoginResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ login, password }),
     }),
 
-  register: (data: { email: string; password: string; name: string; role?: string }) =>
+  register: (data: { login: string; password: string; name: string; role?: string }) =>
     request<LoginResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -442,7 +442,7 @@ export const api = {
     if (params?.limit) query.append('limit', params.limit.toString());
     return request<TemperatureReading[]>(`/temperature/readings?${query}`);
   },
-  createTemperatureReading: (data: { temperaturePointId: number; temperature: number; notes?: string; userId?: number }) =>
+  createTemperatureReading: (data: { temperaturePointId: number; temperature: number; notes?: string; userId?: number; readAt?: string }) =>
     request<TemperatureReading>('/temperature/readings', { method: 'POST', body: JSON.stringify(data) }),
   getTemperatureTrends: (params?: { pointId?: number; days?: number }) => {
     const query = new URLSearchParams();
@@ -551,7 +551,7 @@ export const api = {
     if (limit) query.append('limit', limit.toString());
     return request<CleaningRecord[]>(`/cleaning/records?${query}`);
   },
-  createCleaningRecord: (data: { cleaningAreaId: number; method: string; chemicals?: string; isVerified?: boolean; notes?: string; userId?: number }) =>
+  createCleaningRecord: (data: { cleaningAreaId: number; method: string; chemicals?: string; isVerified?: boolean; notes?: string; userId?: number; cleanedAt?: string }) =>
     request<CleaningRecord>('/cleaning/records', { method: 'POST', body: JSON.stringify(data) }),
 
   // Pest Control

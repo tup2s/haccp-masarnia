@@ -81,7 +81,7 @@ router.get('/records', authenticateToken, async (req: AuthRequest, res: Response
 // POST /api/cleaning/records
 router.post('/records', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { cleaningAreaId, method, chemicals, isVerified, notes, userId: selectedUserId } = req.body;
+    const { cleaningAreaId, method, chemicals, isVerified, notes, userId: selectedUserId, cleanedAt } = req.body;
     
     // Admin może wybrać innego operatora
     const effectiveUserId = (req.userRole === 'ADMIN' && selectedUserId) ? selectedUserId : req.userId!;
@@ -94,6 +94,7 @@ router.post('/records', authenticateToken, async (req: AuthRequest, res: Respons
         isVerified,
         notes,
         userId: effectiveUserId,
+        cleanedAt: cleanedAt ? new Date(cleanedAt) : undefined,
       },
       include: {
         cleaningArea: true,

@@ -17,7 +17,9 @@ router.get('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: R
       },
       orderBy: { createdAt: 'desc' },
     });
-    res.json(users);
+    // Map email to login for frontend
+    const mappedUsers = users.map(u => ({ ...u, login: u.email }));
+    res.json(mappedUsers);
   } catch (error) {
     res.status(500).json({ error: 'Błąd pobierania użytkowników' });
   }
@@ -39,7 +41,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     if (!user) {
       return res.status(404).json({ error: 'Użytkownik nie znaleziony' });
     }
-    res.json(user);
+    res.json({ ...user, login: user.email });
   } catch (error) {
     res.status(500).json({ error: 'Błąd pobierania użytkownika' });
   }
@@ -48,19 +50,19 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 // POST /api/users
 router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { email, password, name, role = 'EMPLOYEE' } = req.body;
+    const { login, password, name, role = 'EMPLOYEE' } = req.body;
     
-    const existingUser = await req.prisma.user.findUnique({ where: { email } });
+    const existingUser = await req.prisma.user.findUnique({ where: { email: login } });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email już istnieje' });
+      return res.status(400).json({ error: 'Login już istnieje' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await req.prisma.user.create({
-      data: { email, password: hashedPassword, name, role },
+      data: { email: login, password: hashedPassword, name, role },
       select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
-    res.status(201).json(user);
+    res.status(201).json({ ...user, login: user.email });
   } catch (error) {
     res.status(500).json({ error: 'Błąd tworzenia użytkownika' });
   }
@@ -69,8 +71,8 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
 // PUT /api/users/:id
 router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { email, password, name, role } = req.body;
-    const updateData: any = { email, name, role };
+    const { login, password, name, role } = req.body;
+    const updateData: any = { email: login, name, role };
     
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
@@ -81,7 +83,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res
       data: updateData,
       select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
-    res.json(user);
+    res.json({ ...user, login: user.email });
   } catch (error) {
     res.status(500).json({ error: 'Błąd aktualizacji użytkownika' });
   }

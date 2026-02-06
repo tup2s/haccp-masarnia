@@ -438,7 +438,7 @@ router.get('/traceability/:id', authenticateToken, async (req: AuthRequest, res:
           timeline.push({
             type: 'RECEPTION',
             date: curingBatch.reception.receivedAt,
-            title: `Przyjęcie do peklowania: ${curingBatch.reception.rawMaterial?.name || 'Surowiec'}`,
+            title: `Przyjęcie na zakład: ${curingBatch.reception.rawMaterial?.name || 'Surowiec'}`,
             details: {
               Dostawca: curingBatch.reception.supplier?.name || 'N/A',
               'Nr partii': curingBatch.reception.batchNumber,

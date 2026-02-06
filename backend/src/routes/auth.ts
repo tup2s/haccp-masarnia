@@ -7,23 +7,23 @@ const router = Router();
 // POST /api/auth/login
 router.post('/login', async (req: AuthRequest, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { login, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email i hasło są wymagane' });
+    if (!login || !password) {
+      return res.status(400).json({ error: 'Login i hasło są wymagane' });
     }
 
     const user = await req.prisma.user.findUnique({
-      where: { email },
+      where: { email: login },
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'Nieprawidłowy email lub hasło' });
+      return res.status(401).json({ error: 'Nieprawidłowy login lub hasło' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(401).json({ error: 'Nieprawidłowy email lub hasło' });
+      return res.status(401).json({ error: 'Nieprawidłowy login lub hasło' });
     }
 
     const token = generateToken(user.id, user.role);
@@ -32,7 +32,7 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
       token,
       user: {
         id: user.id,
-        email: user.email,
+        login: user.email,
         name: user.name,
         role: user.role,
       },
@@ -46,25 +46,25 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
 // POST /api/auth/register
 router.post('/register', async (req: AuthRequest, res: Response) => {
   try {
-    const { email, password, name, role = 'EMPLOYEE' } = req.body;
+    const { login, password, name, role = 'EMPLOYEE' } = req.body;
 
-    if (!email || !password || !name) {
+    if (!login || !password || !name) {
       return res.status(400).json({ error: 'Wszystkie pola są wymagane' });
     }
 
     const existingUser = await req.prisma.user.findUnique({
-      where: { email },
+      where: { email: login },
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'Użytkownik o tym emailu już istnieje' });
+      return res.status(400).json({ error: 'Użytkownik o tym loginie już istnieje' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await req.prisma.user.create({
       data: {
-        email,
+        email: login,
         password: hashedPassword,
         name,
         role,
@@ -77,7 +77,7 @@ router.post('/register', async (req: AuthRequest, res: Response) => {
       token,
       user: {
         id: user.id,
-        email: user.email,
+        login: user.email,
         name: user.name,
         role: user.role,
       },

@@ -19,6 +19,7 @@ export default function TemperatureMonitoring() {
   const [selectedPoint, setSelectedPoint] = useState<TemperaturePoint | null>(null);
   const [editingPoint, setEditingPoint] = useState<TemperaturePoint | null>(null);
   const [temperature, setTemperature] = useState('');
+  const [readingDateTime, setReadingDateTime] = useState('');
   const [notes, setNotes] = useState('');
   const [trends, setTrends] = useState<any[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -76,12 +77,14 @@ export default function TemperatureMonitoring() {
         temperature: parseFloat(temperature),
         notes: notes || undefined,
         userId: selectedUserId || undefined, // Admin może wybrać operatora
+        readAt: readingDateTime ? new Date(readingDateTime).toISOString() : undefined,
       });
       toast.success('Pomiar zapisany');
       setShowReadingModal(false);
       setTemperature('');
       setNotes('');
       setSelectedUserId('');
+      setReadingDateTime('');
       setSelectedPoint(null);
       loadData();
     } catch (error) {
@@ -199,6 +202,8 @@ export default function TemperatureMonitoring() {
   const openAddReading = (point: TemperaturePoint, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setSelectedPoint(point);
+    // Set current datetime as default
+    setReadingDateTime(dayjs().format('YYYY-MM-DDTHH:mm'));
     setShowReadingModal(true);
   };
 
@@ -437,6 +442,17 @@ export default function TemperatureMonitoring() {
                     </select>
                   </div>
                 )}
+                <div>
+                  <label className="label">Data i godzina pomiaru</label>
+                  <input
+                    type="datetime-local"
+                    className="input"
+                    value={readingDateTime}
+                    onChange={(e) => setReadingDateTime(e.target.value)}
+                    max={dayjs().format('YYYY-MM-DDTHH:mm')}
+                    required
+                  />
+                </div>
                 <div>
                   <label className="label">Temperatura (°C)</label>
                   <input

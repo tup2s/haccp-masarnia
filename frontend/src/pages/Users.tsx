@@ -11,7 +11,7 @@ export default function Users() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    login: '',
     password: '',
     role: 'EMPLOYEE',
   });
@@ -36,7 +36,7 @@ export default function Users() {
       setEditingUser(user);
       setFormData({
         name: user.name,
-        email: user.email,
+        login: user.login,
         password: '',
         role: user.role,
       });
@@ -44,7 +44,7 @@ export default function Users() {
       setEditingUser(null);
       setFormData({
         name: '',
-        email: '',
+        login: '',
         password: '',
         role: 'EMPLOYEE',
       });
@@ -58,7 +58,7 @@ export default function Users() {
       if (editingUser) {
         const payload: any = {
           name: formData.name,
-          email: formData.email,
+          login: formData.login,
           role: formData.role,
         };
         if (formData.password) {
@@ -136,7 +136,7 @@ export default function Users() {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Użytkownik</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Login</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rola</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Utworzony</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Akcje</th>
@@ -153,7 +153,7 @@ export default function Users() {
                       <span className="font-medium text-gray-900">{user.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{user.email}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{user.login}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${getRoleColor(user.role)}`}>
                       {getRoleLabel(user.role)}
@@ -214,13 +214,13 @@ export default function Users() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Login *</label>
                   <input
-                    type="email"
+                    type="text"
                     className="input"
                     required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    value={formData.login}
+                    onChange={(e) => setFormData({ ...formData, login: e.target.value })}
                   />
                 </div>
                 <div>

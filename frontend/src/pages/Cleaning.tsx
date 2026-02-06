@@ -19,6 +19,7 @@ export default function Cleaning() {
   const [selectedArea, setSelectedArea] = useState<CleaningArea | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
+  const [cleanedAtDateTime, setCleanedAtDateTime] = useState('');
   const [areaForm, setAreaForm] = useState({
     name: '',
     location: '',
@@ -110,6 +111,8 @@ export default function Cleaning() {
       chemicals: area.chemicals || '',
       notes: '',
     });
+    // Set current datetime as default
+    setCleanedAtDateTime(dayjs().format('YYYY-MM-DDTHH:mm'));
     setIsRecordModalOpen(true);
   };
 
@@ -139,10 +142,12 @@ export default function Cleaning() {
         chemicals: recordForm.chemicals || undefined,
         notes: recordForm.notes || undefined,
         userId: selectedUserId || undefined, // Admin może wybrać operatora
+        cleanedAt: cleanedAtDateTime ? new Date(cleanedAtDateTime).toISOString() : undefined,
       });
       toast.success('Mycie zarejestrowane');
       setIsRecordModalOpen(false);
       setSelectedUserId('');
+      setCleanedAtDateTime('');
       loadData();
     } catch (error) {
       toast.error('Błąd podczas zapisywania');
@@ -440,6 +445,18 @@ export default function Cleaning() {
                     </select>
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Data i godzina mycia</label>
+                  <input
+                    type="datetime-local"
+                    className="input"
+                    value={cleanedAtDateTime}
+                    onChange={(e) => setCleanedAtDateTime(e.target.value)}
+                    max={dayjs().format('YYYY-MM-DDTHH:mm')}
+                    required
+                  />
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Strefa</label>

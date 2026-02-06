@@ -4,10 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login: doLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,7 +15,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      await doLogin(login, password);
       toast.success('Zalogowano pomyślnie');
       navigate('/');
     } catch (error: any) {
@@ -38,13 +38,13 @@ export default function Login() {
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label">Email</label>
+              <label className="label">Login</label>
               <input
-                type="email"
+                type="text"
                 className="input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jan.kowalski@masarnia.pl"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                placeholder="admin"
                 required
               />
             </div>
@@ -72,8 +72,8 @@ export default function Login() {
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 font-medium mb-2">Dane demonstracyjne:</p>
-            <p className="text-xs text-gray-500">Admin: admin@masarnia.pl / admin123</p>
-            <p className="text-xs text-gray-500">Pracownik: pracownik@masarnia.pl / user123</p>
+            <p className="text-xs text-gray-500">Admin: admin / admin123</p>
+            <p className="text-xs text-gray-500">Pracownik: pracownik / user123</p>
           </div>
         </div>
       </div>

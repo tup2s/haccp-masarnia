@@ -10,10 +10,10 @@ async function main() {
   const userPassword = await bcrypt.hash('user123', 10);
 
   await prisma.user.upsert({
-    where: { email: 'admin@masarnia.pl' },
+    where: { email: 'admin' },
     update: {},
     create: {
-      email: 'admin@masarnia.pl',
+      email: 'admin',
       password: adminPassword,
       name: 'Jan Kowalski',
       role: 'ADMIN',
@@ -21,10 +21,10 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: 'kierownik@masarnia.pl' },
+    where: { email: 'kierownik' },
     update: {},
     create: {
-      email: 'kierownik@masarnia.pl',
+      email: 'kierownik',
       password: userPassword,
       name: 'Anna Nowak',
       role: 'MANAGER',
@@ -32,10 +32,10 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: 'pracownik@masarnia.pl' },
+    where: { email: 'pracownik' },
     update: {},
     create: {
-      email: 'pracownik@masarnia.pl',
+      email: 'pracownik',
       password: userPassword,
       name: 'Piotr Wiśniewski',
       role: 'EMPLOYEE',
@@ -46,9 +46,9 @@ async function main() {
   console.log('🎉 Użytkownicy utworzeni!');
   console.log('');
   console.log('Dane logowania:');
-  console.log('  Admin: admin@masarnia.pl / admin123');
-  console.log('  Kierownik: kierownik@masarnia.pl / user123');
-  console.log('  Pracownik: pracownik@masarnia.pl / user123');
+  console.log('  Admin: admin / admin123');
+  console.log('  Kierownik: kierownik / user123');
+  console.log('  Pracownik: pracownik / user123');
 }
 
 main()
