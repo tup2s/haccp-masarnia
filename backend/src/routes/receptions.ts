@@ -65,6 +65,18 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       documentsComplete
     } = req.body;
 
+    // Utwórz datę przyjęcia łącząc datę i godzinę
+    let receivedAt: Date;
+    if (receivedDate) {
+      if (receivedTime) {
+        receivedAt = new Date(`${receivedDate}T${receivedTime}:00`);
+      } else {
+        receivedAt = new Date(`${receivedDate}T12:00:00`);
+      }
+    } else {
+      receivedAt = new Date();
+    }
+
     const reception = await req.prisma.rawMaterialReception.create({
       data: {
         rawMaterialId,
@@ -78,7 +90,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
         notes,
         documentNumber,
         hdiNumber,
-        receivedAt: receivedDate ? new Date(receivedDate) : new Date(),
+        receivedAt,
         receivedTime,
         vehicleClean,
         vehicleTemperature,
@@ -153,8 +165,13 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       documentsComplete,
     };
 
+    // Utwórz receivedAt jeśli podano datę
     if (receivedDate) {
-      updateData.receivedAt = new Date(receivedDate);
+      if (receivedTime) {
+        updateData.receivedAt = new Date(`${receivedDate}T${receivedTime}:00`);
+      } else {
+        updateData.receivedAt = new Date(`${receivedDate}T12:00:00`);
+      }
     }
 
     const reception = await req.prisma.rawMaterialReception.update({
