@@ -499,7 +499,7 @@ export const api = {
     request<ProductionBatch>(`/production/batches/number/${batchNumber}`),
   createProductionBatch: (data: { productId: number; quantity: number; unit: string; productionDate?: string; startDateTime?: string; notes?: string; materials?: any[] }) =>
     request<ProductionBatch>('/production/batches', { method: 'POST', body: JSON.stringify(data) }),
-  updateProductionBatch: (id: number, data: Partial<ProductionBatch>) =>
+  updateProductionBatch: (id: number, data: any) =>
     request<ProductionBatch>(`/production/batches/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProductionBatch: (id: number) => request<void>(`/production/batches/${id}`, { method: 'DELETE' }),
   completeProductionBatch: (id: number, data: { finalTemperature: number; notes?: string; endDateTime?: string }) =>

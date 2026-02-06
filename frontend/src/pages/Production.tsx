@@ -34,6 +34,12 @@ export default function Production() {
     endDate: dayjs().format('YYYY-MM-DD'),
     endTime: dayjs().format('HH:mm'),
   });
+  const [editCompleteData, setEditCompleteData] = useState({
+    finalTemperature: '',
+    endDate: dayjs().format('YYYY-MM-DD'),
+    endTime: dayjs().format('HH:mm'),
+    status: 'IN_PRODUCTION',
+  });
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
 
@@ -222,11 +228,22 @@ export default function Production() {
       startTime: batch.startTime ? dayjs.utc(batch.startTime).local().format('HH:mm') : dayjs().format('HH:mm'),
       expiryDate: dayjs(batch.expiryDate).format('YYYY-MM-DD'),
       notes: batch.notes || '',
-      materials: batch.materials?.map(m => ({
-        receptionId: m.receptionId || 0,
-        quantity: m.quantity,
-        unit: m.unit,
-      })) || [],
+      materials: batch.materials?.map((m: any) => {
+        if (m.curingBatchId) {
+          return { curingBatchId: m.curingBatchId, quantity: m.quantity, unit: m.unit };
+        } else if (m.materialReceiptId) {
+          return { materialReceiptId: m.materialReceiptId, materialId: m.materialId, quantity: m.quantity, unit: m.unit };
+        } else {
+          return { receptionId: m.receptionId || 0, quantity: m.quantity, unit: m.unit };
+        }
+      }) || [],
+    });
+    // Load completion data for completed batches
+    setEditCompleteData({
+      finalTemperature: batch.finalTemperature != null ? batch.finalTemperature.toString() : '',
+      endDate: batch.endTime ? dayjs.utc(batch.endTime).local().format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD'),
+      endTime: batch.endTime ? dayjs.utc(batch.endTime).local().format('HH:mm') : dayjs().format('HH:mm'),
+      status: batch.status || 'IN_PRODUCTION',
     });
     setIsModalOpen(true);
   };
@@ -277,15 +294,42 @@ export default function Production() {
       const startDateTime = dayjs(`${formData.productionDate} ${formData.startTime}`).toISOString();
       
       if (editBatch) {
-        // Aktualizacja istniejącej partii
-        await api.updateProductionBatch(editBatch.id, {
+        // Aktualizacja istniejącej partii - pełna edycja
+        const validMaterials = formData.materials.filter(m => 
+          (m.receptionId && m.receptionId > 0) || 
+          (m.curingBatchId && m.curingBatchId > 0) ||
+          (m.materialReceiptId && m.materialReceiptId > 0)
+        );
+
+        const updatePayload: any = {
+          productId: parseInt(formData.productId),
           quantity: parseFloat(formData.quantity),
           unit: formData.unit,
           productionDate: formData.productionDate,
           expiryDate: formData.expiryDate,
           startTime: startDateTime,
           notes: formData.notes || undefined,
-        } as any);
+          materials: validMaterials,
+          status: editCompleteData.status,
+        };
+
+        // Jeśli partia jest zakończona, dodaj dane zakończenia
+        if (editCompleteData.status === 'COMPLETED' && editCompleteData.finalTemperature) {
+          const temp = parseFloat(editCompleteData.finalTemperature);
+          const product = products.find(p => p.id === parseInt(formData.productId));
+          const requiredTemp = product?.requiredTemperature || 72;
+          const endDateTime = dayjs(`${editCompleteData.endDate} ${editCompleteData.endTime}`).toISOString();
+          updatePayload.finalTemperature = temp;
+          updatePayload.temperatureCompliant = temp >= requiredTemp;
+          updatePayload.endTime = endDateTime;
+        } else if (editCompleteData.status === 'IN_PRODUCTION') {
+          // Jeśli zmieniono na W produkcji, wyczyść dane zakończenia
+          updatePayload.finalTemperature = null;
+          updatePayload.temperatureCompliant = null;
+          updatePayload.endTime = null;
+        }
+
+        await api.updateProductionBatch(editBatch.id, updatePayload);
         toast.success('Partia produkcyjna zaktualizowana');
       } else {
         // Nowa partia
@@ -588,24 +632,18 @@ export default function Production() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Produkt *</label>
-                    {editBatch ? (
-                      <div className="input bg-gray-100 text-gray-700">
-                        {products.find(p => p.id === parseInt(formData.productId))?.name || 'Brak produktu'}
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIsProductSelectOpen(true)}
-                        className="input w-full text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
-                      >
-                        <span className={formData.productId ? 'text-gray-900' : 'text-gray-400'}>
-                          {formData.productId 
-                            ? `📦 ${products.find(p => p.id === parseInt(formData.productId))?.name}` 
-                            : 'Wybierz produkt...'}
-                        </span>
-                        <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsProductSelectOpen(true)}
+                      className="input w-full text-left hover:bg-gray-50 transition-colors flex items-center justify-between"
+                    >
+                      <span className={formData.productId ? 'text-gray-900' : 'text-gray-400'}>
+                        {formData.productId 
+                          ? `📦 ${products.find(p => p.id === parseInt(formData.productId))?.name}` 
+                          : 'Wybierz produkt...'}
+                      </span>
+                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                    </button>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Ilość *</label>
@@ -664,8 +702,8 @@ export default function Production() {
                   </div>
                 </div>
 
-                {!editBatch && (
-                  <div className="border-t border-gray-200 pt-4">
+                {/* Użyte surowce - zawsze widoczne */}
+                <div className="border-t border-gray-200 pt-4">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-sm font-medium text-gray-700">Użyte surowce</p>
                       <div className="flex gap-2">
@@ -767,7 +805,6 @@ export default function Production() {
                       </div>
                     ))}
                   </div>
-                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Uwagi</label>
@@ -778,6 +815,75 @@ export default function Production() {
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   />
                 </div>
+
+                {/* Status i dane zakończenia - tylko w trybie edycji */}
+                {editBatch && (
+                  <div className="border-t border-gray-200 pt-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        className="input"
+                        value={editCompleteData.status}
+                        onChange={(e) => setEditCompleteData({ ...editCompleteData, status: e.target.value })}
+                      >
+                        <option value="IN_PRODUCTION">W produkcji</option>
+                        <option value="COMPLETED">Zakończona</option>
+                        <option value="RELEASED">Zwolniona</option>
+                        <option value="BLOCKED">Zablokowana</option>
+                        <option value="QUARANTINE">Kwarantanna</option>
+                      </select>
+                    </div>
+
+                    {editCompleteData.status !== 'IN_PRODUCTION' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Temperatura wewnętrzna produktu (°C)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            className="input text-lg font-bold text-center"
+                            placeholder="np. 75.5"
+                            value={editCompleteData.finalTemperature}
+                            onChange={(e) => setEditCompleteData({ ...editCompleteData, finalTemperature: e.target.value })}
+                          />
+                          {editCompleteData.finalTemperature && (
+                            <p className={`text-xs mt-1 ${
+                              parseFloat(editCompleteData.finalTemperature) >= (products.find(p => p.id === parseInt(formData.productId))?.requiredTemperature || 72)
+                                ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {parseFloat(editCompleteData.finalTemperature) >= (products.find(p => p.id === parseInt(formData.productId))?.requiredTemperature || 72)
+                                ? `✓ Zgodna (wymagane ≥${products.find(p => p.id === parseInt(formData.productId))?.requiredTemperature || 72}°C)`
+                                : `✗ Niezgodna (wymagane ≥${products.find(p => p.id === parseInt(formData.productId))?.requiredTemperature || 72}°C)`
+                              }
+                            </p>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Data zakończenia</label>
+                            <input
+                              type="date"
+                              className="input"
+                              value={editCompleteData.endDate}
+                              onChange={(e) => setEditCompleteData({ ...editCompleteData, endDate: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Godzina zakończenia</label>
+                            <input
+                              type="time"
+                              className="input"
+                              value={editCompleteData.endTime}
+                              onChange={(e) => setEditCompleteData({ ...editCompleteData, endTime: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {!editBatch && (
                   <div className="bg-blue-50 rounded-lg p-4">

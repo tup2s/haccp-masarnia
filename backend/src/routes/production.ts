@@ -203,6 +203,7 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
 router.put('/batches/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { 
+      productId,
       quantity, 
       unit, 
       status, 
@@ -213,22 +214,48 @@ router.put('/batches/:id', authenticateToken, async (req: AuthRequest, res: Resp
       endTime,
       finalTemperature,
       temperatureCompliant,
+      materials,
     } = req.body;
     
     const updateData: any = {};
+    if (productId !== undefined) updateData.productId = productId;
     if (quantity !== undefined) updateData.quantity = quantity;
     if (unit !== undefined) updateData.unit = unit;
     if (status !== undefined) updateData.status = status;
     if (notes !== undefined) updateData.notes = notes;
     if (productionDate !== undefined) updateData.productionDate = new Date(productionDate);
     if (expiryDate !== undefined) updateData.expiryDate = new Date(expiryDate);
-    if (startTime !== undefined) updateData.startTime = new Date(startTime);
-    if (endTime !== undefined) updateData.endTime = new Date(endTime);
+    if (startTime !== undefined) updateData.startTime = startTime ? new Date(startTime) : null;
+    if (endTime !== undefined) updateData.endTime = endTime ? new Date(endTime) : null;
     if (finalTemperature !== undefined) updateData.finalTemperature = finalTemperature;
     if (temperatureCompliant !== undefined) updateData.temperatureCompliant = temperatureCompliant;
 
+    const batchId = parseInt(req.params.id);
+
+    // Jeśli przesłano materiały, usuń stare i utwórz nowe
+    if (materials !== undefined) {
+      await req.prisma.batchMaterial.deleteMany({
+        where: { batchId },
+      });
+
+      if (materials && materials.length > 0) {
+        await req.prisma.batchMaterial.createMany({
+          data: materials.map((m: any) => ({
+            batchId,
+            rawMaterialId: m.rawMaterialId || null,
+            receptionId: m.receptionId || null,
+            curingBatchId: m.curingBatchId || null,
+            materialId: m.materialId || null,
+            materialReceiptId: m.materialReceiptId || null,
+            quantity: m.quantity,
+            unit: m.unit,
+          })),
+        });
+      }
+    }
+
     const batch = await req.prisma.productionBatch.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: batchId },
       data: updateData,
       include: {
         product: true,
@@ -252,6 +279,7 @@ router.put('/batches/:id', authenticateToken, async (req: AuthRequest, res: Resp
     });
     res.json(batch);
   } catch (error) {
+    console.error('Error updating batch:', error);
     res.status(500).json({ error: 'Błąd aktualizacji partii' });
   }
 });
