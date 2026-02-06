@@ -657,7 +657,7 @@ export const api = {
     requestBlob(`/reports/trainings?startDate=${startDate}&endDate=${endDate}`),
 
   // Temperature Reading management (Admin)
-  updateTemperatureReading: (id: number, data: { temperature?: number; notes?: string; isCompliant?: boolean }) =>
+  updateTemperatureReading: (id: number, data: { temperature?: number; notes?: string; isCompliant?: boolean; readAt?: string }) =>
     request<TemperatureReading>(`/temperature/readings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteTemperatureReading: (id: number) => request<void>(`/temperature/readings/${id}`, { method: 'DELETE' }),
 

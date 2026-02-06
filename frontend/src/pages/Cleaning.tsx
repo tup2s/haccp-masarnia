@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, CleaningArea, CleaningRecord, User } from '../services/api';
-import { PlusIcon, SparklesIcon, ClockIcon, CheckBadgeIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, SparklesIcon, ClockIcon, CheckBadgeIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -19,7 +19,9 @@ export default function Cleaning() {
   const [selectedArea, setSelectedArea] = useState<CleaningArea | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
-  const [cleanedAtDateTime, setCleanedAtDateTime] = useState('');
+  const [cleanedAtDate, setCleanedAtDate] = useState('');
+  const [cleanedAtTime, setCleanedAtTime] = useState('');
+  const [editingRecord, setEditingRecord] = useState<CleaningRecord | null>(null);
   const [areaForm, setAreaForm] = useState({
     name: '',
     location: '',
@@ -104,15 +106,17 @@ export default function Cleaning() {
     setIsAreaModalOpen(true);
   };
 
-  const openRecordModal = (area: CleaningArea) => {
+  const openRecordModal = (area?: CleaningArea) => {
+    setEditingRecord(null);
     setRecordForm({
-      cleaningAreaId: area.id.toString(),
-      method: area.method || '',
-      chemicals: area.chemicals || '',
+      cleaningAreaId: area ? area.id.toString() : (areas[0]?.id?.toString() || ''),
+      method: area?.method || '',
+      chemicals: area?.chemicals || '',
       notes: '',
     });
-    // Set current datetime as default
-    setCleanedAtDateTime(dayjs().format('YYYY-MM-DDTHH:mm'));
+    setCleanedAtDate(dayjs().format('YYYY-MM-DD'));
+    setCleanedAtTime(dayjs().format('HH:mm'));
+    setSelectedUserId('');
     setIsRecordModalOpen(true);
   };
 
@@ -135,19 +139,35 @@ export default function Cleaning() {
 
   const handleRecordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanedAtISO = (cleanedAtDate && cleanedAtTime)
+      ? new Date(`${cleanedAtDate}T${cleanedAtTime}`).toISOString()
+      : undefined;
+
     try {
-      await api.createCleaningRecord({
-        cleaningAreaId: parseInt(recordForm.cleaningAreaId),
-        method: recordForm.method,
-        chemicals: recordForm.chemicals || undefined,
-        notes: recordForm.notes || undefined,
-        userId: selectedUserId || undefined, // Admin może wybrać operatora
-        cleanedAt: cleanedAtDateTime ? new Date(cleanedAtDateTime).toISOString() : undefined,
-      });
-      toast.success('Mycie zarejestrowane');
+      if (editingRecord) {
+        await api.updateCleaningRecord(editingRecord.id, {
+          method: recordForm.method,
+          chemicals: recordForm.chemicals || undefined,
+          notes: recordForm.notes || undefined,
+          cleanedAt: cleanedAtISO,
+        });
+        toast.success('Zapis zaktualizowany');
+      } else {
+        await api.createCleaningRecord({
+          cleaningAreaId: parseInt(recordForm.cleaningAreaId),
+          method: recordForm.method,
+          chemicals: recordForm.chemicals || undefined,
+          notes: recordForm.notes || undefined,
+          userId: selectedUserId || undefined,
+          cleanedAt: cleanedAtISO,
+        });
+        toast.success('Mycie zarejestrowane');
+      }
       setIsRecordModalOpen(false);
       setSelectedUserId('');
-      setCleanedAtDateTime('');
+      setCleanedAtDate('');
+      setCleanedAtTime('');
+      setEditingRecord(null);
       loadData();
     } catch (error) {
       toast.error('Błąd podczas zapisywania');
@@ -162,6 +182,20 @@ export default function Cleaning() {
       case 'AS_NEEDED': return 'W razie potrzeby';
       default: return freq;
     }
+  };
+
+  const openEditRecord = (record: CleaningRecord) => {
+    setEditingRecord(record);
+    setRecordForm({
+      cleaningAreaId: record.cleaningAreaId?.toString() || '',
+      method: record.method || '',
+      chemicals: record.chemicals || '',
+      notes: record.notes || '',
+    });
+    const cleanedAt = dayjs.utc(record.cleanedAt).local();
+    setCleanedAtDate(cleanedAt.format('YYYY-MM-DD'));
+    setCleanedAtTime(cleanedAt.format('HH:mm'));
+    setIsRecordModalOpen(true);
   };
 
   const getFrequencyColor = (freq: string) => {
@@ -313,6 +347,13 @@ export default function Cleaning() {
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
                           <button
+                            onClick={() => openEditRecord(record)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                            title="Edytuj"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => handleVerifyRecord(record)}
                             className={`p-1.5 rounded ${record.isVerified ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
                             title={record.isVerified ? 'Cofnij weryfikację' : 'Zweryfikuj'}
@@ -425,12 +466,14 @@ export default function Cleaning() {
       {isRecordModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setIsRecordModalOpen(false)}></div>
+            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => { setIsRecordModalOpen(false); setEditingRecord(null); }}></div>
             <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Rejestruj mycie</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                {editingRecord ? 'Edytuj zapis mycia' : 'Rejestruj mycie'}
+              </h2>
               <form onSubmit={handleRecordSubmit} className="space-y-4">
-                {/* Wybór operatora - tylko dla admina */}
-                {isAdmin && users.length > 0 && (
+                {/* Wybór operatora - tylko dla admina przy nowym wpisie */}
+                {!editingRecord && isAdmin && users.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Operator</label>
                     <select
@@ -446,30 +489,44 @@ export default function Cleaning() {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Data i godzina mycia</label>
-                  <input
-                    type="datetime-local"
-                    className="input"
-                    value={cleanedAtDateTime}
-                    onChange={(e) => setCleanedAtDateTime(e.target.value)}
-                    max={dayjs().format('YYYY-MM-DDTHH:mm')}
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Data mycia</label>
+                    <input
+                      type="date"
+                      className="input"
+                      value={cleanedAtDate}
+                      onChange={(e) => setCleanedAtDate(e.target.value)}
+                      max={dayjs().format('YYYY-MM-DD')}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Godzina</label>
+                    <input
+                      type="time"
+                      className="input"
+                      value={cleanedAtTime}
+                      onChange={(e) => setCleanedAtTime(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Strefa</label>
-                  <select
-                    className="input"
-                    value={recordForm.cleaningAreaId}
-                    onChange={(e) => setRecordForm({ ...recordForm, cleaningAreaId: e.target.value })}
-                  >
-                    {areas.map((a) => (
-                      <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                  </select>
-                </div>
+                {!editingRecord && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Strefa</label>
+                    <select
+                      className="input"
+                      value={recordForm.cleaningAreaId}
+                      onChange={(e) => setRecordForm({ ...recordForm, cleaningAreaId: e.target.value })}
+                    >
+                      {areas.map((a) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Metoda</label>
                   <input
@@ -498,11 +555,11 @@ export default function Cleaning() {
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <button type="button" onClick={() => setIsRecordModalOpen(false)} className="flex-1 btn-secondary">
+                  <button type="button" onClick={() => { setIsRecordModalOpen(false); setEditingRecord(null); }} className="flex-1 btn-secondary">
                     Anuluj
                   </button>
                   <button type="submit" className="flex-1 btn-primary">
-                    Potwierdź mycie
+                    {editingRecord ? 'Zapisz zmiany' : 'Potwierdź mycie'}
                   </button>
                 </div>
               </form>

@@ -110,10 +110,16 @@ router.post('/records', authenticateToken, async (req: AuthRequest, res: Respons
 // PUT /api/cleaning/records/:id - Admin może edytować
 router.put('/records/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { method, chemicals, isVerified, notes } = req.body;
+    const { method, chemicals, isVerified, notes, cleanedAt } = req.body;
     const record = await req.prisma.cleaningRecord.update({
       where: { id: parseInt(req.params.id) },
-      data: { method, chemicals, isVerified, notes },
+      data: { 
+        method, 
+        chemicals, 
+        isVerified, 
+        notes,
+        cleanedAt: cleanedAt ? new Date(cleanedAt) : undefined,
+      },
       include: {
         cleaningArea: true,
         user: { select: { name: true } },

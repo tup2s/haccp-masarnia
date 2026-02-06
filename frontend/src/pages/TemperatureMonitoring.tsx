@@ -19,12 +19,13 @@ export default function TemperatureMonitoring() {
   const [selectedPoint, setSelectedPoint] = useState<TemperaturePoint | null>(null);
   const [editingPoint, setEditingPoint] = useState<TemperaturePoint | null>(null);
   const [temperature, setTemperature] = useState('');
-  const [readingDateTime, setReadingDateTime] = useState('');
+  const [readingDate, setReadingDate] = useState('');
+  const [readingTime, setReadingTime] = useState('');
   const [notes, setNotes] = useState('');
   const [trends, setTrends] = useState<any[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
-  
+  const [editingReading, setEditingReading] = useState<TemperatureReading | null>(null);  
   // Form state for point
   const [pointForm, setPointForm] = useState({
     name: '',
@@ -71,21 +72,43 @@ export default function TemperatureMonitoring() {
     e.preventDefault();
     if (!selectedPoint) return;
 
+    const readAtISO = (readingDate && readingTime) 
+      ? new Date(`${readingDate}T${readingTime}`).toISOString() 
+      : undefined;
+
     try {
-      await api.createTemperatureReading({
-        temperaturePointId: selectedPoint.id,
-        temperature: parseFloat(temperature),
-        notes: notes || undefined,
-        userId: selectedUserId || undefined, // Admin może wybrać operatora
-        readAt: readingDateTime ? new Date(readingDateTime).toISOString() : undefined,
-      });
-      toast.success('Pomiar zapisany');
+      if (editingReading) {
+        // Edycja istniejącego pomiaru
+        const temp = parseFloat(temperature);
+        const point = points.find(p => p.id === editingReading.temperaturePointId);
+        const isCompliant = point ? (temp >= point.minTemp && temp <= point.maxTemp) : true;
+        
+        await api.updateTemperatureReading(editingReading.id, {
+          temperature: temp,
+          notes: notes || undefined,
+          isCompliant,
+          readAt: readAtISO,
+        });
+        toast.success('Pomiar zaktualizowany');
+      } else {
+        // Nowy pomiar
+        await api.createTemperatureReading({
+          temperaturePointId: selectedPoint.id,
+          temperature: parseFloat(temperature),
+          notes: notes || undefined,
+          userId: selectedUserId || undefined,
+          readAt: readAtISO,
+        });
+        toast.success('Pomiar zapisany');
+      }
       setShowReadingModal(false);
       setTemperature('');
       setNotes('');
       setSelectedUserId('');
-      setReadingDateTime('');
+      setReadingDate('');
+      setReadingTime('');
       setSelectedPoint(null);
+      setEditingReading(null);
       loadData();
     } catch (error) {
       toast.error('Błąd zapisywania pomiaru');
@@ -93,28 +116,17 @@ export default function TemperatureMonitoring() {
   };
 
   const handleEditReading = async (reading: TemperatureReading) => {
-    const newTemp = prompt('Nowa temperatura (°C):', reading.temperature.toString());
-    if (newTemp === null) return;
+    const point = points.find(p => p.id === reading.temperaturePointId);
+    if (!point) return;
     
-    const temp = parseFloat(newTemp);
-    if (isNaN(temp)) {
-      toast.error('Nieprawidłowa temperatura');
-      return;
-    }
-
-    try {
-      const point = points.find(p => p.id === reading.temperaturePointId);
-      const isCompliant = point ? (temp >= point.minTemp && temp <= point.maxTemp) : reading.isCompliant;
-      
-      await api.updateTemperatureReading(reading.id, { 
-        temperature: temp,
-        isCompliant 
-      });
-      toast.success('Pomiar zaktualizowany');
-      loadData();
-    } catch (error) {
-      toast.error('Błąd aktualizacji pomiaru');
-    }
+    setEditingReading(reading);
+    setSelectedPoint(point);
+    setTemperature(reading.temperature.toString());
+    setNotes(reading.notes || '');
+    const readAt = dayjs.utc(reading.readAt).local();
+    setReadingDate(readAt.format('YYYY-MM-DD'));
+    setReadingTime(readAt.format('HH:mm'));
+    setShowReadingModal(true);
   };
 
   const handleDeleteReading = async (id: number) => {
@@ -202,8 +214,12 @@ export default function TemperatureMonitoring() {
   const openAddReading = (point: TemperaturePoint, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setSelectedPoint(point);
-    // Set current datetime as default
-    setReadingDateTime(dayjs().format('YYYY-MM-DDTHH:mm'));
+    setEditingReading(null);
+    setTemperature('');
+    setNotes('');
+    setSelectedUserId('');
+    setReadingDate(dayjs().format('YYYY-MM-DD'));
+    setReadingTime(dayjs().format('HH:mm'));
     setShowReadingModal(true);
   };
 
@@ -415,19 +431,19 @@ export default function TemperatureMonitoring() {
         </div>
       </div>
 
-      {/* Add Reading Modal */}
+      {/* Add/Edit Reading Modal */}
       {showReadingModal && selectedPoint && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Dodaj pomiar - {selectedPoint.name}
+                {editingReading ? 'Edytuj pomiar' : 'Dodaj pomiar'} - {selectedPoint.name}
               </h2>
               <p className="text-sm text-gray-500 mb-4">
                 Limity: {selectedPoint.minTemp}°C do {selectedPoint.maxTemp}°C
               </p>
               <form onSubmit={handleAddReading} className="space-y-4">
-                {isAdmin && users.length > 0 && (
+                {!editingReading && isAdmin && users.length > 0 && (
                   <div>
                     <label className="label">Operator</label>
                     <select
@@ -442,16 +458,28 @@ export default function TemperatureMonitoring() {
                     </select>
                   </div>
                 )}
-                <div>
-                  <label className="label">Data i godzina pomiaru</label>
-                  <input
-                    type="datetime-local"
-                    className="input"
-                    value={readingDateTime}
-                    onChange={(e) => setReadingDateTime(e.target.value)}
-                    max={dayjs().format('YYYY-MM-DDTHH:mm')}
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label">Data pomiaru</label>
+                    <input
+                      type="date"
+                      className="input"
+                      value={readingDate}
+                      onChange={(e) => setReadingDate(e.target.value)}
+                      max={dayjs().format('YYYY-MM-DD')}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Godzina</label>
+                    <input
+                      type="time"
+                      className="input"
+                      value={readingTime}
+                      onChange={(e) => setReadingTime(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="label">Temperatura (°C)</label>
@@ -480,13 +508,14 @@ export default function TemperatureMonitoring() {
                     onClick={() => {
                       setShowReadingModal(false);
                       setSelectedPoint(null);
+                      setEditingReading(null);
                     }}
                     className="btn-secondary flex-1"
                   >
                     Anuluj
                   </button>
                   <button type="submit" className="btn-primary flex-1">
-                    Zapisz pomiar
+                    {editingReading ? 'Zapisz zmiany' : 'Zapisz pomiar'}
                   </button>
                 </div>
               </form>

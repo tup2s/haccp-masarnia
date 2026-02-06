@@ -178,10 +178,15 @@ router.get('/trends', authenticateToken, async (req: AuthRequest, res: Response)
 // PUT /api/temperature/readings/:id - Admin może edytować odczyty
 router.put('/readings/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
-    const { temperature, notes, isCompliant } = req.body;
+    const { temperature, notes, isCompliant, readAt } = req.body;
     const reading = await req.prisma.temperatureReading.update({
       where: { id: parseInt(req.params.id) },
-      data: { temperature, notes, isCompliant },
+      data: { 
+        temperature, 
+        notes, 
+        isCompliant,
+        readAt: readAt ? new Date(readAt) : undefined,
+      },
       include: {
         temperaturePoint: true,
         user: { select: { name: true } },
