@@ -36,7 +36,6 @@ export default function Receptions() {
     notes: '',
     receivedDate: dayjs().format('YYYY-MM-DD'),
     receivedTime: '',
-    hdiNumber: '',
     vehicleClean: true,
     vehicleTemperature: '',
     packagingIntact: true,
@@ -81,7 +80,6 @@ export default function Receptions() {
       notes: '',
       receivedDate: dayjs().format('YYYY-MM-DD'),
       receivedTime: dayjs().format('HH:mm'),
-      hdiNumber: '',
       vehicleClean: true,
       vehicleTemperature: '',
       packagingIntact: true,
@@ -105,7 +103,6 @@ export default function Receptions() {
       notes: reception.notes || '',
       receivedDate: dayjs(reception.receivedAt).format('YYYY-MM-DD'),
       receivedTime: (reception as any).receivedTime || dayjs(reception.receivedAt).format('HH:mm'),
-      hdiNumber: (reception as any).hdiNumber || '',
       vehicleClean: (reception as any).vehicleClean ?? true,
       vehicleTemperature: (reception as any).vehicleTemperature?.toString() || '',
       packagingIntact: (reception as any).packagingIntact ?? true,
@@ -129,7 +126,6 @@ export default function Receptions() {
         notes: formData.notes || undefined,
         receivedDate: formData.receivedDate,
         receivedTime: formData.receivedTime || undefined,
-        hdiNumber: formData.hdiNumber || undefined,
         vehicleClean: formData.vehicleClean,
         vehicleTemperature: formData.vehicleTemperature ? parseFloat(formData.vehicleTemperature) : undefined,
         packagingIntact: formData.packagingIntact,
@@ -194,7 +190,6 @@ export default function Receptions() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dostawca</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ilość</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr partii</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr HDI</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temp.</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 {isAdmin && <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Akcje</th>}
@@ -217,9 +212,6 @@ export default function Receptions() {
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
                     {reception.batchNumber}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {(reception as any).hdiNumber || '-'}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {reception.temperature ? `${reception.temperature}°C` : '-'}
@@ -376,16 +368,6 @@ export default function Receptions() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nr HDI</label>
-                    <input
-                      type="text"
-                      className="input"
-                      placeholder="Numer dokumentu HDI"
-                      value={formData.hdiNumber}
-                      onChange={(e) => setFormData({ ...formData, hdiNumber: e.target.value })}
-                    />
-                  </div>
-                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Data ważności *</label>
                     <input
                       type="date"
@@ -395,18 +377,17 @@ export default function Receptions() {
                       onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Temp. pojazdu (°C)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className="input"
-                    placeholder="np. 2.5"
-                    value={formData.vehicleTemperature}
-                    onChange={(e) => setFormData({ ...formData, vehicleTemperature: e.target.value })}
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Temp. pojazdu (°C)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="input"
+                      placeholder="np. 2.5"
+                      value={formData.vehicleTemperature}
+                      onChange={(e) => setFormData({ ...formData, vehicleTemperature: e.target.value })}
+                    />
+                  </div>
                 </div>
 
                 {/* Kontrola dostawy */}

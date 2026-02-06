@@ -148,7 +148,6 @@ model RawMaterialReception {
   isCompliant        Boolean         @default(true)
   notes              String?
   documentNumber     String?
-  hdiNumber          String?
   receivedAt         DateTime        @default(now())
   receivedTime       String?
   vehicleClean       Boolean?        @default(true)
