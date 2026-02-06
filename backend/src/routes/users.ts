@@ -18,7 +18,7 @@ router.get('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: R
       orderBy: { createdAt: 'desc' },
     });
     // Map email to login for frontend
-    const mappedUsers = users.map(u => ({ ...u, login: u.email }));
+    const mappedUsers = users.map((u: any) => ({ ...u, login: u.email }));
     res.json(mappedUsers);
   } catch (error) {
     res.status(500).json({ error: 'Błąd pobierania użytkowników' });
