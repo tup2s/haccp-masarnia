@@ -255,7 +255,7 @@ export default function Trainings() {
                           onChange={() => toggleParticipant(user.id)}
                         />
                         <span className="text-sm">{user.name}</span>
-                        <span className="text-xs text-gray-400">({user.email})</span>
+                        <span className="text-xs text-gray-400">({user.login})</span>
                       </label>
                     ))}
                   </div>

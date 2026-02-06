@@ -23,7 +23,7 @@ interface CompanySettings {
 interface Employee {
   id: number;
   name: string;
-  email: string;
+  login: string;
   role: string;
   createdAt?: string;
 }
@@ -259,7 +259,7 @@ export default function Settings() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{employee.name}</p>
-                    <p className="text-sm text-gray-500">{employee.email}</p>
+                    <p className="text-sm text-gray-500">{employee.login}</p>
                   </div>
                 </div>
                 <span className={`px-2 py-1 text-xs font-medium rounded ${getRoleBadge(employee.role)}`}>
@@ -399,7 +399,7 @@ export default function Settings() {
               </div>
               <div>
                 <p className="font-semibold text-gray-900">{user?.name}</p>
-                <p className="text-gray-500">{user?.email}</p>
+                <p className="text-gray-500">{user?.login}</p>
                 <span className={`inline-flex px-2 py-0.5 mt-1 text-xs font-medium rounded ${
                   user?.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
                   user?.role === 'MANAGER' ? 'bg-blue-100 text-blue-800' :
