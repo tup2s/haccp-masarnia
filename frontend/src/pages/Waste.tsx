@@ -52,12 +52,6 @@ interface WasteRecord {
   collector: WasteCollector | null;
 }
 
-const WASTE_CATEGORIES = [
-  { value: 'KATEGORIA_1', label: 'Kategoria 1 (SRM)', color: 'bg-red-100 text-red-800', description: 'Materiał szczególnego ryzyka' },
-  { value: 'KATEGORIA_2', label: 'Kategoria 2', color: 'bg-orange-100 text-orange-800', description: 'Obornik, treść przewodu pokarmowego' },
-  { value: 'KATEGORIA_3', label: 'Kategoria 3', color: 'bg-green-100 text-green-800', description: 'Odpady porozbiorowe, kości, tłuszcz' },
-];
-
 export default function Waste() {
   const [records, setRecords] = useState<WasteRecord[]>([]);
   const [wasteTypes, setWasteTypes] = useState<WasteType[]>([]);
@@ -73,7 +67,6 @@ export default function Waste() {
   const [editingType, setEditingType] = useState<WasteType | null>(null);
   const [editingCollector, setEditingCollector] = useState<WasteCollector | null>(null);
   
-  const [filterCategory, setFilterCategory] = useState('');
   const [filterCollector, setFilterCollector] = useState('');
 
   const [recordFormData, setRecordFormData] = useState({
@@ -91,7 +84,7 @@ export default function Waste() {
   const [typeFormData, setTypeFormData] = useState({
     name: '',
     category: 'KATEGORIA_3',
-    code: '',
+    code: '02 02 02',
     description: '',
     unit: 'kg',
   });
@@ -294,16 +287,7 @@ export default function Waste() {
     });
   };
 
-  const getCategoryColor = (category: string) => {
-    return WASTE_CATEGORIES.find(c => c.value === category)?.color || 'bg-gray-100 text-gray-800';
-  };
-
-  const getCategoryLabel = (category: string) => {
-    return WASTE_CATEGORIES.find(c => c.value === category)?.label || category;
-  };
-
   const filteredRecords = records.filter(record => {
-    if (filterCategory && record.wasteType.category !== filterCategory) return false;
     if (filterCollector && record.collectorId?.toString() !== filterCollector) return false;
     return true;
   });
@@ -313,10 +297,13 @@ export default function Waste() {
 
   // Statystyki
   const totalQuantity = records.reduce((sum, r) => sum + r.quantity, 0);
-  const categoryStats = WASTE_CATEGORIES.map(cat => ({
-    ...cat,
-    quantity: records.filter(r => r.wasteType.category === cat.value).reduce((sum, r) => sum + r.quantity, 0)
-  }));
+  const thisMonthRecords = records.filter(r => {
+    const date = new Date(r.collectionDate);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  });
+  const thisMonthQuantity = thisMonthRecords.reduce((sum, r) => sum + r.quantity, 0);
+  const collectionsCount = records.length;
 
   if (loading) {
     return (
@@ -331,7 +318,7 @@ export default function Waste() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Ewidencja odpadów</h1>
-          <p className="text-gray-600">Odpady porozbiorowe i poprodukcyjne</p>
+          <p className="text-gray-600">Odpady porozbiorowe i poprodukcyjne (Kategoria 3)</p>
         </div>
       </div>
 
@@ -339,8 +326,8 @@ export default function Waste() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <ScaleIcon className="h-6 w-6 text-gray-600" />
+            <div className="p-2 bg-green-100 rounded-lg">
+              <ScaleIcon className="h-6 w-6 text-green-600" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Łącznie</p>
@@ -348,19 +335,39 @@ export default function Waste() {
             </div>
           </div>
         </div>
-        {categoryStats.map(cat => (
-          <div key={cat.value} className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${cat.color.replace('text-', 'bg-').replace('-800', '-200')}`}>
-                <ArchiveBoxXMarkIcon className={`h-6 w-6 ${cat.color.split(' ')[1]}`} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">{cat.label.split(' ')[0]} {cat.label.split(' ')[1]}</p>
-                <p className="text-xl font-bold text-gray-900">{cat.quantity.toFixed(0)} kg</p>
-              </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <ArchiveBoxXMarkIcon className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Ten miesiąc</p>
+              <p className="text-2xl font-bold text-gray-900">{thisMonthQuantity.toFixed(0)} kg</p>
             </div>
           </div>
-        ))}
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <TruckIcon className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Liczba odbiorów</p>
+              <p className="text-2xl font-bold text-gray-900">{collectionsCount}</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <BuildingOfficeIcon className="h-6 w-6 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Firmy odbierające</p>
+              <p className="text-2xl font-bold text-gray-900">{activeCollectors.length}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -408,16 +415,6 @@ export default function Waste() {
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex flex-wrap gap-2 items-center">
               <FunnelIcon className="h-5 w-5 text-gray-400" />
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="rounded-md border-gray-300 text-sm"
-              >
-                <option value="">Wszystkie kategorie</option>
-                {WASTE_CATEGORIES.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
-                ))}
-              </select>
               <select
                 value={filterCollector}
                 onChange={(e) => setFilterCollector(e.target.value)}
@@ -468,8 +465,8 @@ export default function Waste() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <p className="text-sm font-medium text-gray-900">{record.wasteType.name}</p>
-                            <span className={`inline-block px-2 py-0.5 text-xs rounded-full mt-1 ${getCategoryColor(record.wasteType.category)}`}>
-                              {getCategoryLabel(record.wasteType.category)}
+                            <span className="inline-block px-2 py-0.5 text-xs rounded-full mt-1 bg-green-100 text-green-800">
+                              Kategoria 3
                             </span>
                           </div>
                         </td>
@@ -529,8 +526,8 @@ export default function Waste() {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="font-medium text-gray-900">{type.name}</h3>
-                    <span className={`inline-block px-2 py-0.5 text-xs rounded-full mt-1 ${getCategoryColor(type.category)}`}>
-                      {getCategoryLabel(type.category)}
+                    <span className="inline-block px-2 py-0.5 text-xs rounded-full mt-1 bg-green-100 text-green-800">
+                      Kategoria 3
                     </span>
                   </div>
                   <div className="flex gap-1">
@@ -619,7 +616,7 @@ export default function Waste() {
                     <option value="">Wybierz rodzaj</option>
                     {activeTypes.map((type) => (
                       <option key={type.id} value={type.id}>
-                        {type.name} ({getCategoryLabel(type.category)})
+                        {type.name}
                       </option>
                     ))}
                   </select>
@@ -752,17 +749,10 @@ export default function Waste() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Kategoria *</label>
-                  <select
-                    value={typeFormData.category}
-                    onChange={(e) => setTypeFormData({ ...typeFormData, category: e.target.value })}
-                    className="w-full rounded-md border-gray-300"
-                    required
-                  >
-                    {WASTE_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value}>{cat.label} - {cat.description}</option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Kategoria</label>
+                  <div className="px-3 py-2 bg-green-50 border border-green-200 rounded-md text-green-800">
+                    Kategoria 3 - Odpady porozbiorowe i poprodukcyjne
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

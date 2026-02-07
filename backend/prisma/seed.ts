@@ -708,23 +708,21 @@ async function main() {
   console.log('✅ Typy badań laboratoryjnych utworzone');
 
   // ============================================
-  // TYPY ODPADÓW
+  // TYPY ODPADÓW (tylko Kategoria 3)
   // ============================================
   const wasteTypesCount = await prisma.wasteType.count();
   if (wasteTypesCount === 0) {
     await prisma.wasteType.createMany({
       data: [
-        // Kategoria 3 - odpady porozbiorowe
+        // Kategoria 3 - odpady porozbiorowe i poprodukcyjne
         { name: 'Kości', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Kości z rozbioru mięsa' },
         { name: 'Tłuszcz techniczny', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Tłuszcz nieprzeznaczony do spożycia' },
         { name: 'Ścięgna i chrząstki', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Tkanka łączna' },
         { name: 'Skóry wieprzowe', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Skóry z rozbioru' },
         { name: 'Odpady poprodukcyjne', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Odpady z produkcji wędlin' },
         { name: 'Przeterminowane produkty', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Produkty po terminie przydatności' },
-        // Kategoria 2
-        { name: 'Treść przewodu pokarmowego', category: 'KATEGORIA_2', code: '02 02 02', unit: 'kg', description: 'Treść żołądka i jelit' },
-        // Kategoria 1 - SRM (zazwyczaj nie dotyczy masarni, ale na wszelki wypadek)
-        { name: 'Materiał SRM', category: 'KATEGORIA_1', code: '02 01 02', unit: 'kg', description: 'Materiał szczególnego ryzyka (jeśli dotyczy)' },
+        { name: 'Okrawki mięsne', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Okrawki i skrawki mięsa' },
+        { name: 'Osłonki naturalne', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Zużyte osłonki naturalne' },
       ],
     });
   }

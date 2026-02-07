@@ -27,14 +27,14 @@ trap cleanup SIGINT SIGTERM
 
 # Uruchom backend
 echo "🚀 Uruchamianie backendu..."
-cd /home/tup2s/Desktop/HACCP/backend
+cd "$(dirname "$0")/backend"
 npm run dev &
 BACKEND_PID=$!
 sleep 3
 
 # Uruchom frontend
 echo "🎨 Uruchamianie frontendu..."
-cd /home/tup2s/Desktop/HACCP/frontend
+cd "$(dirname "$0")/frontend"
 npm run dev &
 FRONTEND_PID=$!
 
