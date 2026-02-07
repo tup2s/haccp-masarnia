@@ -17,11 +17,9 @@ const DEFAULT_BRINE_RATIOS = {
   sugar: 0.2,   // 0.67% od wody
 };
 
-// Typ dla dodatków do peklowania
+// Typ dla partii dodatków do peklowania (tylko nr partii, ilości są w sekcji solanki)
 interface CuringMaterial {
   materialReceiptId?: number;
-  quantity: number;
-  unit: string;
   // Ręczny wpis
   manualEntry?: boolean;
   manualName?: string;
@@ -57,8 +55,6 @@ export default function Curing() {
   const [manualEntryData, setManualEntryData] = useState({
     name: '',
     batchNumber: '',
-    quantity: '',
-    unit: 'kg',
   });
 
   const [formData, setFormData] = useState({
@@ -138,7 +134,7 @@ export default function Curing() {
   const addCuringMaterial = () => {
     setFormData({
       ...formData,
-      materials: [...formData.materials, { materialReceiptId: 0, quantity: 0, unit: 'kg' }],
+      materials: [...formData.materials, { materialReceiptId: 0 }],
     });
   };
 
@@ -172,7 +168,7 @@ export default function Curing() {
   // Otwórz modal ręcznego wpisu
   const openManualEntry = (index: number) => {
     setManualEntryModal(index);
-    setManualEntryData({ name: '', batchNumber: '', quantity: '', unit: 'kg' });
+    setManualEntryData({ name: '', batchNumber: '' });
   };
 
   // Zatwierdź ręczny wpis
@@ -184,8 +180,6 @@ export default function Curing() {
       manualEntry: true,
       manualName: manualEntryData.name,
       manualBatchNumber: manualEntryData.batchNumber,
-      quantity: parseFloat(manualEntryData.quantity) || 0,
-      unit: manualEntryData.unit,
     };
     
     setFormData({ ...formData, materials: newMaterials });
@@ -290,23 +284,23 @@ export default function Curing() {
     try {
       const startDateTime = dayjs(`${formData.startDate} ${formData.startTime}`).toISOString();
       
-      // Buduj notatkę z dodatkami
+      // Buduj notatkę z partiami użytych dodatków
       let notesText = formData.notes || '';
       if (formData.materials.length > 0) {
         const materialsText = formData.materials.map(mat => {
           if (mat.manualEntry) {
-            return `[Dodatek ręczny] ${mat.manualName} - ${mat.manualBatchNumber}: ${mat.quantity} ${mat.unit}`;
+            return `[Partia] ${mat.manualName}: ${mat.manualBatchNumber}`;
           } else if (mat.materialReceiptId) {
             const item = availableMaterials.find(m => m.id === mat.materialReceiptId);
             return item 
-              ? `[Dodatek] ${item.material?.name} - ${item.batchNumber}: ${mat.quantity} ${mat.unit}`
-              : `[Dodatek ID:${mat.materialReceiptId}]: ${mat.quantity} ${mat.unit}`;
+              ? `[Partia] ${item.material?.name}: ${item.batchNumber}`
+              : '';
           }
           return '';
         }).filter(Boolean).join('\n');
         
         if (materialsText) {
-          notesText = notesText ? `${notesText}\n\n--- Użyte dodatki ---\n${materialsText}` : `--- Użyte dodatki ---\n${materialsText}`;
+          notesText = notesText ? `${notesText}\n\n--- Partie użytych dodatków ---\n${materialsText}` : `--- Partie użytych dodatków ---\n${materialsText}`;
         }
       }
       
@@ -838,10 +832,13 @@ export default function Curing() {
                   </div>
                 </div>
 
-                {/* Sekcja użytych dodatków */}
+                {/* Sekcja partii użytych dodatków */}
                 <div className="bg-green-50 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-green-900">🌿 Użyte dodatki do peklowania</h4>
+                    <div>
+                      <h4 className="font-medium text-green-900">🌿 Partie użytych dodatków</h4>
+                      <p className="text-xs text-green-700">Ilości powyżej, tutaj tylko nr partii do śledzenia</p>
+                    </div>
                     <button
                       type="button"
                       onClick={addCuringMaterial}
@@ -868,29 +865,10 @@ export default function Curing() {
                             type="button"
                             onClick={() => openManualEntry(idx)}
                             className="p-2 text-green-600 hover:bg-green-100 rounded"
-                            title="Wpisz ręcznie"
+                            title="Wpisz ręcznie partię"
                           >
                             ✏️
                           </button>
-                          <input
-                            type="number"
-                            step="0.01"
-                            placeholder="Ilość"
-                            className="w-20 px-2 py-2 border rounded-lg text-sm"
-                            value={mat.quantity || ''}
-                            onChange={(e) => updateCuringMaterial(idx, 'quantity', parseFloat(e.target.value) || 0)}
-                          />
-                          <select
-                            className="w-16 px-2 py-2 border rounded-lg text-sm"
-                            value={mat.unit}
-                            onChange={(e) => updateCuringMaterial(idx, 'unit', e.target.value)}
-                          >
-                            <option value="kg">kg</option>
-                            <option value="g">g</option>
-                            <option value="L">L</option>
-                            <option value="ml">ml</option>
-                            <option value="szt">szt</option>
-                          </select>
                           <button
                             type="button"
                             onClick={() => removeCuringMaterial(idx)}
@@ -1247,33 +1225,6 @@ export default function Curing() {
                     onChange={(e) => setManualEntryData({ ...manualEntryData, batchNumber: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ilość *</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="input"
-                      placeholder="0.5"
-                      value={manualEntryData.quantity}
-                      onChange={(e) => setManualEntryData({ ...manualEntryData, quantity: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Jednostka</label>
-                    <select
-                      className="input"
-                      value={manualEntryData.unit}
-                      onChange={(e) => setManualEntryData({ ...manualEntryData, unit: e.target.value })}
-                    >
-                      <option value="kg">kg</option>
-                      <option value="g">g</option>
-                      <option value="L">L</option>
-                      <option value="ml">ml</option>
-                      <option value="szt">szt</option>
-                    </select>
-                  </div>
-                </div>
               </div>
               
               <div className="flex gap-3 mt-6">
@@ -1287,7 +1238,7 @@ export default function Curing() {
                 <button
                   type="button"
                   onClick={handleManualEntry}
-                  disabled={!manualEntryData.name || !manualEntryData.batchNumber || !manualEntryData.quantity}
+                  disabled={!manualEntryData.name || !manualEntryData.batchNumber}
                   className="flex-1 btn-primary disabled:opacity-50"
                 >
                   Dodaj
