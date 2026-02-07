@@ -56,7 +56,7 @@ export default function Production() {
 
   // Modal dodawania nowego materiału "od ręki"
   const [manualEntryModal, setManualEntryModal] = useState<{
-    type: 'reception' | 'curing';
+    type: 'reception' | 'curing' | 'material';
     index: number;
   } | null>(null);
   const [manualEntryData, setManualEntryData] = useState({
@@ -76,7 +76,7 @@ export default function Production() {
     unit: string;
     // Dla ręcznych wpisów
     manualEntry?: boolean;
-    manualType?: 'reception' | 'curing';
+    manualType?: 'reception' | 'curing' | 'material';
     manualName?: string;
     manualBatchNumber?: string;
   }
@@ -213,7 +213,7 @@ export default function Production() {
   const getSelectedItemName = (mat: MaterialEntry): string => {
     // Ręczny wpis
     if (mat.manualEntry) {
-      const icon = mat.manualType === 'curing' ? '🧂' : '🥩';
+      const icon = mat.manualType === 'curing' ? '🧂' : mat.manualType === 'material' ? '🌿' : '🥩';
       return `${icon} ${mat.manualName} - ${mat.manualBatchNumber} (ręczny)`;
     }
     if (mat.curingBatchId && mat.curingBatchId > 0) {
@@ -230,7 +230,7 @@ export default function Production() {
   };
 
   // Otwórz modal ręcznego dodawania
-  const openManualEntryModal = (type: 'reception' | 'curing', index: number) => {
+  const openManualEntryModal = (type: 'reception' | 'curing' | 'material', index: number) => {
     setManualEntryModal({ type, index });
     setManualEntryData({ name: '', batchNumber: '', quantity: '', unit: 'kg' });
   };
@@ -808,9 +808,13 @@ export default function Production() {
                       <div key={index} className="flex gap-2 mb-2 items-center">
                         {/* Ręczny wpis */}
                         {mat.manualEntry ? (
-                          <div className={`input flex-1 ${mat.manualType === 'curing' ? 'border-purple-300 bg-purple-50' : 'border-orange-300 bg-orange-50'} flex items-center gap-2`}>
+                          <div className={`input flex-1 ${
+                            mat.manualType === 'curing' ? 'border-purple-300 bg-purple-50' : 
+                            mat.manualType === 'material' ? 'border-green-300 bg-green-50' : 
+                            'border-orange-300 bg-orange-50'
+                          } flex items-center gap-2`}>
                             <span className="text-sm">
-                              {mat.manualType === 'curing' ? '🧂' : '🥩'} {mat.manualName} - {mat.manualBatchNumber}
+                              {mat.manualType === 'curing' ? '🧂' : mat.manualType === 'material' ? '🌿' : '🥩'} {mat.manualName} - {mat.manualBatchNumber}
                             </span>
                             <span className="text-xs text-gray-500">(ręczny)</span>
                           </div>
@@ -837,17 +841,27 @@ export default function Production() {
                             </button>
                           </div>
                         ) : mat.materialReceiptId !== undefined ? (
-                          // Zwykły materiał - przycisk otwierający modal
-                          <button
-                            type="button"
-                            onClick={() => openSelectModal('material', index)}
-                            className="input flex-1 border-green-300 bg-green-50 text-left hover:bg-green-100 transition-colors flex items-center justify-between"
-                          >
-                            <span className={mat.materialReceiptId > 0 ? 'text-gray-900' : 'text-gray-400'}>
-                              {getSelectedItemName(mat)}
-                            </span>
-                            <MagnifyingGlassIcon className="w-4 h-4 text-green-400" />
-                          </button>
+                          // Zwykły materiał/dodatek - przycisk otwierający modal lub ręczny wpis
+                          <div className="flex flex-1 gap-1">
+                            <button
+                              type="button"
+                              onClick={() => openSelectModal('material', index)}
+                              className="input flex-1 border-green-300 bg-green-50 text-left hover:bg-green-100 transition-colors flex items-center justify-between"
+                            >
+                              <span className={mat.materialReceiptId > 0 ? 'text-gray-900' : 'text-gray-400'}>
+                                {getSelectedItemName(mat)}
+                              </span>
+                              <MagnifyingGlassIcon className="w-4 h-4 text-green-400" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openManualEntryModal('material', index)}
+                              className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                              title="Wpisz ręcznie"
+                            >
+                              ✏️
+                            </button>
+                          </div>
                         ) : (
                           // Zwykły surowiec - przycisk otwierający modal lub ręczny wpis
                           <div className="flex flex-1 gap-1">
@@ -1008,21 +1022,27 @@ export default function Production() {
             <div className="fixed inset-0 bg-black bg-opacity-40" onClick={() => setManualEntryModal(null)}></div>
             <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                {manualEntryModal.type === 'curing' ? '🧂 Dodaj produkt peklowany' : '🥩 Dodaj surowiec'} (ręcznie)
+                {manualEntryModal.type === 'curing' ? '🧂 Dodaj produkt peklowany' : 
+                 manualEntryModal.type === 'material' ? '🌿 Dodaj dodatek/materiał' : 
+                 '🥩 Dodaj surowiec'} (ręcznie)
               </h2>
               <p className="text-sm text-gray-500 mb-4">
-                Wpisz dane surowca który nie był wcześniej wprowadzony do systemu. 
+                Wpisz dane {manualEntryModal.type === 'material' ? 'dodatku' : 'surowca'} który nie był wcześniej wprowadzony do systemu. 
                 Jeśli numer partii już istnieje - zostanie użyty z magazynu.
               </p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nazwa {manualEntryModal.type === 'curing' ? 'produktu peklowanego' : 'surowca'} *
+                    Nazwa {manualEntryModal.type === 'curing' ? 'produktu peklowanego' : 
+                           manualEntryModal.type === 'material' ? 'dodatku/materiału' : 
+                           'surowca'} *
                   </label>
                   <input
                     type="text"
                     className="input"
-                    placeholder={manualEntryModal.type === 'curing' ? 'np. Boczek peklowany' : 'np. Łopatka wieprzowa'}
+                    placeholder={manualEntryModal.type === 'curing' ? 'np. Boczek peklowany' : 
+                                 manualEntryModal.type === 'material' ? 'np. Przyprawa do kiełbasy' : 
+                                 'np. Łopatka wieprzowa'}
                     value={manualEntryData.name}
                     onChange={(e) => setManualEntryData({ ...manualEntryData, name: e.target.value })}
                     autoFocus

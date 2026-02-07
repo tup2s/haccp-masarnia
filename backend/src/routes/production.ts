@@ -183,9 +183,11 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
     const manualMaterials = materials?.filter((m: any) => m.manualEntry) || [];
     let notesWithManual = notes || '';
     if (manualMaterials.length > 0) {
-      const manualInfo = manualMaterials.map((m: any) => 
-        `${m.manualType === 'curing' ? 'Peklowany' : 'Surowiec'}: ${m.manualName} (${m.manualBatchNumber}) - ${m.quantity} ${m.unit}`
-      ).join('; ');
+      const manualInfo = manualMaterials.map((m: any) => {
+        const typeLabel = m.manualType === 'curing' ? 'Peklowany' : 
+                          m.manualType === 'material' ? 'Dodatek' : 'Surowiec';
+        return `${typeLabel}: ${m.manualName} (${m.manualBatchNumber}) - ${m.quantity} ${m.unit}`;
+      }).join('; ');
       notesWithManual = notesWithManual 
         ? `${notesWithManual}\n[Ręczne wpisy: ${manualInfo}]`
         : `[Ręczne wpisy: ${manualInfo}]`;
