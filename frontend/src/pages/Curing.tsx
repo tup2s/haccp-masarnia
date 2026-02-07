@@ -82,10 +82,9 @@ export default function Curing() {
 
   useEffect(() => {
     loadData();
-    if (isAdmin) {
-      loadUsers();
-    }
-  }, [isAdmin]);
+    // Zawsze ładuj użytkowników - sprawdzenie roli jest przy wyświetlaniu
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
     try {

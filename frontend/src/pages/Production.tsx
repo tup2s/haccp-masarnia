@@ -94,10 +94,9 @@ export default function Production() {
 
   useEffect(() => {
     Promise.all([loadBatches(), loadProducts(), loadReceptions(), loadCuringBatches(), loadAvailableMaterials()]);
-    if (isAdmin) {
-      loadUsers();
-    }
-  }, [isAdmin]);
+    // Zawsze ładuj użytkowników - sprawdzenie roli jest przy wyświetlaniu
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
     try {

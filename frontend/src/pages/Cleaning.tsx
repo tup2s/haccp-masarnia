@@ -38,10 +38,9 @@ export default function Cleaning() {
 
   useEffect(() => {
     loadData();
-    if (isAdmin) {
-      loadUsers();
-    }
-  }, [isAdmin]);
+    // Zawsze ładuj użytkowników - sprawdzenie roli jest przy wyświetlaniu
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
     try {
