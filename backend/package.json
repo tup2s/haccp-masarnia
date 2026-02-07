@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && prisma generate",
-    "start": "npx prisma migrate deploy && node dist/index.js",
+    "start": "npx prisma migrate resolve --applied 20260201142041_add_required_temperature_to_products || true && npx prisma migrate resolve --applied 20260201144421_add_materials_and_temperature || true && npx prisma migrate resolve --applied 20260207100000_add_lab_tests_and_waste || true && npx prisma migrate deploy && node dist/index.js",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
