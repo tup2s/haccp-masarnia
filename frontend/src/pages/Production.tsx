@@ -100,7 +100,9 @@ export default function Production() {
 
   const loadUsers = async () => {
     try {
+      console.log('loadUsers() wywołane, isAdmin:', isAdmin);
       const data = await api.getUsers();
+      console.log('Załadowano użytkowników:', data.length);
       setUsers(data);
     } catch (error) {
       console.error('Error loading users:', error);
