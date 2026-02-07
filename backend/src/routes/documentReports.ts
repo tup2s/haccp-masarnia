@@ -707,7 +707,7 @@ router.get('/templates/temperature-weekly', async (req: Request, res: Response) 
           <tr>
             <th rowspan="2" style="width: 25%;">Punkt pomiaru</th>
             <th rowspan="2" style="width: 10%;">Norma (°C)</th>
-            <th colspan="7">Temperatura (°C) - rano / wieczór</th>
+            <th colspan="7">Temperatura (°C) - godz. / wartość</th>
           </tr>
           <tr>
             ${days.map(d => `<th style="width: 9%;">${d}</th>`).join('')}
@@ -721,7 +721,7 @@ router.get('/templates/temperature-weekly', async (req: Request, res: Response) 
         <tr>
           <td style="text-align: left; font-size: 9px;">${point.name}</td>
           <td>${point.minTemp} - ${point.maxTemp}</td>
-          ${days.map(() => `<td style="font-size: 8px;"><br>/<br></td>`).join('')}
+          ${days.map(() => `<td style="font-size: 8px; min-height: 40px;"><br><br></td>`).join('')}
         </tr>
       `;
     }
@@ -731,7 +731,7 @@ router.get('/templates/temperature-weekly', async (req: Request, res: Response) 
       </table>
       
       <div style="margin-top: 10px; font-size: 9px;">
-        <strong>Legenda:</strong> Wpisać temperaturę rano (góra) i wieczorem (dół). 
+        <strong>Legenda:</strong> Wpisać godzinę i temperaturę (np. 08:00 = 4.5°C). Można wpisać wiele pomiarów dziennie. 
         Przy przekroczeniu normy - zaznaczyć kolorem i podjąć działania korygujące.
       </div>
       
@@ -930,14 +930,15 @@ router.get('/templates/production-daily', async (req: Request, res: Response) =>
         <thead>
           <tr>
             <th style="width: 10%;">Nr partii</th>
-            <th style="width: 18%;">Nazwa produktu</th>
-            <th style="width: 10%;">Ilość (kg)</th>
-            <th style="width: 15%;">Surowce (nr partii)</th>
-            <th style="width: 8%;">Temp. obróbki</th>
-            <th style="width: 8%;">Czas (min)</th>
-            <th style="width: 8%;">Temp. wewn.</th>
+            <th style="width: 15%;">Nazwa produktu</th>
+            <th style="width: 8%;">Ilość (kg)</th>
+            <th style="width: 14%;">Surowce (nr partii)</th>
+            <th style="width: 8%;">Godz. start</th>
+            <th style="width: 8%;">Godz. koniec</th>
+            <th style="width: 9%;">Temp. wewn.</th>
             <th style="width: 10%;">Wykonał</th>
-            <th style="width: 13%;">Podpis</th>
+            <th style="width: 8%;">CCP1</th>
+            <th style="width: 10%;">Podpis</th>
           </tr>
         </thead>
         <tbody>
@@ -956,6 +957,7 @@ router.get('/templates/production-daily', async (req: Request, res: Response) =>
           <td></td>
           <td></td>
           <td></td>
+          <td></td>
         </tr>
       `;
     }
@@ -965,7 +967,7 @@ router.get('/templates/production-daily', async (req: Request, res: Response) =>
       </table>
       
       <div style="font-size: 9px; margin-top: 10px;">
-        <strong>CCP1 - Obróbka termiczna:</strong> Temp. wewnętrzna produktu min. 72°C przez min. 2 min
+        <strong>CCP1 - Obróbka termiczna:</strong> Temp. wewnętrzna produktu min. 72°C przez min. 2 min (lub wg wymagań produktu)
       </div>
       
       <div style="margin-top: 10px;">
@@ -1202,10 +1204,10 @@ router.get('/templates/waste-monthly', async (req: Request, res: Response) => {
             <th style="width: 10%;">Data</th>
             <th style="width: 20%;">Rodzaj odpadu</th>
             <th style="width: 10%;">Ilość (kg)</th>
-            <th style="width: 15%;">Nr pojemnika</th>
+            <th style="width: 15%;">Nr pojazdu</th>
             <th style="width: 15%;">Przekazano firmie</th>
             <th style="width: 15%;">Nr dokumentu</th>
-            <th style="width: 15%;">Podpis</th>
+            <th style="width: 15%;">Kierowca</th>
           </tr>
         </thead>
         <tbody>
@@ -1264,7 +1266,7 @@ router.get('/templates', async (req: Request, res: Response) => {
 // RAPORTY Z DANYMI (wypełnione formularze)
 // ============================================
 
-// RAPORT: Temperatura - tydzień z danymi
+// RAPORT: Temperatura - tydzień z danymi (wszystkie kontrole)
 router.get('/reports/temperature-weekly', async (req: Request, res: Response) => {
   try {
     const weekStart = req.query.week 
@@ -1288,11 +1290,11 @@ router.get('/reports/temperature-weekly', async (req: Request, res: Response) =>
         temperaturePoint: true,
         user: { select: { name: true } },
       },
-      orderBy: { readAt: 'asc' },
+      orderBy: [{ readAt: 'asc' }],
     });
 
-    // Grupuj odczyty po punkcie i dniu
-    const readingsByPointAndDay: Record<number, Record<string, { morning?: number; evening?: number; isOk: boolean }>> = {};
+    // Grupuj odczyty po punkcie i dniu - WSZYSTKIE kontrole (nie tylko rano/wieczór)
+    const readingsByPointAndDay: Record<number, Record<string, Array<{ time: string; temp: number; isOk: boolean; user: string }>>> = {};
     
     for (const reading of readings) {
       const pointId = reading.temperaturePointId;
@@ -1301,23 +1303,22 @@ router.get('/reports/temperature-weekly', async (req: Request, res: Response) =>
       }
       const dayKey = dayjs(reading.readAt).format('YYYY-MM-DD');
       if (!readingsByPointAndDay[pointId][dayKey]) {
-        readingsByPointAndDay[pointId][dayKey] = { isOk: true };
+        readingsByPointAndDay[pointId][dayKey] = [];
       }
       
-      const hour = dayjs(reading.readAt).hour();
-      if (hour < 12) {
-        readingsByPointAndDay[pointId][dayKey].morning = reading.temperature;
-      } else {
-        readingsByPointAndDay[pointId][dayKey].evening = reading.temperature;
-      }
-      if (!reading.isCompliant) {
-        readingsByPointAndDay[pointId][dayKey].isOk = false;
-      }
+      readingsByPointAndDay[pointId][dayKey].push({
+        time: dayjs(reading.readAt).format('HH:mm'),
+        temp: reading.temperature,
+        isOk: reading.isCompliant,
+        user: reading.user?.name || '',
+      });
     }
 
     const days: string[] = [];
+    const dayKeys: string[] = [];
     for (let i = 0; i < 7; i++) {
       days.push(weekStart.add(i, 'day').format('dd DD.MM'));
+      dayKeys.push(weekStart.add(i, 'day').format('YYYY-MM-DD'));
     }
 
     let html = getDocumentHeader('Raport temperatury - tydzień');
@@ -1335,12 +1336,12 @@ router.get('/reports/temperature-weekly', async (req: Request, res: Response) =>
       <table>
         <thead>
           <tr>
-            <th rowspan="2" style="width: 25%;">Punkt pomiaru</th>
-            <th rowspan="2" style="width: 10%;">Norma (°C)</th>
-            <th colspan="7">Temperatura (°C) - rano / wieczór</th>
+            <th rowspan="2" style="width: 22%;">Punkt pomiaru</th>
+            <th rowspan="2" style="width: 8%;">Norma (°C)</th>
+            <th colspan="7">Temperatura (°C) - godz. / wartość</th>
           </tr>
           <tr>
-            ${days.map(d => `<th style="width: 9%;">${d}</th>`).join('')}
+            ${days.map(d => `<th style="width: 10%;">${d}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
@@ -1354,20 +1355,18 @@ router.get('/reports/temperature-weekly', async (req: Request, res: Response) =>
           <td>${point.minTemp} - ${point.maxTemp}</td>
     `;
       
-      for (let i = 0; i < 7; i++) {
-        const dayKey = weekStart.add(i, 'day').format('YYYY-MM-DD');
-        const dayData = pointReadings[dayKey];
+      for (const dayKey of dayKeys) {
+        const dayReadings = pointReadings[dayKey] || [];
         
-        if (dayData) {
-          const morningClass = dayData.morning !== undefined && (dayData.morning < point.minTemp || dayData.morning > point.maxTemp) ? 'temp-danger' : '';
-          const eveningClass = dayData.evening !== undefined && (dayData.evening < point.minTemp || dayData.evening > point.maxTemp) ? 'temp-danger' : '';
-          html += `<td style="font-size: 9px;">
-            <span class="${morningClass}">${dayData.morning !== undefined ? dayData.morning.toFixed(1) : '-'}</span>
-            /
-            <span class="${eveningClass}">${dayData.evening !== undefined ? dayData.evening.toFixed(1) : '-'}</span>
-          </td>`;
+        if (dayReadings.length > 0) {
+          // Pokaż wszystkie kontrole z danego dnia
+          const readingsHtml = dayReadings.map(r => {
+            const tempClass = !r.isOk ? 'temp-danger' : '';
+            return `<span class="${tempClass}">${r.time}: ${r.temp.toFixed(1)}</span>`;
+          }).join('<br>');
+          html += `<td style="font-size: 8px; vertical-align: top;">${readingsHtml}</td>`;
         } else {
-          html += `<td style="font-size: 9px; color: #999;">-/-</td>`;
+          html += `<td style="font-size: 9px; color: #999;">-</td>`;
         }
       }
       
@@ -1381,6 +1380,10 @@ router.get('/reports/temperature-weekly', async (req: Request, res: Response) =>
         </tbody>
       </table>
       
+      <div style="margin-top: 10px; font-size: 9px;">
+        <strong>Legenda:</strong> Format: godzina: temperatura. Przekroczenia zaznaczone na czerwono.
+      </div>
+      
       <div style="margin-top: 15px;">
         <strong>Niezgodności w tym tygodniu:</strong> ${nonCompliant.length > 0 ? nonCompliant.length : 'Brak'}
       </div>
@@ -1388,18 +1391,26 @@ router.get('/reports/temperature-weekly', async (req: Request, res: Response) =>
 
     if (nonCompliant.length > 0) {
       html += `<table style="margin-top: 10px;">
-        <thead><tr><th>Data</th><th>Punkt</th><th>Temp.</th><th>Norma</th></tr></thead>
+        <thead><tr><th>Data</th><th>Godz.</th><th>Punkt</th><th>Temp.</th><th>Norma</th></tr></thead>
         <tbody>`;
       for (const r of nonCompliant.slice(0, 10)) {
         html += `<tr>
-          <td>${dayjs(r.readAt).format('DD.MM HH:mm')}</td>
-          <td>${r.temperaturePoint.name}</td>
+          <td>${dayjs(r.readAt).format('DD.MM')}</td>
+          <td>${dayjs(r.readAt).format('HH:mm')}</td>
+          <td style="font-size: 9px;">${r.temperaturePoint.name}</td>
           <td class="temp-danger">${r.temperature.toFixed(1)}°C</td>
           <td>${r.temperaturePoint.minTemp} - ${r.temperaturePoint.maxTemp}°C</td>
         </tr>`;
       }
       html += `</tbody></table>`;
     }
+
+    html += `
+      <div style="margin-top: 15px;">
+        <strong>Uwagi / Działania korygujące:</strong>
+        <div style="border: 1px solid #000; min-height: 40px; margin-top: 5px;"></div>
+      </div>
+    `;
 
     html += getDocumentFooter();
 
@@ -1650,7 +1661,7 @@ router.get('/reports/production', async (req: Request, res: Response) => {
     let html = getDocumentHeader('Raport produkcji');
     
     html += `
-      <div class="doc-title">KARTA PRODUKCJI</div>
+      <div class="doc-title">KARTA PRODUKCJI DZIENNEJ</div>
       <div class="doc-info">Nr formularza: F-HACCP-04 | Wygenerowano z systemu HACCP</div>
       
       <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
@@ -1662,14 +1673,16 @@ router.get('/reports/production', async (req: Request, res: Response) => {
       <table>
         <thead>
           <tr>
-            <th style="width: 8%;">Data</th>
-            <th style="width: 12%;">Nr partii</th>
-            <th style="width: 18%;">Produkt</th>
-            <th style="width: 10%;">Ilość (kg)</th>
-            <th style="width: 18%;">Surowce</th>
-            <th style="width: 10%;">T. końcowa</th>
-            <th style="width: 12%;">Wykonał</th>
-            <th style="width: 12%;">CCP1</th>
+            <th style="width: 7%;">Data</th>
+            <th style="width: 10%;">Nr partii</th>
+            <th style="width: 14%;">Produkt</th>
+            <th style="width: 7%;">Ilość</th>
+            <th style="width: 14%;">Surowce (nr partii)</th>
+            <th style="width: 8%;">Godz. start</th>
+            <th style="width: 8%;">Godz. koniec</th>
+            <th style="width: 8%;">T. wewn.</th>
+            <th style="width: 10%;">Wykonał</th>
+            <th style="width: 7%;">CCP1</th>
           </tr>
         </thead>
         <tbody>
@@ -1688,19 +1701,21 @@ router.get('/reports/production', async (req: Request, res: Response) => {
       html += `
         <tr>
           <td>${dayjs(batch.productionDate).format('DD.MM')}</td>
-          <td style="font-size: 9px;">${batch.batchNumber}</td>
-          <td style="text-align: left; font-size: 9px;">${batch.product?.name || '-'}</td>
-          <td>${batch.quantity}</td>
+          <td style="font-size: 8px;">${batch.batchNumber}</td>
+          <td style="text-align: left; font-size: 8px;">${batch.product?.name || '-'}</td>
+          <td>${batch.quantity} ${batch.unit}</td>
           <td style="font-size: 8px;">${materialsStr || '-'}</td>
+          <td>${batch.startTime ? dayjs(batch.startTime).format('HH:mm') : '-'}</td>
+          <td>${batch.endTime ? dayjs(batch.endTime).format('HH:mm') : '-'}</td>
           <td class="${batch.finalTemperature ? (finalTempOk ? 'temp-ok' : 'temp-danger') : ''}">${batch.finalTemperature ? batch.finalTemperature + '°C' : '-'}</td>
-          <td style="font-size: 9px;">${batch.user?.name || '-'}</td>
+          <td style="font-size: 8px;">${batch.user?.name || '-'}</td>
           <td>${batch.finalTemperature !== null ? (batch.finalTemperature >= requiredTemp ? '<span class="badge-ok">✓</span>' : '<span class="badge-fail">✗</span>') : '-'}</td>
         </tr>
       `;
     }
 
     if (batches.length === 0) {
-      html += `<tr><td colspan="8" style="text-align: center; color: #666;">Brak partii w tym okresie</td></tr>`;
+      html += `<tr><td colspan="10" style="text-align: center; color: #666;">Brak partii w tym okresie</td></tr>`;
     }
 
     // Podsumowanie
@@ -1712,14 +1727,19 @@ router.get('/reports/production', async (req: Request, res: Response) => {
         </tbody>
       </table>
       
-      <div style="margin-top: 15px;">
-        <strong>CCP1 - Obróbka termiczna:</strong> Temp. wewnętrzna produktu min. 72°C (lub wg wymagań produktu)
+      <div style="margin-top: 10px; font-size: 9px;">
+        <strong>CCP1 - Obróbka termiczna:</strong> Temp. wewnętrzna produktu min. 72°C przez min. 2 min (lub wg wymagań produktu)
       </div>
       
       <div style="margin-top: 10px; display: flex; gap: 30px;">
         <div><strong>Razem wyprodukowano:</strong> ${totalQty.toFixed(1)} kg</div>
         <div><strong>CCP1 zgodne:</strong> ${ccpOk}</div>
         <div><strong>CCP1 niezgodne:</strong> ${ccpFail}</div>
+      </div>
+      
+      <div style="margin-top: 15px;">
+        <strong>Uwagi / Niezgodności / Działania korygujące:</strong>
+        <div style="border: 1px solid #000; min-height: 40px; margin-top: 5px;"></div>
       </div>
     `;
 
@@ -1954,9 +1974,101 @@ router.get('/reports', async (req: Request, res: Response) => {
     { id: 'production', name: 'Produkcja', code: 'F-HACCP-04', description: 'Partie produkcyjne z wybranego okresu', periodType: 'range' },
     { id: 'pest-control', name: 'Kontrola DDD - miesiąc', code: 'F-HACCP-05', description: 'Kontrole punktów DDD z wybranego miesiąca', periodType: 'month' },
     { id: 'curing', name: 'Peklowanie', code: 'F-HACCP-06', description: 'Partie peklowania z wybranego okresu', periodType: 'range' },
+    { id: 'waste', name: 'Odpady kat. 3', code: 'F-HACCP-07', description: 'Ewidencja odpadów z wybranego okresu', periodType: 'range' },
   ];
   
   res.json(reports);
+});
+
+// RAPORT: Odpady kat. 3 z danymi
+router.get('/reports/waste', async (req: Request, res: Response) => {
+  try {
+    const startDate = req.query.startDate 
+      ? dayjs(req.query.startDate as string).startOf('day')
+      : dayjs().startOf('month');
+    const endDate = req.query.endDate 
+      ? dayjs(req.query.endDate as string).endOf('day')
+      : dayjs().endOf('month');
+
+    const wasteRecords = await prisma.wasteRecord.findMany({
+      where: {
+        collectionDate: {
+          gte: startDate.toDate(),
+          lte: endDate.toDate(),
+        },
+      },
+      include: {
+        wasteType: true,
+        collector: true,
+      },
+      orderBy: { collectionDate: 'asc' },
+    });
+
+    let html = getDocumentHeader('Raport odpadów kat. 3');
+    
+    html += `
+      <div class="doc-title">EWIDENCJA ODPADÓW KAT. 3 - MIESIĄC</div>
+      <div class="doc-info">Nr formularza: F-HACCP-07 | Wygenerowano z systemu HACCP</div>
+      
+      <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+        <strong>Okres:</strong> ${startDate.format('DD.MM.YYYY')} - ${endDate.format('DD.MM.YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Liczba zapisów:</strong> ${wasteRecords.length}
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 10%;">Data</th>
+            <th style="width: 20%;">Rodzaj odpadu</th>
+            <th style="width: 10%;">Ilość (kg)</th>
+            <th style="width: 15%;">Nr pojazdu</th>
+            <th style="width: 15%;">Przekazano firmie</th>
+            <th style="width: 15%;">Nr dokumentu</th>
+            <th style="width: 15%;">Kierowca</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const rec of wasteRecords) {
+      html += `
+        <tr>
+          <td>${dayjs(rec.collectionDate).format('DD.MM.YYYY')}</td>
+          <td style="text-align: left; font-size: 9px;">${rec.wasteType?.name || '-'}</td>
+          <td>${rec.quantity} ${rec.unit}</td>
+          <td style="font-size: 9px;">${rec.vehicleNumber || '-'}</td>
+          <td style="font-size: 9px;">${rec.collector?.name || '-'}</td>
+          <td style="font-size: 9px;">${rec.documentNumber || '-'}</td>
+          <td style="font-size: 9px;">${rec.driverName || '-'}</td>
+        </tr>
+      `;
+    }
+
+    if (wasteRecords.length === 0) {
+      html += `<tr><td colspan="7" style="text-align: center; color: #666;">Brak zapisów w tym okresie</td></tr>`;
+    }
+
+    // Podsumowanie
+    const totalQty = wasteRecords.reduce((sum, r) => sum + (r.quantity || 0), 0);
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 15px;">
+        <strong>Suma miesięczna:</strong> ${totalQty.toFixed(1)} kg
+      </div>
+    `;
+
+    html += getDocumentFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania raportu:', error);
+    res.status(500).json({ error: 'Błąd generowania raportu' });
+  }
 });
 
 export default router;
