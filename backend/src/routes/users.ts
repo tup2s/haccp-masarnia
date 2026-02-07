@@ -92,11 +92,43 @@ router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res
 // DELETE /api/users/:id
 router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
+    const userId = parseInt(req.params.id);
+    
+    // Sprawdź czy to nie jest aktualnie zalogowany użytkownik
+    if (req.userId === userId) {
+      return res.status(400).json({ error: 'Nie możesz usunąć swojego własnego konta' });
+    }
+    
+    // Sprawdź czy użytkownik ma powiązane rekordy
+    const relatedRecords = await Promise.all([
+      req.prisma.temperatureReading.count({ where: { userId } }),
+      req.prisma.productionBatch.count({ where: { userId } }),
+      req.prisma.reception.count({ where: { userId } }),
+      req.prisma.cleaningRecord.count({ where: { userId } }),
+      req.prisma.curingBatch.count({ where: { userId } }),
+      req.prisma.pestControlCheck.count({ where: { userId } }),
+      req.prisma.training.count({ where: { userId } }),
+      req.prisma.correctiveAction.count({ where: { userId } }),
+      req.prisma.audit.count({ where: { userId } }),
+    ]);
+    
+    const totalRelated = relatedRecords.reduce((a, b) => a + b, 0);
+    
+    if (totalRelated > 0) {
+      return res.status(400).json({ 
+        error: `Nie można usunąć użytkownika - ma ${totalRelated} powiązanych rekordów w systemie. Możesz dezaktywować konto zamiast usuwać.` 
+      });
+    }
+    
     await req.prisma.user.delete({
-      where: { id: parseInt(req.params.id) },
+      where: { id: userId },
     });
     res.status(204).send();
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Error deleting user:', error);
+    if (error.code === 'P2003') {
+      return res.status(400).json({ error: 'Nie można usunąć użytkownika - ma powiązane rekordy w systemie' });
+    }
     res.status(500).json({ error: 'Błąd usuwania użytkownika' });
   }
 });
