@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { api, CuringBatch, RawMaterialReception, User } from '../services/api';
-import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon, PrinterIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { api, CuringBatch, RawMaterialReception, User, MaterialReceipt } from '../services/api';
+import { PlusIcon, BeakerIcon, EyeIcon, CheckCircleIcon, ClockIcon, PencilIcon, TrashIcon, PrinterIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { SelectModal } from '../components/SelectModal';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
@@ -9,10 +9,30 @@ import { useAuth } from '../context/AuthContext';
 
 dayjs.extend(utc);
 
+// Domyślne proporcje solanki (na 30L wody)
+const DEFAULT_BRINE_RATIOS = {
+  water: 30,
+  salt: 2.4,    // 8% od wody
+  maggi: 0.3,   // 1% od wody
+  sugar: 0.2,   // 0.67% od wody
+};
+
+// Typ dla dodatków do peklowania
+interface CuringMaterial {
+  materialReceiptId?: number;
+  quantity: number;
+  unit: string;
+  // Ręczny wpis
+  manualEntry?: boolean;
+  manualName?: string;
+  manualBatchNumber?: string;
+}
+
 export default function Curing() {
   const { isAdmin } = useAuth();
   const [batches, setBatches] = useState<CuringBatch[]>([]);
   const [meatReceptions, setMeatReceptions] = useState<RawMaterialReception[]>([]);
+  const [availableMaterials, setAvailableMaterials] = useState<MaterialReceipt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewBatch, setViewBatch] = useState<CuringBatch | null>(null);
@@ -27,6 +47,19 @@ export default function Curing() {
   
   // Modal wyboru surowca
   const [isReceptionSelectOpen, setIsReceptionSelectOpen] = useState(false);
+  
+  // Modal wyboru dodatku
+  const [selectMaterialModal, setSelectMaterialModal] = useState<number | null>(null);
+  const [selectSearch, setSelectSearch] = useState('');
+  
+  // Modal ręcznego wpisu dodatku
+  const [manualEntryModal, setManualEntryModal] = useState<number | null>(null);
+  const [manualEntryData, setManualEntryData] = useState({
+    name: '',
+    batchNumber: '',
+    quantity: '',
+    unit: 'kg',
+  });
 
   const [formData, setFormData] = useState({
     receptionId: '',
@@ -47,6 +80,8 @@ export default function Curing() {
     startTime: dayjs().format('HH:mm'),
     temperature: '4',
     notes: '',
+    // Dodane dodatki
+    materials: [] as CuringMaterial[],
   });
 
   useEffect(() => {
@@ -67,21 +102,112 @@ export default function Curing() {
 
   const loadData = async () => {
     try {
-      const [batchesData, receptionsData] = await Promise.all([
+      const [batchesData, receptionsData, materialsData] = await Promise.all([
         api.getCuringBatches(),
         api.getReceptions(100),
+        api.getAvailableMaterials(),
       ]);
       setBatches(batchesData);
       // Filtruj tylko mięso
       setMeatReceptions(receptionsData.filter((r: RawMaterialReception) => 
         r.isCompliant && r.rawMaterial?.category === 'MEAT'
       ));
+      setAvailableMaterials(materialsData);
     } catch (error) {
       toast.error('Błąd podczas ładowania danych');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Przelicz składniki solanki przy zmianie ilości wody
+  const handleBrineWaterChange = (water: string) => {
+    const waterAmount = parseFloat(water) || 0;
+    const ratio = waterAmount / DEFAULT_BRINE_RATIOS.water;
+    
+    setFormData({
+      ...formData,
+      brineWater: water,
+      brineSalt: (DEFAULT_BRINE_RATIOS.salt * ratio).toFixed(2),
+      brineMaggi: (DEFAULT_BRINE_RATIOS.maggi * ratio).toFixed(2),
+      brineSugar: (DEFAULT_BRINE_RATIOS.sugar * ratio).toFixed(2),
+    });
+  };
+
+  // Dodaj dodatek do peklowania
+  const addCuringMaterial = () => {
+    setFormData({
+      ...formData,
+      materials: [...formData.materials, { materialReceiptId: 0, quantity: 0, unit: 'kg' }],
+    });
+  };
+
+  // Aktualizuj dodatek
+  const updateCuringMaterial = (index: number, field: string, value: any) => {
+    const newMaterials = [...formData.materials];
+    newMaterials[index] = { ...newMaterials[index], [field]: value };
+    setFormData({ ...formData, materials: newMaterials });
+  };
+
+  // Usuń dodatek
+  const removeCuringMaterial = (index: number) => {
+    setFormData({
+      ...formData,
+      materials: formData.materials.filter((_, i) => i !== index),
+    });
+  };
+
+  // Pobierz nazwę wybranego dodatku
+  const getMaterialName = (mat: CuringMaterial): string => {
+    if (mat.manualEntry) {
+      return `🌿 ${mat.manualName} - ${mat.manualBatchNumber} (ręczny)`;
+    }
+    if (mat.materialReceiptId && mat.materialReceiptId > 0) {
+      const item = availableMaterials.find(m => m.id === mat.materialReceiptId);
+      return item ? `🌿 ${item.material?.name} - ${item.batchNumber}` : 'Wybierz...';
+    }
+    return 'Wybierz dodatek...';
+  };
+
+  // Otwórz modal ręcznego wpisu
+  const openManualEntry = (index: number) => {
+    setManualEntryModal(index);
+    setManualEntryData({ name: '', batchNumber: '', quantity: '', unit: 'kg' });
+  };
+
+  // Zatwierdź ręczny wpis
+  const handleManualEntry = () => {
+    if (manualEntryModal === null) return;
+    
+    const newMaterials = [...formData.materials];
+    newMaterials[manualEntryModal] = {
+      manualEntry: true,
+      manualName: manualEntryData.name,
+      manualBatchNumber: manualEntryData.batchNumber,
+      quantity: parseFloat(manualEntryData.quantity) || 0,
+      unit: manualEntryData.unit,
+    };
+    
+    setFormData({ ...formData, materials: newMaterials });
+    setManualEntryModal(null);
+  };
+
+  // Wybierz dodatek z listy
+  const handleSelectMaterial = (id: number) => {
+    if (selectMaterialModal === null) return;
+    updateCuringMaterial(selectMaterialModal, 'materialReceiptId', id);
+    setSelectMaterialModal(null);
+  };
+
+  // Filtruj materiały
+  const filteredMaterials = availableMaterials.filter(m => {
+    if (selectSearch.trim()) {
+      const search = selectSearch.toLowerCase();
+      return m.material?.name?.toLowerCase().includes(search) ||
+             m.batchNumber?.toLowerCase().includes(search);
+    }
+    return true;
+  });
 
   const openModal = () => {
     setFormData({
@@ -101,6 +227,7 @@ export default function Curing() {
       startTime: dayjs().format('HH:mm'),
       temperature: '4',
       notes: '',
+      materials: [],
     });
     setEditBatch(null);
     setSelectedUserId('');
@@ -126,6 +253,7 @@ export default function Curing() {
       startTime: dayjs.utc(batch.startDate).local().format('HH:mm'),
       temperature: batch.temperature?.toString() || '4',
       notes: batch.notes || '',
+      materials: [], // TODO: Załaduj zapisane materiały jeśli są przechowywane w bazie
     });
     setIsModalOpen(true);
   };
@@ -162,6 +290,26 @@ export default function Curing() {
     try {
       const startDateTime = dayjs(`${formData.startDate} ${formData.startTime}`).toISOString();
       
+      // Buduj notatkę z dodatkami
+      let notesText = formData.notes || '';
+      if (formData.materials.length > 0) {
+        const materialsText = formData.materials.map(mat => {
+          if (mat.manualEntry) {
+            return `[Dodatek ręczny] ${mat.manualName} - ${mat.manualBatchNumber}: ${mat.quantity} ${mat.unit}`;
+          } else if (mat.materialReceiptId) {
+            const item = availableMaterials.find(m => m.id === mat.materialReceiptId);
+            return item 
+              ? `[Dodatek] ${item.material?.name} - ${item.batchNumber}: ${mat.quantity} ${mat.unit}`
+              : `[Dodatek ID:${mat.materialReceiptId}]: ${mat.quantity} ${mat.unit}`;
+          }
+          return '';
+        }).filter(Boolean).join('\n');
+        
+        if (materialsText) {
+          notesText = notesText ? `${notesText}\n\n--- Użyte dodatki ---\n${materialsText}` : `--- Użyte dodatki ---\n${materialsText}`;
+        }
+      }
+      
       const payload: any = {
         receptionId: parseInt(formData.receptionId),
         productName: formData.productName,
@@ -172,7 +320,7 @@ export default function Curing() {
         plannedDays: parseInt(formData.plannedDays),
         startDate: startDateTime,
         temperature: formData.temperature ? parseFloat(formData.temperature) : undefined,
-        notes: formData.notes || undefined,
+        notes: notesText || undefined,
         userId: selectedUserId || undefined, // Admin może wybrać operatora
       };
 
@@ -595,6 +743,7 @@ export default function Curing() {
                     <h4 className="font-medium text-blue-900 mb-3">Peklowanie nastrzykowe - Solanka</h4>
                     <p className="text-sm text-blue-700 mb-3">
                       Standard: 30L wody, 2,4 kg soli peklowej, 0,3 kg Maggi, 0,2 kg cukru
+                      <br /><span className="text-xs">💡 Zmiana ilości wody automatycznie przeliczy proporcje dodatków</span>
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -604,7 +753,7 @@ export default function Curing() {
                           step="0.1"
                           className="input"
                           value={formData.brineWater}
-                          onChange={(e) => setFormData({ ...formData, brineWater: e.target.value })}
+                          onChange={(e) => handleBrineWaterChange(e.target.value)}
                         />
                       </div>
                       <div>
@@ -687,6 +836,72 @@ export default function Curing() {
                       onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
                     />
                   </div>
+                </div>
+
+                {/* Sekcja użytych dodatków */}
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-green-900">🌿 Użyte dodatki do peklowania</h4>
+                    <button
+                      type="button"
+                      onClick={addCuringMaterial}
+                      className="text-sm bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700"
+                    >
+                      + Dodatek
+                    </button>
+                  </div>
+                  
+                  {formData.materials.length === 0 ? (
+                    <p className="text-sm text-green-700 italic">Brak dodatkowych dodatków</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.materials.map((mat, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-white rounded-lg p-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectMaterialModal(idx)}
+                            className="flex-1 text-left px-3 py-2 border rounded-lg text-sm hover:bg-gray-50"
+                          >
+                            {getMaterialName(mat)}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openManualEntry(idx)}
+                            className="p-2 text-green-600 hover:bg-green-100 rounded"
+                            title="Wpisz ręcznie"
+                          >
+                            ✏️
+                          </button>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="Ilość"
+                            className="w-20 px-2 py-2 border rounded-lg text-sm"
+                            value={mat.quantity || ''}
+                            onChange={(e) => updateCuringMaterial(idx, 'quantity', parseFloat(e.target.value) || 0)}
+                          />
+                          <select
+                            className="w-16 px-2 py-2 border rounded-lg text-sm"
+                            value={mat.unit}
+                            onChange={(e) => updateCuringMaterial(idx, 'unit', e.target.value)}
+                          >
+                            <option value="kg">kg</option>
+                            <option value="g">g</option>
+                            <option value="L">L</option>
+                            <option value="ml">ml</option>
+                            <option value="szt">szt</option>
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => removeCuringMaterial(idx)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded"
+                          >
+                            <XMarkIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -951,6 +1166,137 @@ export default function Curing() {
           </div>
         )}
       />
+
+      {/* Modal wyboru dodatku */}
+      {selectMaterialModal !== null && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setSelectMaterialModal(null)}></div>
+            <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">🌿 Wybierz dodatek</h3>
+                <button onClick={() => setSelectMaterialModal(null)} className="text-gray-400 hover:text-gray-600">
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <input
+                type="text"
+                placeholder="🔍 Szukaj..."
+                className="input mb-4"
+                value={selectSearch}
+                onChange={(e) => setSelectSearch(e.target.value)}
+              />
+              
+              <div className="overflow-y-auto flex-1 space-y-2">
+                {filteredMaterials.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">Brak dostępnych dodatków</p>
+                ) : (
+                  filteredMaterials.map(m => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => handleSelectMaterial(m.id)}
+                      className="w-full text-left p-3 border rounded-lg hover:bg-green-50 hover:border-green-300"
+                    >
+                      <p className="font-medium text-gray-900">🌿 {m.material?.name}</p>
+                      <p className="text-sm text-gray-500">
+                        Nr partii: {m.batchNumber} • Ilość: {m.quantity} {m.unit}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Dostawca: {m.supplier?.name} • {dayjs(m.receivedAt).format('DD.MM.YYYY')}
+                      </p>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal ręcznego wpisu dodatku */}
+      {manualEntryModal !== null && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setManualEntryModal(null)}></div>
+            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">✏️ Ręczny wpis dodatku</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Wprowadź dane dodatku, którego nie ma w systemie.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nazwa dodatku *</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="np. Pieprz czarny"
+                    value={manualEntryData.name}
+                    onChange={(e) => setManualEntryData({ ...manualEntryData, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Numer partii *</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="np. LOT-2024-001"
+                    value={manualEntryData.batchNumber}
+                    onChange={(e) => setManualEntryData({ ...manualEntryData, batchNumber: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ilość *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="input"
+                      placeholder="0.5"
+                      value={manualEntryData.quantity}
+                      onChange={(e) => setManualEntryData({ ...manualEntryData, quantity: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Jednostka</label>
+                    <select
+                      className="input"
+                      value={manualEntryData.unit}
+                      onChange={(e) => setManualEntryData({ ...manualEntryData, unit: e.target.value })}
+                    >
+                      <option value="kg">kg</option>
+                      <option value="g">g</option>
+                      <option value="L">L</option>
+                      <option value="ml">ml</option>
+                      <option value="szt">szt</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setManualEntryModal(null)}
+                  className="flex-1 btn-secondary"
+                >
+                  Anuluj
+                </button>
+                <button
+                  type="button"
+                  onClick={handleManualEntry}
+                  disabled={!manualEntryData.name || !manualEntryData.batchNumber || !manualEntryData.quantity}
+                  className="flex-1 btn-primary disabled:opacity-50"
+                >
+                  Dodaj
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
