@@ -90,7 +90,7 @@ export default function Curing() {
   const loadUsers = async () => {
     try {
       const data = await api.getUsers();
-      setUsers(data.filter(u => u.isActive));
+      setUsers(data);
     } catch (error) {
       console.error('Error loading users:', error);
     }
