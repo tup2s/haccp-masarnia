@@ -148,6 +148,49 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
     // Użyj podanej daty/godziny lub teraz
     const startTime = startDateTime ? new Date(startDateTime) : new Date();
 
+    // Przetwórz materiały - obsłuż ręczne wpisy
+    const processedMaterials = [];
+    if (materials && materials.length > 0) {
+      for (const m of materials) {
+        if (m.manualEntry) {
+          // Ręczny wpis - zapisz nazwę i numer partii jako notatka
+          // W przyszłości można by tu tworzyć/szukać w bazie
+          processedMaterials.push({
+            rawMaterialId: null,
+            receptionId: null,
+            curingBatchId: null,
+            materialId: null,
+            materialReceiptId: null,
+            quantity: m.quantity,
+            unit: m.unit,
+            // Zapisujemy info w notes - to jest workaround, można rozbudować schemat
+          });
+        } else {
+          processedMaterials.push({
+            rawMaterialId: m.rawMaterialId || null,
+            receptionId: m.receptionId || null,
+            curingBatchId: m.curingBatchId || null,
+            materialId: m.materialId || null,
+            materialReceiptId: m.materialReceiptId || null,
+            quantity: m.quantity,
+            unit: m.unit,
+          });
+        }
+      }
+    }
+
+    // Zbierz informacje o ręcznych wpisach do notatki
+    const manualMaterials = materials?.filter((m: any) => m.manualEntry) || [];
+    let notesWithManual = notes || '';
+    if (manualMaterials.length > 0) {
+      const manualInfo = manualMaterials.map((m: any) => 
+        `${m.manualType === 'curing' ? 'Peklowany' : 'Surowiec'}: ${m.manualName} (${m.manualBatchNumber}) - ${m.quantity} ${m.unit}`
+      ).join('; ');
+      notesWithManual = notesWithManual 
+        ? `${notesWithManual}\n[Ręczne wpisy: ${manualInfo}]`
+        : `[Ręczne wpisy: ${manualInfo}]`;
+    }
+
     const batch = await req.prisma.productionBatch.create({
       data: {
         batchNumber,
@@ -156,19 +199,13 @@ router.post('/batches', authenticateToken, async (req: AuthRequest, res: Respons
         unit,
         productionDate: date,
         expiryDate,
-        notes,
+        notes: notesWithManual || null,
         userId: effectiveUserId,
         startTime, // Godzina rozpoczęcia produkcji
-        materials: materials ? {
-          create: materials.map((m: any) => ({
-            rawMaterialId: m.rawMaterialId || null,
-            receptionId: m.receptionId || null,
-            curingBatchId: m.curingBatchId || null, // Element peklowany
-            materialId: m.materialId || null, // Materiał/dodatek
-            materialReceiptId: m.materialReceiptId || null, // Przyjęcie materiału
-            quantity: m.quantity,
-            unit: m.unit,
-          })),
+        materials: processedMaterials.length > 0 ? {
+          create: processedMaterials.filter(m => 
+            m.receptionId || m.curingBatchId || m.materialReceiptId
+          ),
         } : undefined,
       },
       include: {
