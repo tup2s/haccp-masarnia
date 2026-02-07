@@ -12,6 +12,7 @@ export default function HACCPPlan() {
   const [isHazardModalOpen, setIsHazardModalOpen] = useState(false);
   const [editingCCP, setEditingCCP] = useState<CCP | null>(null);
   const [editingHazard, setEditingHazard] = useState<Hazard | null>(null);
+  const [pointType, setPointType] = useState<'CP' | 'CCP'>('CCP'); // Typ punktu: CP lub CCP
 
   const [ccpForm, setCcpForm] = useState({
     name: '',
@@ -53,9 +54,12 @@ export default function HACCPPlan() {
     }
   };
 
-  const openCCPModal = (ccp?: CCP) => {
+  const openCCPModal = (ccp?: CCP, type: 'CP' | 'CCP' = 'CCP') => {
     if (ccp) {
       setEditingCCP(ccp);
+      // Określ typ na podstawie nazwy
+      const isCCP = ccp.name.toUpperCase().startsWith('CCP');
+      setPointType(isCCP ? 'CCP' : 'CP');
       setCcpForm({
         name: ccp.name,
         description: ccp.description || '',
@@ -69,8 +73,15 @@ export default function HACCPPlan() {
       });
     } else {
       setEditingCCP(null);
+      setPointType(type);
+      // Policz istniejące punkty danego typu
+      const existingOfType = ccps.filter(c => {
+        const isCCPPoint = c.name.toUpperCase().startsWith('CCP');
+        return type === 'CCP' ? isCCPPoint : !isCCPPoint;
+      });
+      const nextNumber = existingOfType.length + 1;
       setCcpForm({
-        name: '',
+        name: `${type}${nextNumber} - `,
         description: '',
         hazardType: 'BIOLOGICAL',
         criticalLimit: '',
@@ -180,13 +191,32 @@ export default function HACCPPlan() {
           <h1 className="text-2xl font-bold text-gray-900">Plan HACCP</h1>
           <p className="text-gray-500 mt-1">Krytyczne Punkty Kontrolne i analiza zagrożeń</p>
         </div>
-        <button 
-          onClick={() => activeTab === 'ccps' ? openCCPModal() : openHazardModal()} 
-          className="btn-primary flex items-center gap-2"
-        >
-          <PlusIcon className="w-5 h-5" />
-          {activeTab === 'ccps' ? 'Dodaj CCP' : 'Dodaj zagrożenie'}
-        </button>
+        {activeTab === 'ccps' ? (
+          <div className="flex gap-2">
+            <button 
+              onClick={() => openCCPModal(undefined, 'CP')} 
+              className="btn-secondary flex items-center gap-2"
+            >
+              <PlusIcon className="w-5 h-5" />
+              Dodaj CP
+            </button>
+            <button 
+              onClick={() => openCCPModal(undefined, 'CCP')} 
+              className="btn-primary flex items-center gap-2"
+            >
+              <PlusIcon className="w-5 h-5" />
+              Dodaj CCP
+            </button>
+          </div>
+        ) : (
+          <button 
+            onClick={() => openHazardModal()} 
+            className="btn-primary flex items-center gap-2"
+          >
+            <PlusIcon className="w-5 h-5" />
+            Dodaj zagrożenie
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -362,11 +392,15 @@ export default function HACCPPlan() {
             <div className="fixed inset-0 bg-black bg-opacity-30" onClick={() => setIsCCPModalOpen(false)}></div>
             <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                {editingCCP ? 'Edytuj CCP' : 'Nowy Krytyczny Punkt Kontrolny'}
+                {editingCCP 
+                  ? `Edytuj ${pointType}` 
+                  : pointType === 'CCP' 
+                    ? 'Nowy Krytyczny Punkt Kontrolny (CCP)' 
+                    : 'Nowy Punkt Kontrolny (CP)'}
               </h2>
               <form onSubmit={handleCCPSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nazwa CCP *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nazwa {pointType} *</label>
                   <input
                     type="text"
                     className="input"
@@ -386,12 +420,14 @@ export default function HACCPPlan() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Limit krytyczny *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {pointType === 'CCP' ? 'Limit krytyczny *' : 'Wartość kontrolna *'}
+                  </label>
                   <input
                     type="text"
                     className="input"
                     required
-                    placeholder="np. Temperatura ≤ 4°C"
+                    placeholder={pointType === 'CCP' ? 'np. Temperatura wewn. ≥ 72°C' : 'np. Temperatura ≤ 4°C'}
                     value={ccpForm.criticalLimit}
                     onChange={(e) => setCcpForm({ ...ccpForm, criticalLimit: e.target.value })}
                   />
