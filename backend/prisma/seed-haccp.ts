@@ -2,11 +2,11 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 3 podstawowe CCP dla masarni
+// 2 punkty kontrolne (CP) + 1 krytyczny punkt kontrolny (CCP) dla masarni
 const ccps = [
   {
-    name: 'CCP1 - Przyjęcie surowców',
-    description: 'Kontrola temperatury i stanu surowców mięsnych przy przyjęciu dostawy. Krytyczny punkt kontrolny zapobiegający przyjęciu surowców niewłaściwie przechowywanych podczas transportu.',
+    name: 'CP1 - Przyjęcie surowców',
+    description: 'Kontrola temperatury i stanu surowców mięsnych przy przyjęciu dostawy. Punkt kontrolny zapobiegający przyjęciu surowców niewłaściwie przechowywanych podczas transportu.',
     hazardType: 'BIOLOGICAL',
     criticalLimit: 'Temperatura surowców mięsnych: max 4°C (świeże) lub max -18°C (mrożone). Temperatura pojazdu: max 4°C. Dokumenty HDI kompletne. Opakowania nieuszkodzone.',
     monitoringMethod: 'Pomiar temperatury surowca termometrem szpilkowym przy każdej dostawie. Kontrola wizualna stanu opakowań i pojazdu. Weryfikacja dokumentów HDI.',
@@ -16,8 +16,8 @@ const ccps = [
     recordKeeping: 'Rejestr przyjęć surowców (data, dostawca, temperatura, HDI, status zgodności). Protokoły odrzuceń. Karty kalibracji termometrów.',
   },
   {
-    name: 'CCP2 - Temperatura przechowywania',
-    description: 'Monitoring temperatury w chłodniach i mroźniach. Krytyczny punkt kontrolny zapobiegający namnażaniu się drobnoustrojów chorobotwórczych podczas przechowywania surowców i produktów.',
+    name: 'CP2 - Temperatura przechowywania',
+    description: 'Monitoring temperatury w chłodniach i mroźniach. Punkt kontrolny zapobiegający namnażaniu się drobnoustrojów chorobotwórczych podczas przechowywania surowców i produktów.',
     hazardType: 'BIOLOGICAL',
     criticalLimit: 'Chłodnie: 0°C do +4°C. Mroźnie: poniżej -18°C. Komora dojrzewania: zgodnie z recepturą (zwykle 10-15°C). Maksymalny czas przechowywania zgodny z datą przydatności.',
     monitoringMethod: 'Ciągły monitoring temperatury za pomocą rejestratorów elektronicznych. Kontrola wizualna termometrów. Codzienny odczyt i zapis temperatur.',
@@ -27,7 +27,7 @@ const ccps = [
     recordKeeping: 'Zapisy ciągłe z rejestratorów temperatury. Dziennik odczytów temperatury. Protokoły awarii i napraw. Karty kalibracji czujników.',
   },
   {
-    name: 'CCP3 - Obróbka termiczna',
+    name: 'CCP1 - Obróbka termiczna',
     description: 'Kontrola temperatury i czasu obróbki termicznej (gotowanie, wędzenie, parzenie). Krytyczny punkt kontrolny eliminujący drobnoustroje chorobotwórcze w produktach mięsnych.',
     hazardType: 'BIOLOGICAL',
     criticalLimit: 'Temperatura wewnętrzna produktu: min 72°C przez min 2 minuty (parzenie/gotowanie). Wędzenie na gorąco: min 68°C wewnątrz przez 15 minut. Schładzanie: z 60°C do 10°C w max 6 godzin.',

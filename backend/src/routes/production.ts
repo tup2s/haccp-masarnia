@@ -349,7 +349,7 @@ router.post('/batches/:id/complete', authenticateToken, async (req: AuthRequest,
           cause: 'Niewystarczająca obróbka termiczna',
           status: 'OPEN',
           priority: 'HIGH',
-          relatedCcpId: 3, // CCP3 - Obróbka termiczna
+          relatedCcpId: 3, // CCP1 - Obróbka termiczna
           userId: req.userId!,
         },
       });

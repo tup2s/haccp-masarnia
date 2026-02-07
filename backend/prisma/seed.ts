@@ -152,7 +152,7 @@ async function main() {
 
   // Tworzenie CCP
   const ccp1 = await findOrCreateCCP({
-    name: 'CCP1 - Przyjęcie surowców',
+    name: 'CP1 - Przyjęcie surowców',
     description: 'Kontrola temperatury i jakości surowców przy przyjęciu',
     hazardType: 'BIOLOGICAL',
     criticalLimit: 'Temperatura mięsa ≤ 7°C, brak oznak zepsucia',
@@ -164,7 +164,7 @@ async function main() {
   });
 
   const ccp2 = await findOrCreateCCP({
-    name: 'CCP2 - Przechowywanie chłodnicze',
+    name: 'CP2 - Przechowywanie chłodnicze',
     description: 'Utrzymanie właściwej temperatury w chłodniach',
     hazardType: 'BIOLOGICAL',
     criticalLimit: 'Temperatura chłodni 0-4°C',
@@ -176,7 +176,7 @@ async function main() {
   });
 
   const ccp3 = await findOrCreateCCP({
-    name: 'CCP3 - Obróbka termiczna',
+    name: 'CCP1 - Obróbka termiczna',
     description: 'Kontrola temperatury wewnętrznej produktu podczas obróbki cieplnej',
     hazardType: 'BIOLOGICAL',
     criticalLimit: 'Temperatura wewnętrzna produktu ≥ 72°C przez min. 2 minuty',
@@ -188,7 +188,7 @@ async function main() {
   });
 
   const ccps = [ccp1, ccp2, ccp3];
-  console.log('✅ Punkty CCP utworzone');
+  console.log('✅ Punkty CP i CCP utworzone');
 
   // Tworzenie zagrożeń - sprawdzamy czy już istnieją
   const existingHazards = await prisma.hazard.count();
