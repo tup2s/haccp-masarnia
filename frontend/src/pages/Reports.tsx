@@ -1,10 +1,19 @@
 import { useState, useEffect } from 'react';
 import { api, CleaningArea } from '../services/api';
-import { DocumentArrowDownIcon, ChartBarIcon, QueueListIcon, ShieldCheckIcon, CubeIcon, SparklesIcon, BugAntIcon, BeakerIcon, ClipboardDocumentCheckIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
+import { DocumentArrowDownIcon, ChartBarIcon, QueueListIcon, ShieldCheckIcon, CubeIcon, SparklesIcon, BugAntIcon, BeakerIcon, ClipboardDocumentCheckIcon, AcademicCapIcon, DocumentTextIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
+interface FormTemplate {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+}
+
 export default function Reports() {
+  const [activeTab, setActiveTab] = useState<'templates' | 'reports'>('templates');
+  const [templates, setTemplates] = useState<FormTemplate[]>([]);
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [cleaningAreas, setCleaningAreas] = useState<CleaningArea[]>([]);
   const [temperatureForm, setTemperatureForm] = useState({
@@ -42,6 +51,7 @@ export default function Reports() {
 
   useEffect(() => {
     api.getCleaningAreas().then(setCleaningAreas).catch(() => {});
+    api.getFormTemplates().then(setTemplates).catch(() => {});
   }, []);
 
   const downloadPdf = async (blob: Blob, filename: string) => {
@@ -189,12 +199,144 @@ export default function Reports() {
     }
   };
 
+  // Otwórz wzorzec formularza w nowym oknie
+  const openTemplate = (templateId: string, params?: Record<string, string>) => {
+    const url = api.getFormTemplateUrl(templateId, params);
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Raporty</h1>
-        <p className="text-gray-500 mt-1">Generowanie raportów PDF do dokumentacji HACCP</p>
+        <h1 className="text-2xl font-bold text-gray-900">Raporty i Formularze</h1>
+        <p className="text-gray-500 mt-1">Wzorce formularzy do druku i raporty z danymi</p>
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b">
+        <button
+          onClick={() => setActiveTab('templates')}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            activeTab === 'templates'
+              ? 'border-meat-600 text-meat-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <DocumentTextIcon className="w-5 h-5 inline-block mr-2" />
+          Wzorce formularzy (puste)
+        </button>
+        <button
+          onClick={() => setActiveTab('reports')}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            activeTab === 'reports'
+              ? 'border-meat-600 text-meat-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <ChartBarIcon className="w-5 h-5 inline-block mr-2" />
+          Raporty z danymi (PDF)
+        </button>
+      </div>
+
+      {/* TAB: Wzorce formularzy */}
+      {activeTab === 'templates' && (
+        <div className="space-y-6">
+          <div className="card bg-yellow-50 border border-yellow-200">
+            <div className="flex gap-3">
+              <div className="text-yellow-600">📋</div>
+              <div>
+                <h4 className="font-medium text-yellow-900">Puste formularze do ręcznego wypełnienia</h4>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Wydrukuj puste formularze i wypełnij ręcznie długopisem. 
+                  Idealne jako backup gdy system niedostępny lub do dokumentacji papierowej wymaganej przez PIW.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {templates.map((template) => (
+              <div key={template.id} className="card hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <DocumentTextIcon className="w-6 h-6 text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{template.name}</h3>
+                    <p className="text-xs text-gray-500 mb-1">{template.code}</p>
+                    <p className="text-sm text-gray-600">{template.description}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => openTemplate(template.id)}
+                    className="flex-1 btn-primary flex items-center justify-center gap-2 text-sm"
+                  >
+                    <PrinterIcon className="w-4 h-4" />
+                    Otwórz i drukuj
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {templates.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Ładowanie wzorców formularzy...
+            </div>
+          )}
+
+          {/* Quick print section */}
+          <div className="card">
+            <h3 className="font-semibold text-gray-900 mb-4">⚡ Szybki wydruk na tydzień</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Wydrukuj wszystkie formularze potrzebne na bieżący tydzień:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => openTemplate('temperature-weekly', { week: dayjs().startOf('week').format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🌡️ Temperatura (tydzień)
+              </button>
+              <button
+                onClick={() => openTemplate('reception-daily', { date: dayjs().format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🥩 Przyjęcia (dziś)
+              </button>
+              <button
+                onClick={() => openTemplate('cleaning-daily', { date: dayjs().format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🧹 Mycie (dziś)
+              </button>
+              <button
+                onClick={() => openTemplate('production-daily', { date: dayjs().format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🏭 Produkcja (dziś)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: Raporty z danymi */}
+      {activeTab === 'reports' && (
+        <div className="space-y-6">
+          <div className="card bg-blue-50 border border-blue-200">
+            <div className="flex gap-3">
+              <div className="text-blue-600">📊</div>
+              <div>
+                <h4 className="font-medium text-blue-900">Raporty wypełnione danymi z systemu</h4>
+                <p className="text-sm text-blue-700 mt-1">
+                  Generuj raporty PDF z danymi wprowadzonymi do systemu. 
+                  Do wydruku, podpisu i archiwizacji w dokumentacji HACCP.
+                </p>
+              </div>
+            </div>
+          </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Temperature Report */}
@@ -567,21 +709,8 @@ export default function Reports() {
           </div>
         </div>
       </div>
-
-      {/* Info */}
-      <div className="card bg-blue-50 border border-blue-200">
-        <div className="flex gap-3">
-          <div className="text-blue-600">ℹ️</div>
-          <div>
-            <h4 className="font-medium text-blue-900">Informacja o raportach</h4>
-            <p className="text-sm text-blue-700 mt-1">
-              Raporty są generowane w formacie PDF i mogą być używane jako dokumentacja 
-              podczas kontroli weterynaryjnych oraz audytów HACCP. Przechowuj je zgodnie 
-              z wymaganiami dokumentacji MLO (minimum 2 lata).
-            </p>
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

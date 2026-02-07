@@ -600,4 +600,664 @@ router.get('/audits', async (req: Request, res: Response) => {
   }
 });
 
+// ============================================
+// WZORCE FORMULARZY (PUSTE DO RĘCZNEGO WYPEŁNIENIA)
+// ============================================
+
+// Pusty wzorzec - nagłówek
+const getTemplateHeader = (title: string, docNumber: string) => `
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 8mm; }
+            .no-print { display: none !important; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 297mm;
+            margin: 0 auto;
+            padding: 15px;
+            font-size: 11px;
+        }
+        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .header-table td { border: 1px solid #000; padding: 5px; }
+        .header-table .logo { width: 20%; text-align: center; font-weight: bold; font-size: 14px; }
+        .header-table .title { width: 60%; text-align: center; font-weight: bold; font-size: 13px; }
+        .header-table .doc-info { width: 20%; font-size: 9px; }
+        .info-row { display: flex; gap: 20px; margin: 10px 0; font-size: 10px; }
+        .info-row span { border-bottom: 1px dotted #000; min-width: 150px; display: inline-block; }
+        table.main { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        table.main th, table.main td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; min-height: 25px; }
+        table.main th { background-color: #f0f0f0; font-weight: bold; }
+        table.main td { height: 28px; }
+        .signature-section { margin-top: 20px; display: flex; justify-content: space-between; }
+        .signature-box { width: 30%; text-align: center; }
+        .signature-line { border-top: 1px solid #000; margin-top: 35px; padding-top: 3px; font-size: 9px; }
+        .print-btn { position: fixed; top: 10px; right: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; font-size: 14px; }
+        .footer { margin-top: 15px; font-size: 8px; color: #666; text-align: center; border-top: 1px solid #ccc; padding-top: 5px; }
+        .week-info { background: #f8f9fa; padding: 8px; margin: 10px 0; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <button class="print-btn no-print" onclick="window.print()">🖨️ Drukuj</button>
+    <table class="header-table">
+        <tr>
+            <td class="logo" rowspan="2">MASARNIA<br>MLO</td>
+            <td class="title">${title}</td>
+            <td class="doc-info">Nr: ${docNumber}</td>
+        </tr>
+        <tr>
+            <td style="text-align: center; font-size: 10px;">System HACCP - Dokumentacja</td>
+            <td class="doc-info">Wyd: 1 | Data: ${dayjs().format('DD.MM.YYYY')}</td>
+        </tr>
+    </table>
+`;
+
+const getTemplateFooter = (notes?: string) => `
+    ${notes ? `<div style="margin-top: 15px; font-size: 9px;"><strong>Uwagi:</strong> ${notes}</div>` : ''}
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="signature-line">Data i podpis osoby wykonującej</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Podpis osoby kontrolującej</div>
+        </div>
+        <div class="signature-box">
+            <div class="signature-line">Podpis kierownika HACCP</div>
+        </div>
+    </div>
+    <div class="footer">
+        Formularz wydrukowany z systemu HACCP | Wypełnić czytelnie długopisem | Przechowywać min. 2 lata
+    </div>
+</body>
+</html>
+`;
+
+// WZORZEC: Tygodniowy formularz kontroli temperatury
+router.get('/templates/temperature-weekly', async (req: Request, res: Response) => {
+  try {
+    const points = await prisma.temperaturePoint.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    const weekStart = req.query.week 
+      ? dayjs(req.query.week as string).startOf('week')
+      : dayjs().startOf('week');
+    
+    const days = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nie'];
+
+    let html = getTemplateHeader('KARTA KONTROLI TEMPERATURY - TYDZIEŃ', 'F-HACCP-01');
+    
+    html += `
+      <div class="week-info">
+        <strong>Tydzień:</strong> ${weekStart.format('DD.MM.YYYY')} - ${weekStart.add(6, 'day').format('DD.MM.YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Wypełnił:</strong> ____________________
+      </div>
+      
+      <table class="main">
+        <thead>
+          <tr>
+            <th rowspan="2" style="width: 25%;">Punkt pomiaru</th>
+            <th rowspan="2" style="width: 10%;">Norma (°C)</th>
+            <th colspan="7">Temperatura (°C) - rano / wieczór</th>
+          </tr>
+          <tr>
+            ${days.map(d => `<th style="width: 9%;">${d}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const point of points) {
+      html += `
+        <tr>
+          <td style="text-align: left; font-size: 9px;">${point.name}</td>
+          <td>${point.minTemp} - ${point.maxTemp}</td>
+          ${days.map(() => `<td style="font-size: 8px;"><br>/<br></td>`).join('')}
+        </tr>
+      `;
+    }
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 10px; font-size: 9px;">
+        <strong>Legenda:</strong> Wpisać temperaturę rano (góra) i wieczorem (dół). 
+        Przy przekroczeniu normy - zaznaczyć kolorem i podjąć działania korygujące.
+      </div>
+      
+      <div style="margin-top: 10px;">
+        <strong>Uwagi / Działania korygujące:</strong>
+        <div style="border: 1px solid #000; min-height: 60px; margin-top: 5px;"></div>
+      </div>
+    `;
+    
+    html += getTemplateFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania wzorca:', error);
+    res.status(500).json({ error: 'Błąd generowania wzorca' });
+  }
+});
+
+// WZORZEC: Dzienny formularz przyjęcia surowców
+router.get('/templates/reception-daily', async (req: Request, res: Response) => {
+  try {
+    const date = req.query.date ? dayjs(req.query.date as string) : dayjs();
+    
+    let html = getTemplateHeader('KARTA PRZYJĘCIA SUROWCÓW', 'F-HACCP-02');
+    
+    html += `
+      <div class="info-row">
+        <strong>Data:</strong> <span>${date.format('DD.MM.YYYY')}</span>
+        &nbsp;&nbsp;&nbsp;
+        <strong>Przyjmujący:</strong> <span style="min-width: 200px;"></span>
+      </div>
+      
+      <table class="main">
+        <thead>
+          <tr>
+            <th style="width: 8%;">Godz.</th>
+            <th style="width: 18%;">Surowiec</th>
+            <th style="width: 15%;">Dostawca</th>
+            <th style="width: 12%;">Nr partii</th>
+            <th style="width: 8%;">Ilość</th>
+            <th style="width: 7%;">Temp. (°C)</th>
+            <th style="width: 6%;">HDI</th>
+            <th style="width: 8%;">Ocena wizualna</th>
+            <th style="width: 6%;">Zgodny</th>
+            <th style="width: 12%;">Podpis</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // 10 pustych wierszy
+    for (let i = 0; i < 10; i++) {
+      html += `
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>☐</td>
+          <td>☐ OK ☐ NIE</td>
+          <td>☐ T ☐ N</td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="font-size: 9px; margin-top: 10px;">
+        <strong>Kryteria przyjęcia:</strong> Temp. mięsa świeżego ≤4°C, mrożonego ≤-18°C | HDI - Handlowy Dokument Identyfikacyjny | 
+        Ocena wizualna: opakowanie, zapach, barwa
+      </div>
+      
+      <div style="margin-top: 10px;">
+        <strong>Dostawy odrzucone / Niezgodności:</strong>
+        <div style="border: 1px solid #000; min-height: 40px; margin-top: 5px;"></div>
+      </div>
+    `;
+    
+    html += getTemplateFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania wzorca:', error);
+    res.status(500).json({ error: 'Błąd generowania wzorca' });
+  }
+});
+
+// WZORZEC: Karta mycia i dezynfekcji
+router.get('/templates/cleaning-daily', async (req: Request, res: Response) => {
+  try {
+    const areas = await prisma.cleaningArea.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    const date = req.query.date ? dayjs(req.query.date as string) : dayjs();
+    
+    let html = getTemplateHeader('KARTA MYCIA I DEZYNFEKCJI', 'F-HACCP-03');
+    
+    html += `
+      <div class="info-row">
+        <strong>Data:</strong> <span>${date.format('DD.MM.YYYY')}</span>
+        &nbsp;&nbsp;&nbsp;
+        <strong>Zmiana:</strong> <span>☐ I &nbsp; ☐ II &nbsp; ☐ III</span>
+      </div>
+      
+      <table class="main">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Obszar / Urządzenie</th>
+            <th style="width: 12%;">Częstotliwość</th>
+            <th style="width: 15%;">Środek myjący</th>
+            <th style="width: 8%;">Godz.</th>
+            <th style="width: 10%;">Wykonał</th>
+            <th style="width: 10%;">Kontrola</th>
+            <th style="width: 8%;">Ocena</th>
+            <th style="width: 12%;">Podpis</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const area of areas) {
+      html += `
+        <tr>
+          <td style="text-align: left; font-size: 9px;">${area.name}</td>
+          <td style="font-size: 9px;">${area.frequency}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>☐</td>
+          <td>☐ OK ☐ NIE</td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    // Dodatkowe puste wiersze
+    for (let i = 0; i < 3; i++) {
+      html += `
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>☐</td>
+          <td>☐ OK ☐ NIE</td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 10px;">
+        <strong>Uwagi / Działania korygujące:</strong>
+        <div style="border: 1px solid #000; min-height: 40px; margin-top: 5px;"></div>
+      </div>
+    `;
+    
+    html += getTemplateFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania wzorca:', error);
+    res.status(500).json({ error: 'Błąd generowania wzorca' });
+  }
+});
+
+// WZORZEC: Karta produkcji
+router.get('/templates/production-daily', async (req: Request, res: Response) => {
+  try {
+    const date = req.query.date ? dayjs(req.query.date as string) : dayjs();
+    
+    let html = getTemplateHeader('KARTA PRODUKCJI DZIENNEJ', 'F-HACCP-04');
+    
+    html += `
+      <div class="info-row">
+        <strong>Data produkcji:</strong> <span>${date.format('DD.MM.YYYY')}</span>
+        &nbsp;&nbsp;&nbsp;
+        <strong>Kierownik zmiany:</strong> <span style="min-width: 200px;"></span>
+      </div>
+      
+      <table class="main">
+        <thead>
+          <tr>
+            <th style="width: 10%;">Nr partii</th>
+            <th style="width: 18%;">Nazwa produktu</th>
+            <th style="width: 10%;">Ilość (kg)</th>
+            <th style="width: 15%;">Surowce (nr partii)</th>
+            <th style="width: 8%;">Temp. obróbki</th>
+            <th style="width: 8%;">Czas (min)</th>
+            <th style="width: 8%;">Temp. wewn.</th>
+            <th style="width: 10%;">Wykonał</th>
+            <th style="width: 13%;">Podpis</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // 8 pustych wierszy
+    for (let i = 0; i < 8; i++) {
+      html += `
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="font-size: 9px; margin-top: 10px;">
+        <strong>CCP1 - Obróbka termiczna:</strong> Temp. wewnętrzna produktu min. 72°C przez min. 2 min
+      </div>
+      
+      <div style="margin-top: 10px;">
+        <strong>Uwagi / Niezgodności / Działania korygujące:</strong>
+        <div style="border: 1px solid #000; min-height: 50px; margin-top: 5px;"></div>
+      </div>
+    `;
+    
+    html += getTemplateFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania wzorca:', error);
+    res.status(500).json({ error: 'Błąd generowania wzorca' });
+  }
+});
+
+// WZORZEC: Kontrola DDD
+router.get('/templates/pest-control-monthly', async (req: Request, res: Response) => {
+  try {
+    const points = await prisma.pestControlPoint.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    const month = req.query.month 
+      ? dayjs(req.query.month as string)
+      : dayjs();
+    
+    let html = getTemplateHeader('KARTA KONTROLI DDD - MIESIĄC', 'F-HACCP-05');
+    
+    html += `
+      <div class="info-row">
+        <strong>Miesiąc:</strong> <span>${month.format('MMMM YYYY')}</span>
+        &nbsp;&nbsp;&nbsp;
+        <strong>Firma DDD:</strong> <span style="min-width: 200px;"></span>
+      </div>
+      
+      <table class="main">
+        <thead>
+          <tr>
+            <th style="width: 8%;">Nr</th>
+            <th style="width: 15%;">Typ</th>
+            <th style="width: 20%;">Lokalizacja</th>
+            <th style="width: 12%;">Data kontroli</th>
+            <th style="width: 10%;">Stan</th>
+            <th style="width: 10%;">Aktywność</th>
+            <th style="width: 15%;">Uwagi</th>
+            <th style="width: 10%;">Podpis</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    points.forEach((point, idx) => {
+      html += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td style="font-size: 9px;">${point.type === 'TRAP' ? 'Pułapka' : point.type === 'BAIT' ? 'Stacja' : point.type === 'LAMP' ? 'Lampa' : point.type}</td>
+          <td style="text-align: left; font-size: 9px;">${point.location}</td>
+          <td></td>
+          <td>☐ OK ☐ NIE</td>
+          <td>☐ TAK ☐ NIE</td>
+          <td></td>
+          <td></td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 10px;">
+        <strong>Podsumowanie kontroli / Działania:</strong>
+        <div style="border: 1px solid #000; min-height: 50px; margin-top: 5px;"></div>
+      </div>
+    `;
+    
+    html += getTemplateFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania wzorca:', error);
+    res.status(500).json({ error: 'Błąd generowania wzorca' });
+  }
+});
+
+// WZORZEC: Karta peklowania
+router.get('/templates/curing', async (req: Request, res: Response) => {
+  try {
+    let html = getTemplateHeader('KARTA PROCESU PEKLOWANIA', 'F-HACCP-06');
+    
+    html += `
+      <div class="info-row">
+        <strong>Nr partii peklowania:</strong> <span style="min-width: 150px;"></span>
+        &nbsp;&nbsp;
+        <strong>Data rozpoczęcia:</strong> <span style="min-width: 100px;"></span>
+        &nbsp;&nbsp;
+        <strong>Planowana data zakończenia:</strong> <span style="min-width: 100px;"></span>
+      </div>
+      
+      <table class="main" style="margin-top: 15px;">
+        <tr>
+          <th colspan="4">SUROWIEC</th>
+        </tr>
+        <tr>
+          <td style="width: 25%; text-align: left;"><strong>Nazwa mięsa:</strong></td>
+          <td style="width: 25%;"></td>
+          <td style="width: 25%; text-align: left;"><strong>Nr partii dostawy:</strong></td>
+          <td style="width: 25%;"></td>
+        </tr>
+        <tr>
+          <td style="text-align: left;"><strong>Ilość (kg):</strong></td>
+          <td></td>
+          <td style="text-align: left;"><strong>Dostawca:</strong></td>
+          <td></td>
+        </tr>
+      </table>
+      
+      <table class="main" style="margin-top: 10px;">
+        <tr>
+          <th colspan="4">METODA PEKLOWANIA</th>
+        </tr>
+        <tr>
+          <td colspan="4" style="text-align: left;">
+            ☐ Suche (sól peklowa: ______ kg) &nbsp;&nbsp;&nbsp;
+            ☐ Nastrzykowe (solanka)
+          </td>
+        </tr>
+      </table>
+      
+      <table class="main" style="margin-top: 10px;">
+        <tr>
+          <th colspan="4">SKŁAD SOLANKI (dla metody nastrzykowej)</th>
+        </tr>
+        <tr>
+          <td style="width: 25%; text-align: left;"><strong>Woda (L):</strong></td>
+          <td style="width: 25%;"></td>
+          <td style="width: 25%; text-align: left;"><strong>Sól peklowa (kg):</strong></td>
+          <td style="width: 25%;"></td>
+        </tr>
+        <tr>
+          <td style="text-align: left;"><strong>Maggi (kg):</strong></td>
+          <td></td>
+          <td style="text-align: left;"><strong>Cukier (kg):</strong></td>
+          <td></td>
+        </tr>
+      </table>
+      
+      <table class="main" style="margin-top: 10px;">
+        <tr>
+          <th colspan="6">KONTROLA TEMPERATURY PEKLOWANIA</th>
+        </tr>
+        <tr>
+          <th>Dzień</th>
+          <th>Data</th>
+          <th>Godz.</th>
+          <th>Temp. (°C)</th>
+          <th>Ocena wizualna</th>
+          <th>Podpis</th>
+        </tr>
+    `;
+
+    for (let i = 1; i <= 7; i++) {
+      html += `
+        <tr>
+          <td>${i}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>☐ OK</td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    html += `
+      </table>
+      
+      <table class="main" style="margin-top: 10px;">
+        <tr>
+          <th colspan="4">ZAKOŃCZENIE PEKLOWANIA</th>
+        </tr>
+        <tr>
+          <td style="width: 25%; text-align: left;"><strong>Data zakończenia:</strong></td>
+          <td style="width: 25%;"></td>
+          <td style="width: 25%; text-align: left;"><strong>Godzina:</strong></td>
+          <td style="width: 25%;"></td>
+        </tr>
+        <tr>
+          <td style="text-align: left;"><strong>Ocena końcowa:</strong></td>
+          <td colspan="3">☐ Produkt zgodny, gotowy do dalszej obróbki &nbsp;&nbsp; ☐ Niezgodny</td>
+        </tr>
+      </table>
+      
+      <div style="margin-top: 10px;">
+        <strong>Uwagi:</strong>
+        <div style="border: 1px solid #000; min-height: 40px; margin-top: 5px;"></div>
+      </div>
+    `;
+    
+    html += getTemplateFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania wzorca:', error);
+    res.status(500).json({ error: 'Błąd generowania wzorca' });
+  }
+});
+
+// WZORZEC: Ewidencja odpadów kat. 3
+router.get('/templates/waste-monthly', async (req: Request, res: Response) => {
+  try {
+    const month = req.query.month 
+      ? dayjs(req.query.month as string)
+      : dayjs();
+    
+    let html = getTemplateHeader('EWIDENCJA ODPADÓW KAT. 3 - MIESIĄC', 'F-HACCP-07');
+    
+    html += `
+      <div class="info-row">
+        <strong>Miesiąc:</strong> <span>${month.format('MMMM YYYY')}</span>
+        &nbsp;&nbsp;&nbsp;
+        <strong>Firma odbierająca:</strong> <span style="min-width: 200px;"></span>
+      </div>
+      
+      <table class="main">
+        <thead>
+          <tr>
+            <th style="width: 10%;">Data</th>
+            <th style="width: 20%;">Rodzaj odpadu</th>
+            <th style="width: 10%;">Ilość (kg)</th>
+            <th style="width: 15%;">Nr pojemnika</th>
+            <th style="width: 15%;">Przekazano firmie</th>
+            <th style="width: 15%;">Nr dokumentu</th>
+            <th style="width: 15%;">Podpis</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // 15 pustych wierszy
+    for (let i = 0; i < 15; i++) {
+      html += `
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 10px; display: flex; gap: 40px;">
+        <div><strong>Suma miesięczna:</strong> _________ kg</div>
+      </div>
+    `;
+    
+    html += getTemplateFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania wzorca:', error);
+    res.status(500).json({ error: 'Błąd generowania wzorca' });
+  }
+});
+
+// Lista dostępnych wzorców
+router.get('/templates', async (req: Request, res: Response) => {
+  const templates = [
+    { id: 'temperature-weekly', name: 'Karta kontroli temperatury - tydzień', code: 'F-HACCP-01', description: 'Tygodniowy formularz do ręcznego zapisu pomiarów temperatury' },
+    { id: 'reception-daily', name: 'Karta przyjęcia surowców', code: 'F-HACCP-02', description: 'Dzienny formularz kontroli przyjęć dostaw' },
+    { id: 'cleaning-daily', name: 'Karta mycia i dezynfekcji', code: 'F-HACCP-03', description: 'Dzienny formularz mycia i dezynfekcji' },
+    { id: 'production-daily', name: 'Karta produkcji dziennej', code: 'F-HACCP-04', description: 'Dzienny formularz dokumentacji produkcji' },
+    { id: 'pest-control-monthly', name: 'Karta kontroli DDD - miesiąc', code: 'F-HACCP-05', description: 'Miesięczny formularz kontroli punktów DDD' },
+    { id: 'curing', name: 'Karta procesu peklowania', code: 'F-HACCP-06', description: 'Formularz dokumentacji procesu peklowania' },
+    { id: 'waste-monthly', name: 'Ewidencja odpadów kat. 3', code: 'F-HACCP-07', description: 'Miesięczna ewidencja odpadów kategorii 3' },
+  ];
+  
+  res.json(templates);
+});
+
 export default router;
