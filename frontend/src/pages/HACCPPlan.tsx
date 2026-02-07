@@ -220,12 +220,18 @@ export default function HACCPPlan() {
       {/* CCPs Tab */}
       {activeTab === 'ccps' && (
         <div className="space-y-4">
-          {ccps.map((ccp, index) => (
-            <div key={ccp.id} className="card border-l-4 border-meat-600">
+          {ccps.map((ccp) => {
+            // Wyciągnij etykietę (CP1, CP2, CCP1) z nazwy
+            const labelMatch = ccp.name.match(/^(CCP?\d+)/i);
+            const label = labelMatch ? labelMatch[1].toUpperCase() : 'CCP';
+            const isCCP = label.startsWith('CCP') && !label.startsWith('CP');
+            
+            return (
+            <div key={ccp.id} className={`card border-l-4 ${isCCP ? 'border-red-600' : 'border-meat-600'}`}>
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-meat-100 rounded-lg flex items-center justify-center">
-                    <span className="text-xl font-bold text-meat-700">CCP{index + 1}</span>
+                  <div className={`w-14 h-12 ${isCCP ? 'bg-red-100' : 'bg-meat-100'} rounded-lg flex items-center justify-center`}>
+                    <span className={`text-lg font-bold ${isCCP ? 'text-red-700' : 'text-meat-700'}`}>{label}</span>
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{ccp.name}</h3>
@@ -271,7 +277,8 @@ export default function HACCPPlan() {
                 )}
               </div>
             </div>
-          ))}
+          );
+          })}
 
           {ccps.length === 0 && (
             <div className="card text-center py-12">
