@@ -191,6 +191,7 @@ export default function Receptions() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ilość</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nr partii</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Temp.</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Uwagi</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 {isAdmin && <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Akcje</th>}
               </tr>
@@ -215,6 +216,9 @@ export default function Receptions() {
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {reception.temperature ? `${reception.temperature}°C` : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500 max-w-[150px] truncate" title={reception.notes || ''}>
+                    {reception.notes || '-'}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`badge ${reception.isCompliant ? 'badge-success' : 'badge-danger'}`}>
