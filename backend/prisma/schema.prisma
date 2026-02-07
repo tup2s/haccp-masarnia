@@ -449,3 +449,90 @@ model playing_with_neon {
   name  String
   value Float? @db.Real
 }
+
+// ============================================
+// BADANIA LABORATORYJNE (Laboratory Tests)
+// ============================================
+
+model LabTestType {
+  id          Int       @id @default(autoincrement())
+  name        String    // np. "Salmonella", "Listeria monocytogenes", "Zawartość białka"
+  category    String    // "MIKROBIOLOGICZNE", "FIZYKOCHEMICZNE", "TRWAŁOŚĆ", "SMOLISTOŚĆ", "WYMAZY"
+  unit        String?   // np. "CFU/g", "%", "mg/kg"
+  normMin     Float?    // Minimalna wartość normy
+  normMax     Float?    // Maksymalna wartość normy
+  normText    String?   // Tekstowy opis normy np. "nieobecne w 25g"
+  frequency   String?   // Częstotliwość badań np. "co miesiąc", "co kwartał"
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  labTests    LabTest[]
+}
+
+model LabTest {
+  id              Int         @id @default(autoincrement())
+  labTestTypeId   Int
+  sampleDate      DateTime    @default(now()) // Data pobrania próbki
+  resultDate      DateTime?   // Data otrzymania wyniku
+  sampleSource    String?     // Źródło próbki np. "Kiełbasa krakowska partia KB-2024-001"
+  sampleBatchId   String?     // Numer partii próbki
+  result          String?     // Wynik tekstowy
+  resultValue     Float?      // Wynik liczbowy
+  isCompliant     Boolean?    // Czy wynik jest zgodny z normą
+  laboratory      String?     // Nazwa laboratorium
+  documentNumber  String?     // Numer sprawozdania/protokołu
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  labTestType     LabTestType @relation(fields: [labTestTypeId], references: [id])
+}
+
+// ============================================
+// EWIDENCJA ODPADÓW (Waste Management)
+// ============================================
+
+model WasteType {
+  id          Int           @id @default(autoincrement())
+  name        String        // np. "Odpady porozbiorowe kat. 3", "Kości", "Tłuszcz"
+  category    String        // "KATEGORIA_1", "KATEGORIA_2", "KATEGORIA_3"
+  code        String?       // Kod odpadu wg klasyfikacji
+  description String?
+  unit        String        @default("kg")
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  wasteRecords WasteRecord[]
+}
+
+model WasteCollector {
+  id            Int           @id @default(autoincrement())
+  name          String        // Nazwa firmy odbierającej
+  address       String?
+  phone         String?
+  email         String?
+  vetNumber     String?       // Numer weterynaryjny / zezwolenia
+  contractNumber String?      // Numer umowy
+  contactPerson String?
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  wasteRecords  WasteRecord[]
+}
+
+model WasteRecord {
+  id              Int            @id @default(autoincrement())
+  wasteTypeId     Int
+  collectorId     Int?
+  quantity        Float          // Ilość w jednostce
+  unit            String         @default("kg")
+  collectionDate  DateTime       @default(now()) // Data odbioru
+  documentNumber  String?        // Numer dokumentu handlowego / WZ
+  vehicleNumber   String?        // Numer rejestracyjny pojazdu
+  driverName      String?        // Imię i nazwisko kierowcy
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  wasteType       WasteType      @relation(fields: [wasteTypeId], references: [id])
+  collector       WasteCollector? @relation(fields: [collectorId], references: [id])
+}

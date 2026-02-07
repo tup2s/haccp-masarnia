@@ -24,6 +24,8 @@ import {
   ArchiveBoxIcon,
   BuildingStorefrontIcon,
   SwatchIcon,
+  ScaleIcon,
+  DocumentMagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
@@ -50,9 +52,11 @@ const haccpNavigation = [
   { name: 'Temperatura', href: '/temperatura', icon: BeakerIcon },
   { name: 'Mycie i dezynfekcja', href: '/mycie', icon: SparklesIcon },
   { name: 'Kontrola DDD', href: '/ddd', icon: BugAntIcon },
+  { name: 'Badania laboratoryjne', href: '/badania', icon: DocumentMagnifyingGlassIcon },
   { name: 'Audyty', href: '/audyty', icon: ClipboardDocumentCheckIcon },
   { name: 'Szkolenia', href: '/szkolenia', icon: AcademicCapIcon },
   { name: 'Działania korygujące', href: '/korekty', icon: ExclamationTriangleIcon },
+  { name: 'Ewidencja odpadów', href: '/odpady', icon: ScaleIcon },
 ];
 
 // Sekcja: Dokumentacja i Raporty

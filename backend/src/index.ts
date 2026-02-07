@@ -27,6 +27,8 @@ import materialsRoutes from './routes/materials';
 import butcheringRoutes from './routes/butchering';
 import labelsRoutes from './routes/labels';
 import documentReportsRoutes from './routes/documentReports';
+import labTestsRoutes from './routes/labTests';
+import wasteRoutes from './routes/waste';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -69,6 +71,8 @@ app.use('/api/materials', materialsRoutes);
 app.use('/api/butchering', butcheringRoutes);
 app.use('/api/labels', labelsRoutes);
 app.use('/api/document-reports', documentReportsRoutes);
+app.use('/api/lab-tests', labTestsRoutes);
+app.use('/api/waste', wasteRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

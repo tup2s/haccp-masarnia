@@ -718,6 +718,69 @@ export const api = {
     request<any>(`/labels/preview/curing/${batchId}`),
   testPrinter: () =>
     request<{ success: boolean; message: string }>('/labels/test', { method: 'POST' }),
+
+  // Lab Tests (Badania laboratoryjne)
+  getLabTestTypes: () => request<any[]>('/lab-tests/types'),
+  getActiveLabTestTypes: () => request<any[]>('/lab-tests/types/active'),
+  createLabTestType: (data: any) =>
+    request<any>('/lab-tests/types', { method: 'POST', body: JSON.stringify(data) }),
+  updateLabTestType: (id: number, data: any) =>
+    request<any>(`/lab-tests/types/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteLabTestType: (id: number) => request<void>(`/lab-tests/types/${id}`, { method: 'DELETE' }),
+  getLabTests: (params?: { typeId?: number; from?: string; to?: string; compliant?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.typeId) query.append('typeId', params.typeId.toString());
+    if (params?.from) query.append('from', params.from);
+    if (params?.to) query.append('to', params.to);
+    if (params?.compliant) query.append('compliant', params.compliant);
+    const queryStr = query.toString();
+    return request<any[]>(`/lab-tests${queryStr ? `?${queryStr}` : ''}`);
+  },
+  getLabTest: (id: number) => request<any>(`/lab-tests/${id}`),
+  createLabTest: (data: any) =>
+    request<any>('/lab-tests', { method: 'POST', body: JSON.stringify(data) }),
+  updateLabTest: (id: number, data: any) =>
+    request<any>(`/lab-tests/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteLabTest: (id: number) => request<void>(`/lab-tests/${id}`, { method: 'DELETE' }),
+  getLabTestStats: () => request<any>('/lab-tests/stats/summary'),
+
+  // Waste (Odpady)
+  getWasteTypes: () => request<any[]>('/waste/types'),
+  getActiveWasteTypes: () => request<any[]>('/waste/types/active'),
+  createWasteType: (data: any) =>
+    request<any>('/waste/types', { method: 'POST', body: JSON.stringify(data) }),
+  updateWasteType: (id: number, data: any) =>
+    request<any>(`/waste/types/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteWasteType: (id: number) => request<void>(`/waste/types/${id}`, { method: 'DELETE' }),
+  getWasteCollectors: () => request<any[]>('/waste/collectors'),
+  getActiveWasteCollectors: () => request<any[]>('/waste/collectors/active'),
+  createWasteCollector: (data: any) =>
+    request<any>('/waste/collectors', { method: 'POST', body: JSON.stringify(data) }),
+  updateWasteCollector: (id: number, data: any) =>
+    request<any>(`/waste/collectors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteWasteCollector: (id: number) => request<void>(`/waste/collectors/${id}`, { method: 'DELETE' }),
+  getWasteRecords: (params?: { typeId?: number; collectorId?: number; from?: string; to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.typeId) query.append('typeId', params.typeId.toString());
+    if (params?.collectorId) query.append('collectorId', params.collectorId.toString());
+    if (params?.from) query.append('from', params.from);
+    if (params?.to) query.append('to', params.to);
+    const queryStr = query.toString();
+    return request<any[]>(`/waste${queryStr ? `?${queryStr}` : ''}`);
+  },
+  getWasteRecord: (id: number) => request<any>(`/waste/${id}`),
+  createWasteRecord: (data: any) =>
+    request<any>('/waste', { method: 'POST', body: JSON.stringify(data) }),
+  updateWasteRecord: (id: number, data: any) =>
+    request<any>(`/waste/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteWasteRecord: (id: number) => request<void>(`/waste/${id}`, { method: 'DELETE' }),
+  getWasteStats: (params?: { from?: string; to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.from) query.append('from', params.from);
+    if (params?.to) query.append('to', params.to);
+    const queryStr = query.toString();
+    return request<any>(`/waste/stats/summary${queryStr ? `?${queryStr}` : ''}`);
+  },
 };
 
 export default api;

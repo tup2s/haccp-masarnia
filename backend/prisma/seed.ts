@@ -669,6 +669,67 @@ async function main() {
 
   console.log('✅ Dokumenty utworzone');
 
+  // ============================================
+  // TYPY BADAŃ LABORATORYJNYCH
+  // ============================================
+  const labTestTypesCount = await prisma.labTestType.count();
+  if (labTestTypesCount === 0) {
+    await prisma.labTestType.createMany({
+      data: [
+        // Badania mikrobiologiczne
+        { name: 'Salmonella', category: 'MIKROBIOLOGICZNE', unit: null, normText: 'nieobecne w 25g', frequency: 'co miesiąc', description: 'Wykrywanie Salmonella spp.' },
+        { name: 'Listeria monocytogenes', category: 'MIKROBIOLOGICZNE', unit: null, normText: 'nieobecne w 25g', frequency: 'co miesiąc', description: 'Wykrywanie L. monocytogenes' },
+        { name: 'E. coli', category: 'MIKROBIOLOGICZNE', unit: 'CFU/g', normMax: 500, frequency: 'co miesiąc', description: 'Liczba E. coli' },
+        { name: 'STEC/VTEC', category: 'MIKROBIOLOGICZNE', unit: null, normText: 'nieobecne w 25g', frequency: 'co kwartał', description: 'E. coli produkujące werotoksyny' },
+        { name: 'Enterobacteriaceae', category: 'MIKROBIOLOGICZNE', unit: 'CFU/g', normMax: 1000, frequency: 'co miesiąc', description: 'Bakterie z rodziny Enterobacteriaceae' },
+        { name: 'OLM (ogólna liczba drobnoustrojów)', category: 'MIKROBIOLOGICZNE', unit: 'CFU/g', normMax: 100000, frequency: 'co miesiąc', description: 'Ogólna liczba drobnoustrojów mezofilnych' },
+        // Badania fizykochemiczne
+        { name: 'Zawartość białka', category: 'FIZYKOCHEMICZNE', unit: '%', normMin: 12, frequency: 'co kwartał', description: 'Oznaczanie zawartości białka' },
+        { name: 'Zawartość tłuszczu', category: 'FIZYKOCHEMICZNE', unit: '%', normMax: 30, frequency: 'co kwartał', description: 'Oznaczanie zawartości tłuszczu' },
+        { name: 'Zawartość wody', category: 'FIZYKOCHEMICZNE', unit: '%', normMax: 70, frequency: 'co kwartał', description: 'Oznaczanie zawartości wody' },
+        { name: 'Zawartość soli (NaCl)', category: 'FIZYKOCHEMICZNE', unit: '%', normMax: 3.5, frequency: 'co kwartał', description: 'Oznaczanie zawartości chlorku sodu' },
+        { name: 'Azotany i azotyny', category: 'FIZYKOCHEMICZNE', unit: 'mg/kg', normMax: 150, frequency: 'co kwartał', description: 'Pozostałości azotanów i azotynów' },
+        { name: 'pH produktu', category: 'FIZYKOCHEMICZNE', unit: '', normMin: 5.5, normMax: 6.5, frequency: 'co tydzień', description: 'Pomiar pH produktu' },
+        { name: 'Aktywność wody (aw)', category: 'FIZYKOCHEMICZNE', unit: '', normMax: 0.95, frequency: 'co kwartał', description: 'Aktywność wody' },
+        // Badania trwałości
+        { name: 'Badanie trwałości - 7 dni', category: 'TRWAŁOŚĆ', unit: null, frequency: 'przy nowym produkcie', description: 'Badanie trwałości produktu po 7 dniach' },
+        { name: 'Badanie trwałości - 14 dni', category: 'TRWAŁOŚĆ', unit: null, frequency: 'przy nowym produkcie', description: 'Badanie trwałości produktu po 14 dniach' },
+        { name: 'Badanie trwałości - 21 dni', category: 'TRWAŁOŚĆ', unit: null, frequency: 'przy nowym produkcie', description: 'Badanie trwałości produktu po 21 dniach' },
+        // Smolistość (WWA)
+        { name: 'Benzo(a)piren', category: 'SMOLISTOŚĆ', unit: 'µg/kg', normMax: 2.0, frequency: 'co pół roku', description: 'Zawartość benzo(a)pirenu w wyrobach wędzonych' },
+        { name: 'Suma 4 WWA', category: 'SMOLISTOŚĆ', unit: 'µg/kg', normMax: 12.0, frequency: 'co pół roku', description: 'Suma 4 węglowodorów aromatycznych' },
+        // Wymazy powierzchniowe
+        { name: 'Wymaz z powierzchni roboczej', category: 'WYMAZY', unit: 'CFU/cm²', normMax: 10, frequency: 'co tydzień', description: 'Czystość powierzchni roboczych' },
+        { name: 'Wymaz z rąk pracownika', category: 'WYMAZY', unit: 'CFU/cm²', normMax: 100, frequency: 'co tydzień', description: 'Higiena rąk pracowników' },
+        { name: 'Wymaz ze sprzętu', category: 'WYMAZY', unit: 'CFU/cm²', normMax: 10, frequency: 'co tydzień', description: 'Czystość sprzętu produkcyjnego' },
+      ],
+    });
+  }
+  console.log('✅ Typy badań laboratoryjnych utworzone');
+
+  // ============================================
+  // TYPY ODPADÓW
+  // ============================================
+  const wasteTypesCount = await prisma.wasteType.count();
+  if (wasteTypesCount === 0) {
+    await prisma.wasteType.createMany({
+      data: [
+        // Kategoria 3 - odpady porozbiorowe
+        { name: 'Kości', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Kości z rozbioru mięsa' },
+        { name: 'Tłuszcz techniczny', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Tłuszcz nieprzeznaczony do spożycia' },
+        { name: 'Ścięgna i chrząstki', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Tkanka łączna' },
+        { name: 'Skóry wieprzowe', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Skóry z rozbioru' },
+        { name: 'Odpady poprodukcyjne', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Odpady z produkcji wędlin' },
+        { name: 'Przeterminowane produkty', category: 'KATEGORIA_3', code: '02 02 02', unit: 'kg', description: 'Produkty po terminie przydatności' },
+        // Kategoria 2
+        { name: 'Treść przewodu pokarmowego', category: 'KATEGORIA_2', code: '02 02 02', unit: 'kg', description: 'Treść żołądka i jelit' },
+        // Kategoria 1 - SRM (zazwyczaj nie dotyczy masarni, ale na wszelki wypadek)
+        { name: 'Materiał SRM', category: 'KATEGORIA_1', code: '02 01 02', unit: 'kg', description: 'Materiał szczególnego ryzyka (jeśli dotyczy)' },
+      ],
+    });
+  }
+  console.log('✅ Typy odpadów utworzone');
+
   console.log('');
   console.log('🎉 Seedowanie zakończone pomyślnie!');
   console.log('');

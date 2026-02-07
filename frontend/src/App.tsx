@@ -22,6 +22,8 @@ import Reports from './pages/Reports';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Materials from './pages/Materials';
+import LabTests from './pages/LabTests';
+import Waste from './pages/Waste';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token, isLoading } = useAuth();
@@ -62,6 +64,8 @@ function App() {
                 <Route path="/szkolenia" element={<Trainings />} />
                 <Route path="/korekty" element={<CorrectiveActions />} />
                 <Route path="/audyty" element={<Audits />} />
+                <Route path="/badania" element={<LabTests />} />
+                <Route path="/odpady" element={<Waste />} />
                 <Route path="/dokumenty" element={<Documents />} />
                 <Route path="/haccp" element={<HACCPPlan />} />
                 <Route path="/raporty" element={<Reports />} />
