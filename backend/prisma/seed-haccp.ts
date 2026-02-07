@@ -2,8 +2,20 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 2 punkty kontrolne (CP) + 1 krytyczny punkt kontrolny (CCP) dla masarni
+// Plan HACCP dla masarni: 2 punkty kontrolne (CP) + 1 krytyczny punkt kontrolny (CCP)
+// Zgodnie z wytycznymi PIW - CCP tylko tam gdzie jest eliminacja zagrożenia (obróbka termiczna)
 const ccps = [
+  {
+    name: 'CCP1 - Obróbka termiczna',
+    description: 'Kontrola temperatury i czasu obróbki termicznej (gotowanie, wędzenie, parzenie). Krytyczny punkt kontrolny eliminujący drobnoustroje chorobotwórcze w produktach mięsnych.',
+    hazardType: 'BIOLOGICAL',
+    criticalLimit: 'Temperatura wewnętrzna produktu: min 72°C przez min 2 minuty (parzenie/gotowanie). Wędzenie na gorąco: min 68°C wewnątrz przez 15 minut. Schładzanie: z 60°C do 10°C w max 6 godzin.',
+    monitoringMethod: 'Pomiar temperatury wewnętrznej produktu termometrem szpilkowym. Kontrola temperatury i czasu w komorze wędzarniczej/kotłach. Rejestracja parametrów procesu.',
+    monitoringFrequency: 'Każda partia produkcyjna. Pomiar w najgrubszym miejscu produktu.',
+    correctiveAction: 'Przedłużenie czasu obróbki do osiągnięcia wymaganej temperatury. Powtórzenie procesu termicznego. Przy braku możliwości poprawy - utylizacja partii. Przegląd urządzenia.',
+    verificationMethod: 'Badania mikrobiologiczne produktów gotowych (min. raz w miesiącu). Kalibracja termometrów co 6 miesięcy. Walidacja procesów termicznych raz w roku.',
+    recordKeeping: 'Karty procesów termicznych (partia, temperatura, czas, podpis). Wyniki badań mikrobiologicznych. Protokoły walidacji procesów.',
+  },
   {
     name: 'CP1 - Przyjęcie surowców',
     description: 'Kontrola temperatury i stanu surowców mięsnych przy przyjęciu dostawy. Punkt kontrolny zapobiegający przyjęciu surowców niewłaściwie przechowywanych podczas transportu.',
@@ -25,17 +37,6 @@ const ccps = [
     correctiveAction: 'Przy przekroczeniu temperatury: ocena organoleptyczna produktów, przeniesienie do sprawnej chłodni, naprawa urządzenia. Przy długotrwałym przekroczeniu: utylizacja produktów. Powiadomienie serwisu.',
     verificationMethod: 'Analiza trendów temperatury co tydzień. Kalibracja czujników co 6 miesięcy. Przegląd techniczny urządzeń chłodniczych co rok.',
     recordKeeping: 'Zapisy ciągłe z rejestratorów temperatury. Dziennik odczytów temperatury. Protokoły awarii i napraw. Karty kalibracji czujników.',
-  },
-  {
-    name: 'CCP1 - Obróbka termiczna',
-    description: 'Kontrola temperatury i czasu obróbki termicznej (gotowanie, wędzenie, parzenie). Krytyczny punkt kontrolny eliminujący drobnoustroje chorobotwórcze w produktach mięsnych.',
-    hazardType: 'BIOLOGICAL',
-    criticalLimit: 'Temperatura wewnętrzna produktu: min 72°C przez min 2 minuty (parzenie/gotowanie). Wędzenie na gorąco: min 68°C wewnątrz przez 15 minut. Schładzanie: z 60°C do 10°C w max 6 godzin.',
-    monitoringMethod: 'Pomiar temperatury wewnętrznej produktu termometrem szpilkowym. Kontrola temperatury i czasu w komorze wędzarniczej/kotłach. Rejestracja parametrów procesu.',
-    monitoringFrequency: 'Każda partia produkcyjna. Pomiar w najgrubszym miejscu produktu.',
-    correctiveAction: 'Przedłużenie czasu obróbki do osiągnięcia wymaganej temperatury. Powtórzenie procesu termicznego. Przy braku możliwości poprawy - utylizacja partii. Przegląd urządzenia.',
-    verificationMethod: 'Badania mikrobiologiczne produktów gotowych (min. raz w miesiącu). Kalibracja termometrów co 6 miesięcy. Walidacja procesów termicznych raz w roku.',
-    recordKeeping: 'Karty procesów termicznych (partia, temperatura, czas, podpis). Wyniki badań mikrobiologicznych. Protokoły walidacji procesów.',
   },
 ];
 
