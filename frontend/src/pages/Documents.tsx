@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
 import { api, Document } from '../services/api';
-import { PlusIcon, DocumentTextIcon, FolderIcon, PencilIcon, TrashIcon, ArrowTopRightOnSquareIcon, LinkIcon, XMarkIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, DocumentTextIcon, FolderIcon, PencilIcon, TrashIcon, ArrowTopRightOnSquareIcon, LinkIcon, XMarkIcon, EyeIcon, PrinterIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+
+interface FormTemplate {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+}
 
 const CATEGORIES = [
   { value: 'PROCEDURE', label: 'Procedury', color: 'bg-blue-100 text-blue-800' },
@@ -37,11 +44,13 @@ const hasPreview = (filePath: string) => {
 
 export default function Documents() {
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [templates, setTemplates] = useState<FormTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<Document | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [activeTab, setActiveTab] = useState<'documents' | 'templates'>('documents');
   const [formData, setFormData] = useState({
     title: '',
     category: 'PROCEDURE',
@@ -54,6 +63,7 @@ export default function Documents() {
 
   useEffect(() => {
     loadDocuments();
+    loadTemplates();
   }, []);
 
   const loadDocuments = async () => {
@@ -65,6 +75,33 @@ export default function Documents() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadTemplates = async () => {
+    try {
+      const data = await api.getFormTemplates();
+      setTemplates(data);
+    } catch (error) {
+      console.error('Błąd ładowania wzorców:', error);
+    }
+  };
+
+  const openTemplate = (templateId: string, params?: Record<string, string>) => {
+    const url = api.getFormTemplateUrl(templateId, params);
+    window.open(url, '_blank');
+  };
+
+  const getTemplateIcon = (templateId: string) => {
+    const icons: Record<string, string> = {
+      'temperature-weekly': '🌡️',
+      'reception-daily': '🥩',
+      'cleaning-daily': '🧹',
+      'production-daily': '🏭',
+      'pest-control-monthly': '🐀',
+      'curing': '🧂',
+      'waste-monthly': '🗑️',
+    };
+    return icons[templateId] || '📋';
   };
 
   const openModal = (doc?: Document) => {
@@ -154,14 +191,139 @@ export default function Documents() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dokumentacja HACCP</h1>
-          <p className="text-gray-500 mt-1">Procedury, instrukcje i formularze</p>
+          <p className="text-gray-500 mt-1">Procedury, instrukcje, formularze i wzorce</p>
         </div>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
-          <PlusIcon className="w-5 h-5" />
-          Dodaj dokument
+        {activeTab === 'documents' && (
+          <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
+            <PlusIcon className="w-5 h-5" />
+            Dodaj dokument
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b">
+        <button
+          onClick={() => setActiveTab('documents')}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            activeTab === 'documents'
+              ? 'border-meat-600 text-meat-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <FolderIcon className="w-5 h-5 inline-block mr-2" />
+          Dokumenty ({documents.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('templates')}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            activeTab === 'templates'
+              ? 'border-meat-600 text-meat-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <ClipboardDocumentListIcon className="w-5 h-5 inline-block mr-2" />
+          Wzorce formularzy ({templates.length})
         </button>
       </div>
 
+      {/* TAB: Wzorce formularzy */}
+      {activeTab === 'templates' && (
+        <div className="space-y-6">
+          <div className="card bg-yellow-50 border border-yellow-200">
+            <div className="flex gap-3">
+              <div className="text-yellow-600 text-2xl">📋</div>
+              <div>
+                <h4 className="font-medium text-yellow-900">Puste formularze do ręcznego wypełnienia</h4>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Wydrukuj puste formularze i wypełnij ręcznie długopisem. 
+                  Idealne jako backup gdy system niedostępny lub do dokumentacji papierowej wymaganej przez PIW.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {templates.map((template) => (
+              <div key={template.id} className="card hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="text-3xl">{getTemplateIcon(template.id)}</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{template.name}</h3>
+                    <p className="text-xs text-gray-500 mb-1">{template.code}</p>
+                    <p className="text-sm text-gray-600">{template.description}</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={() => openTemplate(template.id)}
+                    className="w-full btn-primary flex items-center justify-center gap-2"
+                  >
+                    <PrinterIcon className="w-4 h-4" />
+                    Otwórz i drukuj
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {templates.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Ładowanie wzorców formularzy...
+            </div>
+          )}
+
+          {/* Szybki wydruk */}
+          <div className="card">
+            <h3 className="font-semibold text-gray-900 mb-4">⚡ Szybki wydruk na bieżący okres</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Wydrukuj wszystkie formularze potrzebne na bieżący tydzień/miesiąc:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => openTemplate('temperature-weekly', { week: dayjs().startOf('week').format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🌡️ Temperatura (tydzień)
+              </button>
+              <button
+                onClick={() => openTemplate('reception-daily', { date: dayjs().format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🥩 Przyjęcia (dziś)
+              </button>
+              <button
+                onClick={() => openTemplate('cleaning-daily', { date: dayjs().format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🧹 Mycie (dziś)
+              </button>
+              <button
+                onClick={() => openTemplate('production-daily', { date: dayjs().format('YYYY-MM-DD') })}
+                className="btn-secondary text-sm"
+              >
+                🏭 Produkcja (dziś)
+              </button>
+              <button
+                onClick={() => openTemplate('pest-control-monthly', { month: dayjs().format('YYYY-MM') })}
+                className="btn-secondary text-sm"
+              >
+                🐀 DDD (miesiąc)
+              </button>
+              <button
+                onClick={() => openTemplate('waste-monthly', { month: dayjs().format('YYYY-MM') })}
+                className="btn-secondary text-sm"
+              >
+                🗑️ Odpady (miesiąc)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: Dokumenty */}
+      {activeTab === 'documents' && (
+        <>
       {/* Category Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {groupedDocs.map((cat) => (
@@ -305,6 +467,8 @@ export default function Documents() {
             {filter !== 'all' ? 'Brak dokumentów w wybranej kategorii.' : 'Dodaj pierwszy dokument.'}
           </p>
         </div>
+      )}
+        </>
       )}
 
       {/* Modal */}

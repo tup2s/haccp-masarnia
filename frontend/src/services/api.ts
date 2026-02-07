@@ -666,6 +666,16 @@ export const api = {
     return `${backendUrl}/api/document-reports/templates/${templateId}${queryString}`;
   },
 
+  // Data Reports (Raporty z danymi)
+  getDataReports: () => request<any[]>('/document-reports/reports'),
+  getDataReportUrl: (reportId: string, params?: Record<string, string>) => {
+    const backendUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
+      : `http://${window.location.hostname}:3001`;
+    const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
+    return `${backendUrl}/api/document-reports/reports/${reportId}${queryString}`;
+  },
+
   // Temperature Reading management (Admin)
   updateTemperatureReading: (id: number, data: { temperature?: number; notes?: string; isCompliant?: boolean; readAt?: string }) =>
     request<TemperatureReading>(`/temperature/readings/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

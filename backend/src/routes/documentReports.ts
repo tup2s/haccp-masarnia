@@ -1260,4 +1260,703 @@ router.get('/templates', async (req: Request, res: Response) => {
   res.json(templates);
 });
 
+// ============================================
+// RAPORTY Z DANYMI (wypełnione formularze)
+// ============================================
+
+// RAPORT: Temperatura - tydzień z danymi
+router.get('/reports/temperature-weekly', async (req: Request, res: Response) => {
+  try {
+    const weekStart = req.query.week 
+      ? dayjs(req.query.week as string).startOf('week')
+      : dayjs().startOf('week');
+    const weekEnd = weekStart.add(6, 'day').endOf('day');
+
+    const points = await prisma.temperaturePoint.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    const readings = await prisma.temperatureReading.findMany({
+      where: {
+        readAt: {
+          gte: weekStart.toDate(),
+          lte: weekEnd.toDate(),
+        },
+      },
+      include: {
+        temperaturePoint: true,
+        user: { select: { name: true } },
+      },
+      orderBy: { readAt: 'asc' },
+    });
+
+    // Grupuj odczyty po punkcie i dniu
+    const readingsByPointAndDay: Record<number, Record<string, { morning?: number; evening?: number; isOk: boolean }>> = {};
+    
+    for (const reading of readings) {
+      const pointId = reading.temperaturePointId;
+      if (!readingsByPointAndDay[pointId]) {
+        readingsByPointAndDay[pointId] = {};
+      }
+      const dayKey = dayjs(reading.readAt).format('YYYY-MM-DD');
+      if (!readingsByPointAndDay[pointId][dayKey]) {
+        readingsByPointAndDay[pointId][dayKey] = { isOk: true };
+      }
+      
+      const hour = dayjs(reading.readAt).hour();
+      if (hour < 12) {
+        readingsByPointAndDay[pointId][dayKey].morning = reading.temperature;
+      } else {
+        readingsByPointAndDay[pointId][dayKey].evening = reading.temperature;
+      }
+      if (!reading.isCompliant) {
+        readingsByPointAndDay[pointId][dayKey].isOk = false;
+      }
+    }
+
+    const days: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      days.push(weekStart.add(i, 'day').format('dd DD.MM'));
+    }
+
+    let html = getDocumentHeader('Raport temperatury - tydzień');
+    
+    html += `
+      <div class="doc-title">KARTA KONTROLI TEMPERATURY - TYDZIEŃ</div>
+      <div class="doc-info">Nr formularza: F-HACCP-01 | Wygenerowano z systemu HACCP</div>
+      
+      <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+        <strong>Tydzień:</strong> ${weekStart.format('DD.MM.YYYY')} - ${weekStart.add(6, 'day').format('DD.MM.YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Liczba odczytów:</strong> ${readings.length}
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2" style="width: 25%;">Punkt pomiaru</th>
+            <th rowspan="2" style="width: 10%;">Norma (°C)</th>
+            <th colspan="7">Temperatura (°C) - rano / wieczór</th>
+          </tr>
+          <tr>
+            ${days.map(d => `<th style="width: 9%;">${d}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const point of points) {
+      const pointReadings = readingsByPointAndDay[point.id] || {};
+      html += `
+        <tr>
+          <td style="text-align: left; font-size: 9px;">${point.name}</td>
+          <td>${point.minTemp} - ${point.maxTemp}</td>
+    `;
+      
+      for (let i = 0; i < 7; i++) {
+        const dayKey = weekStart.add(i, 'day').format('YYYY-MM-DD');
+        const dayData = pointReadings[dayKey];
+        
+        if (dayData) {
+          const morningClass = dayData.morning !== undefined && (dayData.morning < point.minTemp || dayData.morning > point.maxTemp) ? 'temp-danger' : '';
+          const eveningClass = dayData.evening !== undefined && (dayData.evening < point.minTemp || dayData.evening > point.maxTemp) ? 'temp-danger' : '';
+          html += `<td style="font-size: 9px;">
+            <span class="${morningClass}">${dayData.morning !== undefined ? dayData.morning.toFixed(1) : '-'}</span>
+            /
+            <span class="${eveningClass}">${dayData.evening !== undefined ? dayData.evening.toFixed(1) : '-'}</span>
+          </td>`;
+        } else {
+          html += `<td style="font-size: 9px; color: #999;">-/-</td>`;
+        }
+      }
+      
+      html += `</tr>`;
+    }
+
+    // Podsumowanie niezgodności
+    const nonCompliant = readings.filter(r => !r.isCompliant);
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 15px;">
+        <strong>Niezgodności w tym tygodniu:</strong> ${nonCompliant.length > 0 ? nonCompliant.length : 'Brak'}
+      </div>
+    `;
+
+    if (nonCompliant.length > 0) {
+      html += `<table style="margin-top: 10px;">
+        <thead><tr><th>Data</th><th>Punkt</th><th>Temp.</th><th>Norma</th></tr></thead>
+        <tbody>`;
+      for (const r of nonCompliant.slice(0, 10)) {
+        html += `<tr>
+          <td>${dayjs(r.readAt).format('DD.MM HH:mm')}</td>
+          <td>${r.temperaturePoint.name}</td>
+          <td class="temp-danger">${r.temperature.toFixed(1)}°C</td>
+          <td>${r.temperaturePoint.minTemp} - ${r.temperaturePoint.maxTemp}°C</td>
+        </tr>`;
+      }
+      html += `</tbody></table>`;
+    }
+
+    html += getDocumentFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania raportu:', error);
+    res.status(500).json({ error: 'Błąd generowania raportu' });
+  }
+});
+
+// RAPORT: Przyjęcia surowców z danymi
+router.get('/reports/reception', async (req: Request, res: Response) => {
+  try {
+    const startDate = req.query.startDate 
+      ? dayjs(req.query.startDate as string).startOf('day')
+      : dayjs().startOf('week');
+    const endDate = req.query.endDate 
+      ? dayjs(req.query.endDate as string).endOf('day')
+      : dayjs().endOf('week');
+
+    const receptions = await prisma.rawMaterialReception.findMany({
+      where: {
+        receivedAt: {
+          gte: startDate.toDate(),
+          lte: endDate.toDate(),
+        },
+      },
+      include: {
+        rawMaterial: true,
+        supplier: true,
+        user: { select: { name: true } },
+      },
+      orderBy: { receivedAt: 'asc' },
+    });
+
+    let html = getDocumentHeader('Raport przyjęć surowców');
+    
+    html += `
+      <div class="doc-title">KARTA PRZYJĘCIA SUROWCÓW</div>
+      <div class="doc-info">Nr formularza: F-HACCP-02 | Wygenerowano z systemu HACCP</div>
+      
+      <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+        <strong>Okres:</strong> ${startDate.format('DD.MM.YYYY')} - ${endDate.format('DD.MM.YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Liczba przyjęć:</strong> ${receptions.length}
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 8%;">Data</th>
+            <th style="width: 8%;">Godz.</th>
+            <th style="width: 18%;">Surowiec</th>
+            <th style="width: 14%;">Dostawca</th>
+            <th style="width: 12%;">Nr partii</th>
+            <th style="width: 10%;">Ilość</th>
+            <th style="width: 8%;">Temp.</th>
+            <th style="width: 10%;">Przyjął</th>
+            <th style="width: 12%;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const rec of receptions) {
+      const tempClass = rec.temperature !== null ? 
+        (rec.temperature > 4 ? 'temp-danger' : 'temp-ok') : '';
+      
+      html += `
+        <tr>
+          <td>${dayjs(rec.receivedAt).format('DD.MM')}</td>
+          <td>${rec.receivedTime || dayjs(rec.receivedAt).format('HH:mm')}</td>
+          <td style="text-align: left; font-size: 9px;">${rec.rawMaterial?.name || '-'}</td>
+          <td style="font-size: 9px;">${rec.supplier?.name || '-'}</td>
+          <td style="font-size: 9px;">${rec.batchNumber || '-'}</td>
+          <td>${rec.quantity} ${rec.unit}</td>
+          <td class="${tempClass}">${rec.temperature !== null ? rec.temperature + '°C' : '-'}</td>
+          <td style="font-size: 9px;">${rec.user?.name || '-'}</td>
+          <td>${rec.isCompliant ? '<span class="badge-ok">Przyjęty</span>' : '<span class="badge-fail">Odrzucony</span>'}</td>
+        </tr>
+      `;
+    }
+
+    if (receptions.length === 0) {
+      html += `<tr><td colspan="9" style="text-align: center; color: #666;">Brak przyjęć w tym okresie</td></tr>`;
+    }
+
+    // Podsumowanie
+    const rejected = receptions.filter(r => !r.isCompliant);
+    const totalQty = receptions.reduce((sum, r) => sum + (r.quantity || 0), 0);
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 15px; display: flex; gap: 30px;">
+        <div><strong>Razem przyjęto:</strong> ${totalQty.toFixed(1)} kg</div>
+        <div><strong>Odrzucono:</strong> ${rejected.length} dostaw</div>
+      </div>
+    `;
+
+    if (rejected.length > 0) {
+      html += `
+        <div style="margin-top: 10px;">
+          <strong>Dostawy odrzucone:</strong>
+          <ul style="margin: 5px 0; padding-left: 20px; font-size: 10px;">
+      `;
+      for (const r of rejected) {
+        html += `<li>${dayjs(r.receivedAt).format('DD.MM')} - ${r.rawMaterial?.name} od ${r.supplier?.name}: ${r.notes || 'brak uwag'}</li>`;
+      }
+      html += `</ul></div>`;
+    }
+
+    html += getDocumentFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania raportu:', error);
+    res.status(500).json({ error: 'Błąd generowania raportu' });
+  }
+});
+
+// RAPORT: Mycie i dezynfekcja z danymi
+router.get('/reports/cleaning', async (req: Request, res: Response) => {
+  try {
+    const startDate = req.query.startDate 
+      ? dayjs(req.query.startDate as string).startOf('day')
+      : dayjs().startOf('week');
+    const endDate = req.query.endDate 
+      ? dayjs(req.query.endDate as string).endOf('day')
+      : dayjs().endOf('week');
+
+    const records = await prisma.cleaningRecord.findMany({
+      where: {
+        cleanedAt: {
+          gte: startDate.toDate(),
+          lte: endDate.toDate(),
+        },
+      },
+      include: {
+        cleaningArea: true,
+        user: { select: { name: true } },
+      },
+      orderBy: [{ cleanedAt: 'asc' }],
+    });
+
+    let html = getDocumentHeader('Raport mycia i dezynfekcji');
+    
+    html += `
+      <div class="doc-title">KARTA MYCIA I DEZYNFEKCJI</div>
+      <div class="doc-info">Nr formularza: F-HACCP-03 | Wygenerowano z systemu HACCP</div>
+      
+      <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+        <strong>Okres:</strong> ${startDate.format('DD.MM.YYYY')} - ${endDate.format('DD.MM.YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Liczba zapisów:</strong> ${records.length}
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 10%;">Data</th>
+            <th style="width: 22%;">Obszar / Urządzenie</th>
+            <th style="width: 12%;">Metoda</th>
+            <th style="width: 14%;">Środek myjący</th>
+            <th style="width: 14%;">Wykonał</th>
+            <th style="width: 10%;">Weryfikacja</th>
+            <th style="width: 18%;">Uwagi</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const rec of records) {
+      html += `
+        <tr>
+          <td>${dayjs(rec.cleanedAt).format('DD.MM')}</td>
+          <td style="text-align: left; font-size: 9px;">${rec.cleaningArea?.name || '-'}</td>
+          <td style="font-size: 9px;">${rec.method || '-'}</td>
+          <td style="font-size: 9px;">${rec.chemicals || '-'}</td>
+          <td style="font-size: 9px;">${rec.user?.name || '-'}</td>
+          <td>${rec.isVerified ? '<span class="badge-ok">OK</span>' : '<span class="badge-warning">Oczekuje</span>'}</td>
+          <td style="font-size: 8px;">${rec.notes || '-'}</td>
+        </tr>
+      `;
+    }
+
+    if (records.length === 0) {
+      html += `<tr><td colspan="7" style="text-align: center; color: #666;">Brak zapisów w tym okresie</td></tr>`;
+    }
+
+    // Podsumowanie
+    const verified = records.filter(r => r.isVerified).length;
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 15px; display: flex; gap: 30px;">
+        <div><strong>Zweryfikowane:</strong> ${verified}</div>
+        <div><strong>Oczekujące:</strong> ${records.length - verified}</div>
+      </div>
+    `;
+
+    html += getDocumentFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania raportu:', error);
+    res.status(500).json({ error: 'Błąd generowania raportu' });
+  }
+});
+
+// RAPORT: Produkcja z danymi
+router.get('/reports/production', async (req: Request, res: Response) => {
+  try {
+    const startDate = req.query.startDate 
+      ? dayjs(req.query.startDate as string).startOf('day')
+      : dayjs().startOf('week');
+    const endDate = req.query.endDate 
+      ? dayjs(req.query.endDate as string).endOf('day')
+      : dayjs().endOf('week');
+
+    const batches = await prisma.productionBatch.findMany({
+      where: {
+        productionDate: {
+          gte: startDate.toDate(),
+          lte: endDate.toDate(),
+        },
+      },
+      include: {
+        product: true,
+        user: { select: { name: true } },
+        materials: {
+          include: {
+            rawMaterial: true,
+            reception: true,
+            curingBatch: true,
+          },
+        },
+      },
+      orderBy: { productionDate: 'asc' },
+    });
+
+    let html = getDocumentHeader('Raport produkcji');
+    
+    html += `
+      <div class="doc-title">KARTA PRODUKCJI</div>
+      <div class="doc-info">Nr formularza: F-HACCP-04 | Wygenerowano z systemu HACCP</div>
+      
+      <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+        <strong>Okres:</strong> ${startDate.format('DD.MM.YYYY')} - ${endDate.format('DD.MM.YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Liczba partii:</strong> ${batches.length}
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 8%;">Data</th>
+            <th style="width: 12%;">Nr partii</th>
+            <th style="width: 18%;">Produkt</th>
+            <th style="width: 10%;">Ilość (kg)</th>
+            <th style="width: 18%;">Surowce</th>
+            <th style="width: 10%;">T. końcowa</th>
+            <th style="width: 12%;">Wykonał</th>
+            <th style="width: 12%;">CCP1</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (const batch of batches) {
+      const finalTempOk = batch.finalTemperature !== null && batch.finalTemperature >= 72;
+      const requiredTemp = batch.product?.requiredTemperature || 72;
+      
+      // Lista surowców
+      const materialsStr = batch.materials
+        .map(m => m.reception?.batchNumber || m.curingBatch?.batchNumber || m.rawMaterial?.name || '?')
+        .slice(0, 3)
+        .join(', ');
+      
+      html += `
+        <tr>
+          <td>${dayjs(batch.productionDate).format('DD.MM')}</td>
+          <td style="font-size: 9px;">${batch.batchNumber}</td>
+          <td style="text-align: left; font-size: 9px;">${batch.product?.name || '-'}</td>
+          <td>${batch.quantity}</td>
+          <td style="font-size: 8px;">${materialsStr || '-'}</td>
+          <td class="${batch.finalTemperature ? (finalTempOk ? 'temp-ok' : 'temp-danger') : ''}">${batch.finalTemperature ? batch.finalTemperature + '°C' : '-'}</td>
+          <td style="font-size: 9px;">${batch.user?.name || '-'}</td>
+          <td>${batch.finalTemperature !== null ? (batch.finalTemperature >= requiredTemp ? '<span class="badge-ok">✓</span>' : '<span class="badge-fail">✗</span>') : '-'}</td>
+        </tr>
+      `;
+    }
+
+    if (batches.length === 0) {
+      html += `<tr><td colspan="8" style="text-align: center; color: #666;">Brak partii w tym okresie</td></tr>`;
+    }
+
+    // Podsumowanie
+    const totalQty = batches.reduce((sum, b) => sum + (b.quantity || 0), 0);
+    const ccpOk = batches.filter(b => b.finalTemperature !== null && b.finalTemperature >= 72).length;
+    const ccpFail = batches.filter(b => b.finalTemperature !== null && b.finalTemperature < 72).length;
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 15px;">
+        <strong>CCP1 - Obróbka termiczna:</strong> Temp. wewnętrzna produktu min. 72°C (lub wg wymagań produktu)
+      </div>
+      
+      <div style="margin-top: 10px; display: flex; gap: 30px;">
+        <div><strong>Razem wyprodukowano:</strong> ${totalQty.toFixed(1)} kg</div>
+        <div><strong>CCP1 zgodne:</strong> ${ccpOk}</div>
+        <div><strong>CCP1 niezgodne:</strong> ${ccpFail}</div>
+      </div>
+    `;
+
+    html += getDocumentFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania raportu:', error);
+    res.status(500).json({ error: 'Błąd generowania raportu' });
+  }
+});
+
+// RAPORT: Kontrola DDD z danymi
+router.get('/reports/pest-control', async (req: Request, res: Response) => {
+  try {
+    const month = req.query.month 
+      ? dayjs(req.query.month as string)
+      : dayjs();
+    const startDate = month.startOf('month');
+    const endDate = month.endOf('month');
+
+    const points = await prisma.pestControlPoint.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    const checks = await prisma.pestControlCheck.findMany({
+      where: {
+        checkedAt: {
+          gte: startDate.toDate(),
+          lte: endDate.toDate(),
+        },
+      },
+      include: {
+        pestControlPoint: true,
+        user: { select: { name: true } },
+      },
+      orderBy: { checkedAt: 'asc' },
+    });
+
+    let html = getDocumentHeader('Raport kontroli DDD');
+    
+    html += `
+      <div class="doc-title">KARTA KONTROLI DDD - MIESIĄC</div>
+      <div class="doc-info">Nr formularza: F-HACCP-05 | Wygenerowano z systemu HACCP</div>
+      
+      <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+        <strong>Miesiąc:</strong> ${month.format('MMMM YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Liczba kontroli:</strong> ${checks.length}
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 6%;">Nr</th>
+            <th style="width: 12%;">Typ</th>
+            <th style="width: 20%;">Lokalizacja</th>
+            <th style="width: 12%;">Data</th>
+            <th style="width: 10%;">Stan</th>
+            <th style="width: 14%;">Kontrolujący</th>
+            <th style="width: 26%;">Ustalenia/Działania</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Grupuj kontrole po punkcie
+    for (const point of points) {
+      const pointChecks = checks.filter(c => c.pestControlPointId === point.id);
+      
+      if (pointChecks.length === 0) {
+        html += `
+          <tr>
+            <td>${point.id}</td>
+            <td style="font-size: 9px;">${point.type === 'TRAP' ? 'Pułapka' : point.type === 'BAIT' ? 'Stacja' : point.type === 'LAMP' ? 'Lampa' : point.type}</td>
+            <td style="text-align: left; font-size: 9px;">${point.location}</td>
+            <td colspan="4" style="color: #999; text-align: center;">Brak kontroli w tym miesiącu</td>
+          </tr>
+        `;
+      } else {
+        for (let i = 0; i < pointChecks.length; i++) {
+          const check = pointChecks[i];
+          html += `
+            <tr>
+              ${i === 0 ? `
+                <td rowspan="${pointChecks.length}">${point.id}</td>
+                <td rowspan="${pointChecks.length}" style="font-size: 9px;">${point.type === 'TRAP' ? 'Pułapka' : point.type === 'BAIT' ? 'Stacja' : point.type === 'LAMP' ? 'Lampa' : point.type}</td>
+                <td rowspan="${pointChecks.length}" style="text-align: left; font-size: 9px;">${point.location}</td>
+              ` : ''}
+              <td>${dayjs(check.checkedAt).format('DD.MM')}</td>
+              <td>${check.status === 'OK' ? '<span class="badge-ok">OK</span>' : '<span class="badge-fail">Problem</span>'}</td>
+              <td style="font-size: 9px;">${check.user?.name || '-'}</td>
+              <td style="font-size: 8px;">${check.findings || '-'} ${check.actionTaken ? '→ ' + check.actionTaken : ''}</td>
+            </tr>
+          `;
+        }
+      }
+    }
+
+    // Podsumowanie
+    const problems = checks.filter(c => c.status !== 'OK').length;
+
+    html += `
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 15px; display: flex; gap: 30px;">
+        <div><strong>Punkty kontrolne:</strong> ${points.length}</div>
+        <div><strong>Wykonane kontrole:</strong> ${checks.length}</div>
+        <div><strong>Problemy wykryte:</strong> ${problems}</div>
+      </div>
+    `;
+
+    html += getDocumentFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania raportu:', error);
+    res.status(500).json({ error: 'Błąd generowania raportu' });
+  }
+});
+
+// RAPORT: Peklowanie z danymi
+router.get('/reports/curing', async (req: Request, res: Response) => {
+  try {
+    const startDate = req.query.startDate 
+      ? dayjs(req.query.startDate as string).startOf('day')
+      : dayjs().subtract(30, 'day').startOf('day');
+    const endDate = req.query.endDate 
+      ? dayjs(req.query.endDate as string).endOf('day')
+      : dayjs().endOf('day');
+
+    const batches = await prisma.curingBatch.findMany({
+      where: {
+        startDate: {
+          gte: startDate.toDate(),
+          lte: endDate.toDate(),
+        },
+      },
+      include: {
+        reception: {
+          include: {
+            rawMaterial: true,
+          },
+        },
+        user: { select: { name: true } },
+      },
+      orderBy: { startDate: 'desc' },
+    });
+
+    let html = getDocumentHeader('Raport peklowania');
+    
+    html += `
+      <div class="doc-title">KARTY PROCESU PEKLOWANIA</div>
+      <div class="doc-info">Nr formularza: F-HACCP-06 | Wygenerowano z systemu HACCP</div>
+      
+      <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e9; border-radius: 5px;">
+        <strong>Okres:</strong> ${startDate.format('DD.MM.YYYY')} - ${endDate.format('DD.MM.YYYY')}
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <strong>Liczba partii:</strong> ${batches.length}
+      </div>
+    `;
+
+    for (const batch of batches) {
+      const methodName = batch.curingMethod === 'WET' ? 'Mokra' : batch.curingMethod === 'DRY' ? 'Sucha' : 'Nastrzykowa';
+      
+      html += `
+        <div style="border: 2px solid #333; margin: 15px 0; padding: 10px; page-break-inside: avoid;">
+          <h3 style="margin: 0 0 10px 0; font-size: 12px; background: #e0e0e0; padding: 5px;">
+            Partia: ${batch.batchNumber} | ${batch.productName || batch.reception?.rawMaterial?.name || '-'} | ${batch.meatDescription || ''}
+          </h3>
+          
+          <table style="margin-bottom: 10px;">
+            <tr>
+              <td style="width: 25%;"><strong>Data rozpoczęcia:</strong></td>
+              <td style="width: 25%;">${dayjs(batch.startDate).format('DD.MM.YYYY HH:mm')}</td>
+              <td style="width: 25%;"><strong>Data zakończenia:</strong></td>
+              <td style="width: 25%;">${batch.actualEndDate ? dayjs(batch.actualEndDate).format('DD.MM.YYYY HH:mm') : 'W trakcie'}</td>
+            </tr>
+            <tr>
+              <td><strong>Ilość mięsa:</strong></td>
+              <td>${batch.quantity} ${batch.unit}</td>
+              <td><strong>Metoda:</strong></td>
+              <td>${methodName}</td>
+            </tr>
+            <tr>
+              <td><strong>Wykonał:</strong></td>
+              <td>${batch.user?.name || '-'}</td>
+              <td><strong>Status:</strong></td>
+              <td>${batch.status === 'COMPLETED' ? '<span class="badge-ok">Zakończone</span>' : batch.status === 'IN_PROGRESS' ? '<span class="badge-warning">W trakcie</span>' : batch.status}</td>
+            </tr>
+          </table>
+          
+          <table style="margin-bottom: 10px;">
+            <tr><th colspan="4">SKŁAD SOLANKI</th></tr>
+            <tr>
+              <td><strong>Woda:</strong> ${batch.brineWater || '-'} L</td>
+              <td><strong>Sól peklowa:</strong> ${batch.brineSalt || '-'} kg</td>
+              <td><strong>Maggi:</strong> ${batch.brineMaggi || '-'} kg</td>
+              <td><strong>Cukier:</strong> ${batch.brineSugar || '-'} kg</td>
+            </tr>
+          </table>
+          
+          ${batch.notes ? `<p style="font-size: 10px; margin-top: 5px;"><strong>Uwagi:</strong> ${batch.notes}</p>` : ''}
+        </div>
+      `;
+    }
+
+    if (batches.length === 0) {
+      html += `<p style="text-align: center; color: #666;">Brak partii peklowania w tym okresie</p>`;
+    }
+
+    html += getDocumentFooter();
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Błąd generowania raportu:', error);
+    res.status(500).json({ error: 'Błąd generowania raportu' });
+  }
+});
+
+// Lista dostępnych raportów z danymi
+router.get('/reports', async (req: Request, res: Response) => {
+  const reports = [
+    { id: 'temperature-weekly', name: 'Temperatura - tydzień', code: 'F-HACCP-01', description: 'Pomiary temperatury z wybranego tygodnia', periodType: 'week' },
+    { id: 'reception', name: 'Przyjęcia surowców', code: 'F-HACCP-02', description: 'Lista przyjęć dostaw z wybranego okresu', periodType: 'range' },
+    { id: 'cleaning', name: 'Mycie i dezynfekcja', code: 'F-HACCP-03', description: 'Zapisy mycia z wybranego okresu', periodType: 'range' },
+    { id: 'production', name: 'Produkcja', code: 'F-HACCP-04', description: 'Partie produkcyjne z wybranego okresu', periodType: 'range' },
+    { id: 'pest-control', name: 'Kontrola DDD - miesiąc', code: 'F-HACCP-05', description: 'Kontrole punktów DDD z wybranego miesiąca', periodType: 'month' },
+    { id: 'curing', name: 'Peklowanie', code: 'F-HACCP-06', description: 'Partie peklowania z wybranego okresu', periodType: 'range' },
+  ];
+  
+  res.json(reports);
+});
+
 export default router;
